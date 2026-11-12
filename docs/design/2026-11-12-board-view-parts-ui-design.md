@@ -15,6 +15,10 @@
   them, saved as a new layout.
 - **Spend time on the UI**, reusing what the website and Maker Forge already have.
 - **Start saving accurate parts and components**, for the 3D view now and the inventory app later.
+- A **datasheet shortcut, or the file itself, right there on the part**.
+- **Suggested routing of cables**, always with **different options** to pick from.
+- **"Most options and easy to use"**: change, undo and save your work everywhere.
+- Where a 3D-engine or UI improvement helps **Shape and Bench both**, make it for both.
 
 **Assumed** (the owner can correct any of these)
 - The board view and its editor live **inside Bench**. The roadmap's separate Layout app keeps only
@@ -122,6 +126,14 @@ the format moves unchanged.
   - **Where:** the holes ("28,16 → 28,17"), the side and the orientation.
   - **Why:** its role.
   - The polarity warning, and which build step it belongs to.
+  - **Datasheet:** one button that opens the datasheet. It uses a local file if the project has one
+    (`"datasheetFile": "docs/datasheets/1N5402G.pdf"`, opened from the project folder, and shown
+    inside Bench once 1.2 reads PDFs), and otherwise the library's link to the manufacturer's page.
+    Bench links to datasheets rather than copying them into its own repo: manufacturers' copyright
+    usually allows linking but not redistribution, and a maker keeping their own copy in their
+    project is their choice.
+  - **Pinout:** for parts whose pins matter (Q1, U2, the headers), a small labelled drawing of the
+    pins seen from above, matching how the part sits on this board.
 
 **Follow along (step mode)**
 - The `build` steps run in order, for example "Step 4 of 6: the DIP socket, notch LEFT".
@@ -147,6 +159,14 @@ readable, printable and searchable, and it's what a screen reader uses.
 
   Problems show at once, in plain words, on the part and in a list ("R6's leg lands in the hole C4
   uses"). A part stays red while it breaks a rule.
+- **Suggested routes, always with options.** When a connection is open (after moving a part, or
+  for a new link), **Suggest routes** offers about three alternative wire paths to pick from, each
+  drawn as a preview with a one-line reason: "shortest, 2 bends", "fewest crossings over the bare
+  buses", "stays clear of the socket". They're found on the hole grid (A*, half-hole bends as in
+  `board.py`) under the same rules the checker enforces, so a suggestion never crosses another
+  connection's joint. Picking one adds it as a normal link, and it can still be dragged afterwards.
+- **Off-board cables** (fans, panel, LCD, power) get the same treatment in a later release: suggested
+  routes and lengths through the case, once 2.0 knows the case from Shape.
 - **Undo and redo** for every change.
 - **Saving never touches the project's own layout.** Changes are saved as *the maker's version* in
   the browser (per project and revision). They can be exported as their own `forge-project.json`,
@@ -156,6 +176,20 @@ readable, printable and searchable, and it's what a screen reader uses.
   catch all eight, under the same rule. The Python stays the reference in the fume repo.
 - **Later:** an importer that turns an exported version back into `board.py`, for the owner's own
   layout changes.
+
+## 6a. Working well: many options, easy to use, nothing lost
+
+These rules apply to every screen, starting with 0.2:
+- **Every change can be undone and redone** (`Ctrl+Z` / `Ctrl+Y`, plus buttons). That covers
+  ticks, notes, moved parts, flips and settings, with a history you can step back through.
+- **Work saves itself** in the browser as you go, per project and revision. **Save as file** and
+  **Open file** exist everywhere, so work moves between devices or into the repo. A small "Saved"
+  mark shows it happened.
+- **Versions:** a maker can keep several named versions of their board ("as drawn", "my build",
+  "with a bigger C1") and switch between them.
+- **Options with good defaults:** the common choice is one click, and more choices sit one step away
+  in a clearly labelled panel. Every suggestion (routes, part swaps, build order) comes with
+  alternatives to pick from.
 
 ## 7. The UI: one family with Maker Forge, a bench accent from the website
 
@@ -180,6 +214,10 @@ so Bench takes its system, and takes its accent colour from the website.
   - Unlike Maker Forge, it's self-hosted as ES modules (`src/vendor/three-r128/`, MIT licence kept,
     with a hash noted) and loaded from no CDN, so Bench keeps `script-src 'self'`.
 - **Not copied:** Maker Forge's one-file build with inline scripts. Bench keeps its strict rules.
+- **Improvements go both ways.** When Bench builds a 3D or UI piece that Shape could use (part
+  picking that lifts and glows, the undo history, step mode, the datasheet button, a faster way to
+  draw many small parts), it's written so it can move into Maker Forge. That change is made in
+  Maker Forge's own repo by its own Claude session, never from Bench's.
 - **The website's full PCB look** (purple board, cut corners) stays on the website: Bench's
   Workbench entry and the project pages use it. Inside the app, the Maker Forge family look wins.
 
@@ -214,9 +252,9 @@ so Bench takes its system, and takes its accent colour from the website.
 
 | Release | What |
 |---|---|
-| **0.2 Know your parts** (as planned) | The project file (reading the fume extractor's new `forge-project.json`), part cards, the same part on every sheet, the build checklist, Ask Claude. **Plus the UI family refresh:** Maker Forge's tokens and themes, Easy reading, fonts and the gold accent. |
-| **0.3 Board view** | `export_board.py` and the `build` section in the fume repo, parts library v1 (the fume extractor's packages and parts, verified against datasheets), the 3D board with the schematic behind, part cards with where and why, step mode, and the text list. |
-| **0.4 Make it yours** | Drag and turn parts, add and remove links, the live checker kept in step with `pcb.py`, makers' versions saved and exported with a change list. |
+| **0.2 Know your parts** (as planned) | The project file (reading the fume extractor's new `forge-project.json`), part cards with the **datasheet button**, the same part on every sheet, the build checklist, Ask Claude. **Plus the UI family refresh** (Maker Forge's tokens and themes, Easy reading, fonts, the gold accent) and the **undo, autosave and save-as-file rules** (section 6a). |
+| **0.3 Board view** | `export_board.py` and the `build` section in the fume repo, parts library v1 (the fume extractor's packages and parts, verified against datasheets), the 3D board with the schematic behind, part cards with where, why and pinout, step mode, and the text list. |
+| **0.4 Make it yours** | Drag and turn parts, add and remove links, **suggested routes with options**, the live checker kept in step with `pcb.py`, named versions saved and exported with a change list. |
 | **0.5 Everywhere** (was 0.3) | Phone and tablet, GitHub repos, built-in examples, your own Claude key. |
 | **1.0 Launch** | As planned. |
 
@@ -237,5 +275,5 @@ so Bench takes its system, and takes its accent colour from the website.
 2. **UI direction:** the Maker Forge family with the website's gold accent (recommended), or the
    website's full PCB look inside the app too.
 3. **The parts library** in Bench's repo for now (recommended), or its own repo from the start.
-4. **The fume repo:** commit and push the new `forge-project.json` and its changelog line (your
-   repo's rule: you commit and push).
+4. ~~The fume repo commit~~ **Settled 2026-11-12:** the owner said to commit and push from now on,
+   so `forge-project.json` and its changelog line are pushed.
