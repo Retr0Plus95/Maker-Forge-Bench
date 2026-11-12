@@ -294,3 +294,38 @@ h1 {
 #settings label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
 #settings label.check { display: flex; margin-bottom: 4px; }
 #settings .hint { margin: 8px 0 12px; }
+
+/* ---- part card ---- */
+#part-card h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.part-value { color: var(--accent); font-weight: 700; }
+.part-meta { margin: 0 0 6px; color: var(--muted); font-size: .9rem; }
+.part-why, .part-note, .part-guessed { margin: 6px 0; }
+.part-note { color: var(--muted); }
+.part-guessed { color: var(--warn); font-size: .9rem; }
+.part-polarity {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--warn);
+  border-left-width: 5px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+.part-polarity::before { content: "⚠ "; color: var(--warn); }
+.part-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+#part-tick[aria-pressed="true"] { border-color: var(--good); color: var(--good); font-weight: 700; }
+.part-sheets-label { margin: 10px 0 4px; color: var(--muted); font-size: .85rem; }
+.part-sheets { display: flex; flex-wrap: wrap; gap: 6px; }

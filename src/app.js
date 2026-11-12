@@ -1,6 +1,7 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
-import { ProjectError, guessParts, parseProject, sheetsForProject, sheetsFromFiles } from './project.js';
+import { ProjectError, guessParts, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
+import { renderCard, renderHint } from './panel.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
@@ -28,6 +29,7 @@ const state = {
   projectProblem: '', // why the project file couldn't be used, shown whenever the status line is free
   parts: [], // the project's parts, or parts guessed from the drawings' labels
   partsByRef: new Map(),
+  selected: null, // the ref of the part whose card is open
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -166,6 +168,10 @@ async function selectSheet(id) {
   if (saved) viewer.setView(saved);
   if (state.flipped.has(id) !== viewer.isFlipped()) viewer.setFlipped(state.flipped.has(id));
   updateFlip();
+  if (state.selected) {
+    const label = firstLabelFor(id, state.selected);
+    viewer.ring(label ? label.el : null);
+  }
   return true;
 }
 
@@ -202,13 +208,94 @@ function toggleFlip() {
   history.do({ label: `Flip ${sheet.label}`, apply: () => setSheetFlipped(id, on), revert: () => setSheetFlipped(id, !on) });
 }
 
-/** Find part: show the label's sheet, zoom to the label and ring it. */
-async function goTo(label) {
+/** Find part: show the label's sheet, zoom to the label and ring it. A query that is a part's ref opens its card. */
+async function goTo(label, query) {
+  const ref = query ? findRef(query) : null;
+  if (ref) state.selected = ref;
   if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
   viewer.zoomToRect(viewer.labelRect(label.el));
   viewer.ring(label.el);
+  if (ref) {
+    updatePartDots();
+    renderPartCard();
+  }
   return true;
 }
+
+// ---- parts: selecting one and its card (design §7.4, §7.5) ----
+const isKnownRef = (ref) => state.partsByRef.has(ref);
+const labelText = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim();
+
+/** A typed ref: exact, or else the one part whose ref matches ignoring case. */
+function findRef(query) {
+  const q = query.trim();
+  if (state.partsByRef.has(q)) return q;
+  const same = state.parts.filter((p) => p.ref.toLowerCase() === q.toLowerCase());
+  return same.length === 1 ? same[0].ref : null;
+}
+
+function firstLabelFor(sheetId, ref) {
+  const entry = state.loaded.get(sheetId);
+  return entry && entry.kind === 'svg' ? entry.labels.find((l) => refOfLabel(l.text, isKnownRef) === ref) || null : null;
+}
+
+function sheetsWithPart(ref) {
+  return state.sheets.filter((s) => firstLabelFor(s.id, ref));
+}
+
+function datasheetHref(part) {
+  if (part.datasheetFile) return projectUrl(part.datasheetFile, 0);
+  return part.datasheet || null;
+}
+
+function updatePartDots() {
+  const withPart = new Set(state.selected ? sheetsWithPart(state.selected).map((s) => s.id) : []);
+  for (const tab of $('#tabs').children) tab.toggleAttribute('data-has-part', withPart.has(tab.dataset.id));
+}
+
+function renderPartCard() {
+  const part = state.selected ? state.partsByRef.get(state.selected) : null;
+  if (!part) {
+    renderHint($('#part-card'));
+    return;
+  }
+  renderCard($('#part-card'), part, {
+    sheetsWithPart: sheetsWithPart(part.ref),
+    datasheetHref: datasheetHref(part),
+    onSheet: (id) => showPartOn(id, part.ref),
+    onClose: clearPart,
+  });
+}
+
+function selectPart(ref, labelEl) {
+  state.selected = ref;
+  const label = labelEl || (firstLabelFor(state.current, ref) || {}).el || null;
+  viewer.ring(label);
+  updatePartDots();
+  renderPartCard();
+}
+
+function clearPart() {
+  if (!state.selected) return;
+  state.selected = null;
+  viewer.ring(null);
+  updatePartDots();
+  renderPartCard();
+}
+
+async function showPartOn(sheetId, ref) {
+  if (!(await selectSheet(sheetId))) return;
+  const label = firstLabelFor(sheetId, ref);
+  if (label && label.el.isConnected) {
+    viewer.zoomToRect(viewer.labelRect(label.el));
+    viewer.ring(label.el);
+  }
+}
+
+viewer.onLabelClick((el) => {
+  const ref = refOfLabel(labelText(el), isKnownRef);
+  if (ref) selectPart(ref, el);
+});
 
 const find = createFindBar({
   input: $('#find'),
@@ -259,6 +346,9 @@ function updateParts() {
     }));
   }
   state.partsByRef = new Map(state.parts.map((p) => [p.ref, p]));
+  if (state.selected && !state.partsByRef.has(state.selected)) state.selected = null;
+  updatePartDots();
+  renderPartCard();
 }
 
 /** forge-project.json changed: read it again. A broken version keeps the previous project. */
@@ -435,6 +525,7 @@ function renderTabs() {
     tab.addEventListener('click', () => selectSheet(sheet.id));
     return tab;
   }));
+  updatePartDots();
 }
 
 function onKey(e) {
@@ -466,6 +557,7 @@ function onKey(e) {
     n: () => find.next(),
     N: () => find.prev(),
     f: () => toggleFlip(),
+    Escape: () => clearPart(),
   };
   const action = actions[e.key];
   if (!action) return;

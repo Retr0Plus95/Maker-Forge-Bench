@@ -25,7 +25,9 @@ HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 CSP = (HERE / "deploy" / "csp.txt").read_text(encoding="utf-8").strip()
 
-PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+# Drawings, plus datasheet PDFs a project keeps next to them (never shown as sheets).
+PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                 ".pdf": "application/pdf"}
 PROJECT_FILE = "forge-project.json"
 APP_TYPES = {
     ".html": "text/html; charset=utf-8",

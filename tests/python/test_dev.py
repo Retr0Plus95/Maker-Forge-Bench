@@ -185,6 +185,15 @@ class TestLiveServer(DevServerTestCase):
         self.assertEqual(refused, 0, f"{refused} of 60 connections refused")
         self.assertEqual(pending, [], "some connections never completed")
 
+    def test_datasheet_pdf_served(self):
+        pdf = self.root / "docs" / "ds" / "x.pdf"
+        pdf.parent.mkdir(parents=True, exist_ok=True)
+        pdf.write_bytes(b"%PDF-1.4\n%%EOF\n")
+        resp, body = self.request("GET", "/project/docs/ds/x.pdf")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "application/pdf")
+        self.assertTrue(body.startswith(b"%PDF"))
+
     def test_font_served(self):
         resp, body = self.request("GET", "/atkinson-hyperlegible-latin-400-normal.woff2")
         self.assertEqual(resp.status, 200)

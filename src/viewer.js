@@ -186,6 +186,22 @@ export function createViewer(stage) {
   stage.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
 
+  // A click (pointer down and up close together) on a label: tells onLabelClick listeners which
+  // <text> it was. composedPath()[0] reaches inside the shadow root; it's read at pointer-down
+  // because the drag's pointer capture makes pointer-up land on the stage.
+  const labelListeners = [];
+  let downAt = null;
+  stage.addEventListener('pointerdown', (e) => {
+    downAt = e.button === 0 ? { x: e.clientX, y: e.clientY, target: e.composedPath()[0] } : null;
+  }, true);
+  stage.addEventListener('pointerup', (e) => {
+    const start = downAt;
+    downAt = null;
+    if (!start || Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 4 || !(start.target instanceof Element)) return;
+    const label = start.target.closest('text');
+    if (label) for (const fn of labelListeners) fn(label);
+  });
+
   stage.addEventListener('dblclick', (e) => {
     if (!size) return;
     const [px, py] = stagePoint(e);
@@ -208,6 +224,7 @@ export function createViewer(stage) {
     },
     labelRect,
     ring,
+    onLabelClick: (fn) => labelListeners.push(fn),
     setFlipped,
     isFlipped,
     getView: () => ({ ...view }),
