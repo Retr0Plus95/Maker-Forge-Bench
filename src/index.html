@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maker Forge Bench</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header id="top">
+  <h1><span class="app-name">Maker Forge Bench</span> <span id="project-name"></span></h1>
+  <span id="live" aria-live="polite"></span>
+  <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
+  <div id="findbar" role="search">
+    <label for="find">Find part</label>
+    <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
+  </div>
+  <button id="flip" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
+  <div id="find-results"></div>
+</header>
+<p id="status" aria-live="polite"></p>
+<p id="sheet-note" aria-live="polite" hidden></p>
+<main id="stage" aria-label="Drawing">
+  <div id="sheet-host"></div>
+  <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
+  <p id="stage-message" hidden></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bench-fixtures",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["dev.py", "tests/fixtures/fume-extractor", "--port", "8766"],
+      "port": 8766
+    }
+  ]
+}

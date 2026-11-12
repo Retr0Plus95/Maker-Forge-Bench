@@ -1,0 +1,486 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1250" width="1800" height="1250" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTplMjNkMmMxZi01YzExLTQyOTAtYmFjZS1jZjY4MDhiYjI5ZjMAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaBV6tdmS6f2ONACf3ZBRlpcAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo5NzBjYjEyNC1kZjA4LTQwNTctOTljNy0yNTAwZTNmMzc1YjZscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoingA/cx6787/zCOiRtiG8QAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggZVfN9td3Js72pGKwJRGU6b18cKnQOF9TA/9zNqHCFKKkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaFdVAacwlE2BBbjb3jzFbTEAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCCRO76TZj8UsBujWWINPnA/e/76yp13ZI2PRsDpjCnuJ2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBiaZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmUyM2QyYzFmLTVjMTEtNDI5MC1iYWNlLWNmNjgwOGJiMjlmMy9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmFmOTM4MjkwLTQ5ZTUtNDc5My1iMjE3LTIzNDMyYjk1Njk3OHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBlV83213cmzvakYrAlEZTpvXxwqdA4X1MD/3M2ocIUoqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggHki/nqnwh/5IWi0BpqAPpB9wImc7KL/GjQzcHCPzNxCiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggFoS575FrfVSght1WVV1VzdM7qs+CI4M36RTqD0D5+bl0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQAr+lqCGXkFSAqTTh3jUiut8N4qNrZypgRQxEhc0z2RoLUOY0EEhH7agT++LKxmoJdErxCe09MBct5EFP50kPSo=</c2pa:manifest></metadata>
+<rect width="1800" height="1250" fill="#0b2545"/>
+<g opacity="0.06">
+<line x1="0" y1="0" x2="0" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="50" y1="0" x2="50" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="100" y1="0" x2="100" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="150" y1="0" x2="150" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="200" y1="0" x2="200" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="250" y1="0" x2="250" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="300" y1="0" x2="300" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="350" y1="0" x2="350" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="400" y1="0" x2="400" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="450" y1="0" x2="450" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="500" y1="0" x2="500" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="550" y1="0" x2="550" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="600" y1="0" x2="600" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="650" y1="0" x2="650" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="700" y1="0" x2="700" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="750" y1="0" x2="750" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="800" y1="0" x2="800" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="850" y1="0" x2="850" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="900" y1="0" x2="900" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="950" y1="0" x2="950" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1000" y1="0" x2="1000" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1050" y1="0" x2="1050" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1100" y1="0" x2="1100" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1150" y1="0" x2="1150" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1200" y1="0" x2="1200" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1250" y1="0" x2="1250" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1300" y1="0" x2="1300" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1350" y1="0" x2="1350" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1400" y1="0" x2="1400" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1450" y1="0" x2="1450" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1500" y1="0" x2="1500" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1550" y1="0" x2="1550" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1600" y1="0" x2="1600" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1650" y1="0" x2="1650" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1700" y1="0" x2="1700" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1750" y1="0" x2="1750" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="0" x2="1800" y2="0" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="50" x2="1800" y2="50" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="100" x2="1800" y2="100" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="150" x2="1800" y2="150" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="200" x2="1800" y2="200" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="250" x2="1800" y2="250" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="300" x2="1800" y2="300" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="350" x2="1800" y2="350" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="400" x2="1800" y2="400" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="450" x2="1800" y2="450" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="500" x2="1800" y2="500" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="550" x2="1800" y2="550" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="600" x2="1800" y2="600" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="650" x2="1800" y2="650" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="700" x2="1800" y2="700" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="750" x2="1800" y2="750" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="800" x2="1800" y2="800" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="850" x2="1800" y2="850" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="900" x2="1800" y2="900" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="950" x2="1800" y2="950" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1000" x2="1800" y2="1000" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1050" x2="1800" y2="1050" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1100" x2="1800" y2="1100" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1150" x2="1800" y2="1150" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1200" x2="1800" y2="1200" stroke="#fff" stroke-width="1"/>
+</g>
+<rect x="24" y="24" width="1752" height="1202" rx="0" fill="none" stroke="#e8f1fb" stroke-width="3"/>
+<rect x="36" y="36" width="1728" height="1178" rx="0" fill="none" stroke="#e8f1fb" stroke-width="1"/>
+<rect x="60" y="90" width="840" height="490" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="76" y="77" width="296.0" height="26" fill="#0b2545"/>
+<text x="86" y="95" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">A — COMPONENT PINOUT REFERENCE</text>
+<rect x="90" y="120" width="230" height="200" rx="6" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<text x="205.0" y="144" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">Q1  2N2222A  TO-92</text>
+<path d="M 150 175 L 260 175 L 260 215 A 55 55 0 0 1 150 215 Z" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<line x1="150" y1="175" x2="260" y2="175" stroke="#e8f1fb" stroke-width="3.6" stroke-linecap="round"/>
+<text x="205" y="168" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">FLAT FACE TOWARD YOU</text>
+<line x1="172" y1="250" x2="172" y2="282" stroke="#e8f1fb" stroke-width="2.4" stroke-linecap="round"/>
+<text x="172" y="300" font-family="monospace" font-size="14" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">E</text>
+<line x1="205" y1="250" x2="205" y2="282" stroke="#e8f1fb" stroke-width="2.4" stroke-linecap="round"/>
+<text x="205" y="300" font-family="monospace" font-size="14" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">B</text>
+<line x1="238" y1="250" x2="238" y2="282" stroke="#e8f1fb" stroke-width="2.4" stroke-linecap="round"/>
+<text x="238" y="300" font-family="monospace" font-size="14" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">C</text>
+<text x="205" y="312" font-family="monospace" font-size="9" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">E = emitter   B = base   C = collector</text>
+<rect x="350" y="120" width="260" height="200" rx="6" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<text x="480.0" y="144" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">4-PIN PWM FAN CONNECTOR</text>
+<rect x="400" y="170" width="160" height="58" rx="3" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<rect x="392" y="150" width="44" height="22" rx="3" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<text x="414" y="166" font-family="monospace" font-size="9" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">TAB</text>
+<rect x="405" y="180" width="18" height="38" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<text x="414" y="205" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">1</text>
+<rect x="443" y="180" width="18" height="38" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<text x="452" y="205" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">2</text>
+<rect x="481" y="180" width="18" height="38" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<text x="490" y="205" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">3</text>
+<rect x="519" y="180" width="18" height="38" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<text x="528" y="205" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">4</text>
+<line x1="414" y1="218" x2="414" y2="230" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="414" y1="230" x2="556" y2="230" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<text x="562" y="234" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">GND</text>
+<line x1="452" y1="218" x2="452" y2="244" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="452" y1="244" x2="556" y2="244" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<text x="562" y="248" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">+12V</text>
+<line x1="490" y1="218" x2="490" y2="258" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="490" y1="258" x2="556" y2="258" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<text x="562" y="262" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">SENSE</text>
+<line x1="528" y1="218" x2="528" y2="272" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="528" y1="272" x2="556" y2="272" stroke="#9fc3e3" stroke-width="1.2" stroke-linecap="round"/>
+<text x="562" y="276" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">PWM</text>
+<text x="480" y="300" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="middle" font-weight="normal" letter-spacing="0">Pin 1 is NEAREST the tab.</text>
+<text x="480" y="313" font-family="monospace" font-size="9" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">Meter it — leads are often all black.</text>
+<rect x="640" y="120" width="230" height="200" rx="6" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<text x="755.0" y="144" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">Y1  CRYSTAL — WHICH TYPE</text>
+<rect x="672" y="162" width="80" height="44" rx="16" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<line x1="688" y1="206" x2="688" y2="238" stroke="#e8f1fb" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="736" y1="206" x2="736" y2="238" stroke="#e8f1fb" stroke-width="2.4" stroke-linecap="round"/>
+<text x="712" y="190" font-family="monospace" font-size="10.5" fill="#e8f1fb" text-anchor="middle" font-weight="bold" letter-spacing="0">16.000M</text>
+<text x="712" y="258" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">2 LEGS</text>
+<text x="712" y="272" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">USE THIS</text>
+<text x="712" y="286" font-family="monospace" font-size="9" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">+22pF each</text>
+<path d="M 790 162 L 838 162 L 838 206 L 790 206 L 790 172 Z" fill="none" stroke="#ff8f6b" stroke-width="2.4"/>
+<circle cx="796" cy="168" r="3.4" fill="none" stroke="#ff8f6b" stroke-width="1.8"/>
+<circle cx="832" cy="168" r="3.4" fill="none" stroke="#ff8f6b" stroke-width="1.8"/>
+<circle cx="796" cy="200" r="3.4" fill="none" stroke="#ff8f6b" stroke-width="1.8"/>
+<circle cx="832" cy="200" r="3.4" fill="none" stroke="#ff8f6b" stroke-width="1.8"/>
+<text x="814" y="258" font-family="monospace" font-size="10" fill="#ff8f6b" text-anchor="middle" font-weight="bold" letter-spacing="0">4 PADS</text>
+<text x="814" y="272" font-family="monospace" font-size="10" fill="#ff8f6b" text-anchor="middle" font-weight="bold" letter-spacing="0">NOT THIS</text>
+<text x="814" y="286" font-family="monospace" font-size="9" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">oscillator</text>
+<text x="755" y="310" font-family="monospace" font-size="9" fill="#ffc857" text-anchor="middle" font-weight="normal" letter-spacing="0">32.768 kHz will NOT run this chip.</text>
+<rect x="170" y="400" width="640" height="70" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.8"/>
+<path d="M 170 422 a 16 16 0 0 0 0 26" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="490.0" y="442" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">ATmega328P-PU  ·  TOP VIEW  ·  NOTCH LEFT</text>
+<rect x="184" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="192" y1="482" x2="192" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="192" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="186" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 186 500)">RESET</text>
+<text x="203" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 203 500)">R4 10k</text>
+<rect x="184" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="192" y1="388" x2="192" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="192" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">28</text>
+<text x="186" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 186 370)">A5</text>
+<text x="203" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 203 370)">SCL</text>
+<rect x="228" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="236" y1="482" x2="236" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="236" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="230" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 230 500)">D0</text>
+<text x="247" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 247 500)">RXD</text>
+<rect x="228" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="236" y1="388" x2="236" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="236" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">27</text>
+<text x="230" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 230 370)">A4</text>
+<text x="247" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 247 370)">SDA</text>
+<rect x="272" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="280" y1="482" x2="280" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="280" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">3</text>
+<text x="274" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 274 500)">D1</text>
+<text x="291" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 291 500)">TXD</text>
+<rect x="272" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="280" y1="388" x2="280" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="280" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">26</text>
+<text x="274" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 274 370)">A3</text>
+<text x="291" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 291 370)">spare</text>
+<rect x="316" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="324" y1="482" x2="324" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="324" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">4</text>
+<text x="318" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 318 500)">D2</text>
+<text x="335" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 335 500)">TACH_A</text>
+<rect x="316" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="324" y1="388" x2="324" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="324" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">25</text>
+<text x="318" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 318 370)">A2</text>
+<text x="335" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 335 370)">spare</text>
+<rect x="360" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="368" y1="482" x2="368" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="368" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">5</text>
+<text x="362" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 362 500)">D3</text>
+<text x="379" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 379 500)">TACH_B</text>
+<rect x="360" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="368" y1="388" x2="368" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="368" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">24</text>
+<text x="362" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 362 370)">A1</text>
+<text x="379" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 379 370)">spare</text>
+<rect x="404" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="412" y1="482" x2="412" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="412" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">6</text>
+<text x="406" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 406 500)">D4</text>
+<text x="423" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 423 500)">SW2</text>
+<rect x="404" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="412" y1="388" x2="412" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="412" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">23</text>
+<text x="406" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 406 370)">A0</text>
+<text x="423" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 423 370)">POT</text>
+<rect x="448" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="456" y1="482" x2="456" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="456" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">7</text>
+<text x="450" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 450 500)">VCC</text>
+<text x="467" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 467 500)">+5V</text>
+<rect x="448" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="456" y1="388" x2="456" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="456" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">22</text>
+<text x="450" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 450 370)">GND</text>
+<text x="467" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 467 370)">0V</text>
+<rect x="492" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="500" y1="482" x2="500" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="500" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">8</text>
+<text x="494" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 494 500)">GND</text>
+<text x="511" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 511 500)">0V</text>
+<rect x="492" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="500" y1="388" x2="500" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="500" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">21</text>
+<text x="494" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 494 370)">AREF</text>
+<text x="511" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 511 370)">C8 100n</text>
+<rect x="536" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="544" y1="482" x2="544" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="544" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">9</text>
+<text x="538" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 538 500)">XTAL1</text>
+<text x="555" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 555 500)">Y1</text>
+<rect x="536" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="544" y1="388" x2="544" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="544" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">20</text>
+<text x="538" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 538 370)">AVCC</text>
+<text x="555" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 555 370)">+5V</text>
+<rect x="580" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="588" y1="482" x2="588" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="588" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">10</text>
+<text x="582" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 582 500)">XTAL2</text>
+<text x="599" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 599 500)">Y1</text>
+<rect x="580" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="588" y1="388" x2="588" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="588" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">19</text>
+<text x="582" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 582 370)">D13</text>
+<text x="599" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 599 370)">spare</text>
+<rect x="624" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="632" y1="482" x2="632" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="632" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">11</text>
+<text x="626" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 626 500)">D5</text>
+<text x="643" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 643 500)">LED_A</text>
+<rect x="624" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="632" y1="388" x2="632" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="632" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">18</text>
+<text x="626" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 626 370)">D12</text>
+<text x="643" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 643 370)">spare</text>
+<rect x="668" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="676" y1="482" x2="676" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="676" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">12</text>
+<text x="670" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 670 500)">D6</text>
+<text x="687" y="500" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="end" font-weight="bold" transform="rotate(-90 687 500)">LED_B</text>
+<rect x="668" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="676" y1="388" x2="676" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="676" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">17</text>
+<text x="670" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 670 370)">D11</text>
+<text x="687" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 687 370)">spare</text>
+<rect x="712" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="720" y1="482" x2="720" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="720" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">13</text>
+<text x="714" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 714 500)">D7</text>
+<text x="731" y="500" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="end" font-weight="normal" transform="rotate(-90 731 500)">spare</text>
+<rect x="712" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="720" y1="388" x2="720" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="720" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">16</text>
+<text x="714" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 714 370)">D10</text>
+<text x="731" y="370" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" transform="rotate(-90 731 370)">spare</text>
+<rect x="756" y="466" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="764" y1="482" x2="764" y2="494" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="764" y="461" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">14</text>
+<text x="758" y="500" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="end" font-weight="bold" transform="rotate(-90 758 500)">D8</text>
+<text x="775" y="500" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="end" font-weight="normal" transform="rotate(-90 775 500)">spare</text>
+<rect x="756" y="388" width="16" height="16" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="764" y1="388" x2="764" y2="376" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="764" y="422" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">15</text>
+<text x="758" y="370" font-family="monospace" font-size="10" fill="#ffc857" text-anchor="start" font-weight="bold" transform="rotate(-90 758 370)">D9</text>
+<text x="775" y="370" font-family="monospace" font-size="10" fill="#7fd8ff" text-anchor="start" font-weight="bold" transform="rotate(-90 775 370)">PWM_CTL</text>
+<text x="74" y="562" font-family="monospace" font-size="11" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">AMBER = Arduino pin name   ·   BLUE = net / function   ·   Pin 20 AVCC MUST be tied to +5 V.</text>
+<rect x="930" y="90" width="810" height="310" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="946" y="77" width="360.4" height="26" fill="#0b2545"/>
+<text x="956" y="95" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">B — PROGRAMMING: ARDUINO UNO DIP SWAP</text>
+<rect x="960" y="140" width="250" height="130" rx="6" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<rect x="948" y="158" width="26" height="34" rx="3" fill="none" stroke="#e8f1fb" stroke-width="2.2"/>
+<text x="961" y="215" font-family="monospace" font-size="8.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">USB</text>
+<rect x="996" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1018" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1040" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1062" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1084" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1106" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1128" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1150" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1172" y="150" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="996" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1018" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1040" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1062" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1084" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1106" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1128" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1150" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1172" y="262" width="12" height="10" rx="0" fill="none" stroke="#9fc3e3" stroke-width="1.4"/>
+<rect x="1020" y="196" width="150" height="48" rx="3" fill="none" stroke="#ffc857" stroke-width="2.6"/>
+<text x="1095" y="225" font-family="monospace" font-size="11" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">ATmega328P</text>
+<text x="1085" y="128" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">ARDUINO UNO (DIP)</text>
+<line x1="1230" y1="220" x2="1370.9" y2="220.0" stroke="#7fd8ff" stroke-width="3" stroke-linecap="round"/>
+<polygon points="1380,220 1368.12984377594,225.3008858897744 1368.12984377594,214.6991141102256" fill="#7fd8ff" stroke="#7fd8ff" stroke-width="1"/>
+<text x="1305" y="208" font-family="monospace" font-size="10.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">lift out</text>
+<text x="1305" y="238" font-family="monospace" font-size="10.5" fill="#7fd8ff" text-anchor="middle" font-weight="normal" letter-spacing="0">after upload</text>
+<rect x="1400" y="180" width="220" height="80" rx="6" fill="none" stroke="#e8f1fb" stroke-width="2.6" stroke-dasharray="8 6"/>
+<rect x="1420" y="196" width="180" height="48" rx="3" fill="none" stroke="#ffc857" stroke-width="2.6"/>
+<text x="1510" y="225" font-family="monospace" font-size="11" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">YOUR SOCKET</text>
+<text x="1510" y="168" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">FUME EXTRACTOR BOARD</text>
+<text x="950" y="300" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1. Board = "Arduino Uno". Upload the sketch to the Uno.</text>
+<text x="950" y="319" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">2. Unplug USB. Lever the chip out, alternating ends so the legs stay straight.</text>
+<text x="950" y="338" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">3. Fit it to your socket, notch to the same end as the schematic shows.</text>
+<text x="950" y="357" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">4. No fuse changes needed — the Uno already runs 16 MHz off an external crystal,</text>
+<text x="950" y="376" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   which is exactly what your Y1 provides.</text>
+<rect x="60" y="610" width="840" height="370" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="76" y="597" width="516.8" height="26" fill="#0b2545"/>
+<text x="86" y="615" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">C — GROUNDING PRINCIPLES  (actual layout: SHEET 4)</text>
+<rect x="100" y="660" width="560" height="250" rx="4" fill="none" stroke="#e8f1fb" stroke-width="2.6"/>
+<rect x="100" y="660" width="150" height="200" rx="4" fill="none" stroke="#5aa9e6" stroke-width="1.4" stroke-dasharray="7 6"/>
+<text x="175.0" y="694" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">POWER IN</text>
+<text x="175.0" y="711" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">F1 · D1 · C1</text>
+<text x="175.0" y="728" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">U1 buck</text>
+<rect x="250" y="660" width="210" height="200" rx="4" fill="none" stroke="#5aa9e6" stroke-width="1.4" stroke-dasharray="7 6"/>
+<text x="355.0" y="694" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">MCU</text>
+<text x="355.0" y="711" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">U2 · Y1 · C5/C6</text>
+<text x="355.0" y="728" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">C7/C9/C10 · R4</text>
+<rect x="460" y="660" width="100" height="200" rx="4" fill="none" stroke="#5aa9e6" stroke-width="1.4" stroke-dasharray="7 6"/>
+<text x="510.0" y="694" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">DRIVER</text>
+<text x="510.0" y="711" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">Q1 · R5</text>
+<text x="510.0" y="728" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">R6 · R7</text>
+<rect x="560" y="660" width="100" height="200" rx="4" fill="none" stroke="#5aa9e6" stroke-width="1.4" stroke-dasharray="7 6"/>
+<text x="610.0" y="694" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">CONN.</text>
+<text x="610.0" y="711" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">J2 · J3</text>
+<text x="610.0" y="728" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">J4 · panel</text>
+<line x1="140" y1="884" x2="640" y2="884" stroke="#7fd8ff" stroke-width="3.0" stroke-linecap="round"/>
+<line x1="175" y1="860" x2="175" y2="884" stroke="#7fd8ff" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="355" y1="860" x2="355" y2="884" stroke="#7fd8ff" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="510" y1="860" x2="510" y2="884" stroke="#7fd8ff" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="610" y1="860" x2="610" y2="884" stroke="#7fd8ff" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="215" cy="884" r="10" fill="none" stroke="#7fd8ff" stroke-width="2.6"/>
+<circle cx="215" cy="884" r="4.5" fill="#7fd8ff" stroke="#7fd8ff" stroke-width="2.6"/>
+<text x="215" y="906" font-family="monospace" font-size="9.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">STAR GND — all returns meet here</text>
+<text x="680" y="678" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ Signal flows left to right;</text>
+<text x="680" y="695" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  power never crosses back</text>
+<text x="680" y="712" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  over the crystal.</text>
+<text x="680" y="729" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0"></text>
+<text x="680" y="746" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ C5 and C9 within 10 mm of</text>
+<text x="680" y="763" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  pins 7 and 20.</text>
+<text x="680" y="780" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0"></text>
+<text x="680" y="797" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ Y1 and its 22 pF caps hard</text>
+<text x="680" y="814" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  against pins 9 and 10.</text>
+<text x="680" y="831" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0"></text>
+<text x="680" y="848" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ All grounds meet at ONE</text>
+<text x="680" y="865" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  point, never daisy-chained.</text>
+<text x="680" y="882" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0"></text>
+<text x="680" y="899" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ Fan return goes direct to</text>
+<text x="680" y="916" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  the star point, not through</text>
+<text x="680" y="933" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  logic ground.</text>
+<rect x="930" y="430" width="810" height="290" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="946" y="417" width="259.2" height="26" fill="#0b2545"/>
+<text x="956" y="435" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">D — HARNESS &amp; INTERCONNECT</text>
+<rect x="950" y="478" width="120" height="64" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1010.0" y="502" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">PSU</text>
+<text x="1010.0" y="520" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">12 V 2 A</text>
+<rect x="1100" y="478" width="120" height="64" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1160.0" y="502" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">SW1</text>
+<text x="1160.0" y="520" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">car type</text>
+<text x="1160.0" y="535" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">external</text>
+<rect x="1255" y="462" width="140" height="180" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1325.0" y="486" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">PCB</text>
+<text x="1325" y="540" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">J2 fan A</text>
+<text x="1325" y="562" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">J3 fan B</text>
+<text x="1325" y="584" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">J4 LCD</text>
+<text x="1325" y="606" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">panel</text>
+<rect x="1470" y="452" width="120" height="52" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1530.0" y="476" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">FAN A</text>
+<rect x="1470" y="514" width="120" height="52" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1530.0" y="538" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">FAN B</text>
+<rect x="1470" y="576" width="120" height="52" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1530.0" y="600" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">LCD</text>
+<rect x="1470" y="638" width="120" height="52" rx="7" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<text x="1530.0" y="662" font-family="monospace" font-size="12.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">PANEL</text>
+<line x1="1070" y1="510" x2="1100" y2="510" stroke="#7fd8ff" stroke-width="3" stroke-linecap="round"/>
+<line x1="1220" y1="510" x2="1255" y2="510" stroke="#7fd8ff" stroke-width="3" stroke-linecap="round"/>
+<polyline points="1395,540 1432,540 1432,478 1470,478" fill="none" stroke="#7fd8ff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1395,562 1432,562 1432,540 1470,540" fill="none" stroke="#7fd8ff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1395,584 1432,584 1432,602 1470,602" fill="none" stroke="#7fd8ff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1395,606 1432,606 1432,664 1470,664" fill="none" stroke="#7fd8ff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1600" y="482" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">4-way keyed</text>
+<text x="1600" y="544" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">4-way keyed</text>
+<text x="1600" y="606" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">GND · 5V · SDA · SCL</text>
+<text x="1600" y="668" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">RV1 + 2 LEDs</text>
+<text x="950" y="570" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">20 AWG</text>
+<text x="950" y="586" font-family="monospace" font-size="10" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">power</text>
+<text x="950" y="672" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">SW1 is a hard master switch in</text>
+<text x="950" y="688" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">the +12 V line — it kills everything,</text>
+<text x="950" y="704" font-family="monospace" font-size="10.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">so the MCU never sees it.</text>
+<rect x="930" y="750" width="810" height="230" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="946" y="737" width="213.2" height="26" fill="#0b2545"/>
+<text x="956" y="755" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">E — BRING-UP SEQUENCE</text>
+<text x="950" y="782" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1. Fit U1 ONLY. Power up, trim output to 5.00 V. Power down.</text>
+<text x="950" y="801" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">2. Meter +12 V–GND and +5 V–GND for shorts. Expect &gt; 1 kΩ.</text>
+<text x="950" y="820" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">3. Fit U2, Y1, caps, LCD. Power up: 2 s splash, both fans 100 %.</text>
+<text x="950" y="839" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">4. Blank screen? Change LCD_ADDRESS to 0x3F, or trim the backpack</text>
+<text x="950" y="858" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   contrast pot.</text>
+<text x="950" y="877" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">5. Pot fully down → fans stop, screen reads STOPPED.</text>
+<text x="950" y="896" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">6. Unplug fan B while running → LED B blinks fast within 3 s and</text>
+<text x="950" y="915" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   the screen reads !FAN B NO SIGNAL. Replug → clears.</text>
+<text x="950" y="934" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0"></text>
+<text x="950" y="953" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">TEST POINTS      TP1 +12 V    TP2 +5 V    TP3 Q1 collector</text>
+<text x="950" y="972" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">                 TP4 tach A   TP5 tach B  TP6 D9 / pin 15</text>
+<rect x="60" y="1010" width="1180" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2"/>
+<text x="74" y="1034" font-family="sans-serif" font-size="13" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.4">BILL OF MATERIALS  (KEY ITEMS)</text>
+<line x1="60" y1="1044" x2="1240" y2="1044" stroke="#e8f1fb" stroke-width="1.4" stroke-linecap="round"/>
+<text x="80" y="1060" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">U2</text>
+<text x="180" y="1060" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">ATmega328P-PU + 28-pin socket</text>
+<text x="600" y="1060" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1060" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">R2,R3</text>
+<text x="830" y="1060" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">330 Ω 1/4 W</text>
+<text x="1180" y="1060" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="80" y="1075" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">U1</text>
+<text x="180" y="1075" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">MP1584EN buck module</text>
+<text x="600" y="1075" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1075" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">R4,R6,R7,R8,R9</text>
+<text x="830" y="1075" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">10 kΩ 1/4 W</text>
+<text x="1180" y="1075" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">5</text>
+<text x="80" y="1090" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">Q1</text>
+<text x="180" y="1090" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">2N2222A NPN TO-92</text>
+<text x="600" y="1090" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1090" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">R5</text>
+<text x="830" y="1090" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1 kΩ 1/4 W</text>
+<text x="1180" y="1090" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="80" y="1105" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">Y1</text>
+<text x="180" y="1105" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">16.000 MHz crystal, 2-leg</text>
+<text x="600" y="1105" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1105" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C1A,C1B</text>
+<text x="830" y="1105" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">100 µF 50 V ELECTROLYTIC</text>
+<text x="1180" y="1105" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="80" y="1120" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">D1</text>
+<text x="180" y="1120" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1N5402G 3 A, reverse shunt</text>
+<text x="600" y="1120" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1120" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C2</text>
+<text x="830" y="1120" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">100 µF 10 V ELECTROLYTIC</text>
+<text x="1180" y="1120" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="80" y="1135" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">D2,D3</text>
+<text x="180" y="1135" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">5 mm green LED</text>
+<text x="600" y="1135" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="650" y="1135" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C3,C5,C8,C9</text>
+<text x="830" y="1135" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">100 nF CERAMIC</text>
+<text x="1180" y="1135" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">4</text>
+<text x="80" y="1150" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">J4</text>
+<text x="180" y="1150" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">LCD 1602A + PCF8574 backpack</text>
+<text x="600" y="1150" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1150" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C6,C7</text>
+<text x="830" y="1150" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">22 pF CERAMIC</text>
+<text x="1180" y="1150" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="80" y="1165" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">RV1</text>
+<text x="180" y="1165" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">10 kΩ linear pot + knob</text>
+<text x="600" y="1165" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1165" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C10</text>
+<text x="830" y="1165" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">10 µF ELECTROLYTIC</text>
+<text x="1180" y="1165" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="80" y="1180" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">SW2</text>
+<text x="180" y="1180" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">momentary button (optional)</text>
+<text x="600" y="1180" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">1</text>
+<text x="650" y="1180" font-family="monospace" font-size="11" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">R12,R13</text>
+<text x="830" y="1180" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">4.7 kΩ 1/4 W</text>
+<text x="1180" y="1180" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">2</text>
+<text x="80" y="1194" font-family="monospace" font-size="10.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">Also: 2× Corsair 120 mm 4-pin PWM fan, F1 2 A slow-blow fuse + holder, SW1 illuminated car-type rocker, 12 V 2 A PSU, carbon pad, mesh pre-filter, USB-A socket + 1.1 A PTC (sheet 3).</text>
+<rect x="1270" y="1010" width="470" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<line x1="1270" y1="1074" x2="1740" y2="1074" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1270" y1="1120" x2="1740" y2="1120" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1270" y1="1160" x2="1740" y2="1160" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1490" y1="1074" x2="1490" y2="1200" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<text x="1286" y="1040" font-family="sans-serif" font-size="17" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="1.2">SOLDER FUME EXTRACTOR</text>
+<text x="1286" y="1062" font-family="monospace" font-size="12" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.0">WIRING, PINOUT &amp; PROGRAMMING</text>
+<text x="1286" y="1092" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">DRAWING</text>
+<text x="1286" y="1110" font-family="monospace" font-size="13" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">SHEET 2 — REFERENCE</text>
+<text x="1504" y="1092" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">SHEET</text>
+<text x="1504" y="1110" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">2 OF 3</text>
+<text x="1286" y="1138" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">DRAWING No.</text>
+<text x="1286" y="1154" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">SFE-2026-02</text>
+<text x="1504" y="1138" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">REV</text>
+<text x="1504" y="1154" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">D</text>
+<text x="1286" y="1178" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">CLOCK</text>
+<text x="1286" y="1194" font-family="monospace" font-size="12" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">16.000 MHz XTAL</text>
+<text x="1504" y="1178" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">PROGRAMMED</text>
+<text x="1504" y="1194" font-family="monospace" font-size="12" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">UNO DIP SWAP</text>
+</svg>
