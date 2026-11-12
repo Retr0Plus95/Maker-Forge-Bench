@@ -6,6 +6,7 @@ import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
+import { createBoard3D } from './board3d.js';
 import { indexSheet } from './search.js';
 import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 import { connectLive } from './live.js';
@@ -276,6 +277,7 @@ function updatePartDots() {
 }
 
 function renderPartCard() {
+  if (board3d && board3dOn) board3d.select(state.selected);
   const part = state.selected ? state.partsByRef.get(state.selected) : null;
   if (!part) {
     renderHint($('#part-card'));
@@ -370,7 +372,13 @@ function buildContext() {
   };
 }
 
-window.makerForge = Object.freeze({ context: () => buildContext() });
+window.makerForge = Object.freeze({
+  context: () => buildContext(),
+  board3d: Object.freeze({
+    view: () => (board3d && board3dOn ? board3d.getView() : null),
+    screenOf: (ref) => (board3d && board3dOn ? board3d.screenOf(ref) : null),
+  }),
+});
 
 async function copyForClaude(question) {
   try {
@@ -537,6 +545,54 @@ function updateParts() {
   renderStepsPanel();
 }
 
+// ---- the 3D board (board-view design §5), over the dimmed schematic ----
+let board3d = null;
+let board3dOn = false;
+
+function updateBoard3DButton() {
+  $('#board3d-toggle').hidden = !(state.project && state.project.board);
+}
+
+function syncStep3D() {
+  if (!board3d || !board3dOn) return;
+  const steps = stepsOf();
+  const now = state.openStep !== null ? steps[state.openStep].parts : [];
+  const later = state.openStep !== null ? steps.slice(state.openStep + 1).flatMap((s) => s.parts) : [];
+  board3d.setStep(now, later);
+}
+
+async function setBoard3D(on) {
+  board3dOn = on && Boolean(state.project && state.project.board);
+  $('#board3d').hidden = !board3dOn;
+  $('#board3d-toggle').setAttribute('aria-pressed', String(board3dOn));
+  $('#sheet-host').style.opacity = board3dOn ? '0.35' : '';
+  if (!board3dOn) return;
+  const schematic = state.sheets.find((s) => s.kind === 'schematic' && !s.missing);
+  const shown = state.sheets.find((s) => s.id === state.current);
+  if (schematic && (!shown || shown.kind !== 'schematic')) await selectSheet(schematic.id);
+  const message = $('#board3d-message');
+  if (!board3d) {
+    message.hidden = true;
+    board3d = await createBoard3D($('#board3d-view'), state.project.board, { onPick: (ref) => selectPart(ref) });
+    if (!board3d) {
+      message.textContent = "This browser can't draw 3D here. Sheet 4 shows the same layout flat.";
+      message.hidden = false;
+      return;
+    }
+  }
+  board3d.select(state.selected);
+  syncStep3D();
+  board3d.view('top');
+}
+
+/** The project's board changed: build the 3D view again the next time it's shown. */
+function resetBoard3D() {
+  if (board3d) board3d.dispose();
+  board3d = null;
+  updateBoard3DButton();
+  if (board3dOn) setBoard3D(true);
+}
+
 // ---- build steps (board-view design §5), one at a time ----
 const stepsOf = () => (state.project ? state.project.build : []);
 const stepKey = () => `${state.progressKey}:step`;
@@ -559,6 +615,7 @@ function updateStepRings() {
   const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
   const els = step ? step.parts.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean) : [];
   viewer.stepRings(els);
+  syncStep3D();
 }
 
 function renderStepsPanel() {
@@ -782,6 +839,7 @@ async function reloadProject() {
   await relist();
   updateParts();
   checkProgressKey();
+  resetBoard3D();
   find.refresh(true);
 }
 
@@ -794,6 +852,7 @@ async function forgetProject() {
   await relist();
   updateParts();
   checkProgressKey();
+  resetBoard3D();
   find.refresh(true);
 }
 
@@ -1009,6 +1068,11 @@ async function start() {
   $('#undo').addEventListener('click', () => history.undo());
   $('#redo').addEventListener('click', () => history.redo());
   $('#split').addEventListener('click', () => setSplit(!split.on));
+  $('#board3d-toggle').addEventListener('click', () => setBoard3D(!board3dOn));
+  $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
+  $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
+  // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
+  for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());
   $('#stage2-sheet').addEventListener('change', (e) => showInSplit(e.target.value));
   window.addEventListener('resize', updateSplitButton);
   updateSplitButton();
@@ -1035,6 +1099,7 @@ async function start() {
   state.root = project.root;
   if (project.files.some((f) => f.path === 'forge-project.json')) state.project = await readProjectFile();
   showProjectName();
+  updateBoard3DButton();
   setStatus('');
   state.sheets = sheetsFor(project.files);
   loadProgress();

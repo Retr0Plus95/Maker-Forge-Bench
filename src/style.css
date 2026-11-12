@@ -400,3 +400,17 @@ h1 {
 .step-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .step-missing { color: var(--warn); margin: 6px 0; }
 .step-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* ---- the 3D board, over the dimmed schematic ---- */
+#board3d { position: absolute; inset: 0; z-index: 2; cursor: default; }
+#board3d[hidden] { display: none; }
+#board3d-view { position: absolute; inset: 0; }
+#board3d-view canvas { display: block; }
+.board3d-bar {
+  position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  max-width: calc(100% - 16px); padding: 4px 8px; border-radius: 8px; background: var(--panel); box-shadow: var(--shadow);
+}
+.board3d-bar .hint { font-size: .8rem; }
+#board3d-message { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--warn); background: var(--panel); }
+#board3d-message[hidden] { display: none; }
+#board3d-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }

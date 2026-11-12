@@ -64,18 +64,18 @@ export async function writePng(dir, rel) {
   await writeFile(path.join(dir, rel), TINY_PNG);
 }
 
-async function launchBrowser() {
-  if (process.env.BENCH_BROWSER) return chromium.launch({ executablePath: process.env.BENCH_BROWSER });
+async function launchBrowser(args = []) {
+  if (process.env.BENCH_BROWSER) return chromium.launch({ executablePath: process.env.BENCH_BROWSER, args });
   for (const channel of ['chrome', 'msedge']) {
     try {
-      return await chromium.launch({ channel });
+      return await chromium.launch({ channel, args });
     } catch { /* try the next one */ }
   }
   throw new Error('No Chrome or Edge found. Set BENCH_BROWSER to the path of a Chromium-based browser.');
 }
 
-export async function openPage(url, viewport) {
-  const browser = await launchBrowser();
+export async function openPage(url, viewport, options = {}) {
+  const browser = await launchBrowser(options.args);
   const page = await browser.newPage({ viewport });
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
