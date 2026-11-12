@@ -13,8 +13,13 @@ export const FIXTURES = path.join(REPO, 'tests', 'fixtures');
 export const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP438OAFWEXHbQSANXCYsHiPhRjAAAAAElFTkSuQmCC', 'base64');
 
-export async function startDevServer(folder) {
-  const proc = spawn('python', ['dev.py', folder, '--port', '0'], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
+/** A 16×16 blue PNG. */
+export const PNG_16 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGPQqPhPEmIY1TCqYfhqAADJNp8Qq0FQ5gAAAABJRU5ErkJggg==', 'base64');
+
+/** Starts dev.py on a folder; port 0 picks a free port. */
+export async function startDevServer(folder, port = 0) {
+  const proc = spawn('python', ['dev.py', folder, '--port', String(port)], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
   const url = await new Promise((resolve, reject) => {
     let out = '';
     const timer = setTimeout(() => reject(new Error(`dev.py didn't start: ${out}`)), 10000);

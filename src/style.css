@@ -186,3 +186,13 @@ h1 {
 #live { font-size: 13px; color: #8fd18f; white-space: nowrap; }
 #live:empty { display: none; }
 #live.paused { color: #ff9b7a; }
+
+#sheet-note {
+  margin: 0;
+  padding: 2px 10px;
+  background: #3a2400;
+  color: #ffc46b;
+  overflow-wrap: anywhere;
+}
+
+#sheet-note[hidden] { display: none; }

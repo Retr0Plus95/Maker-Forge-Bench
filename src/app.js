@@ -19,6 +19,8 @@ const $ = (selector) => document.querySelector(selector);
 const viewer = createViewer($('#stage'));
 const state = {
   root: '', sheets: [], cache: new Map(), loaded: new Map(), views: new Map(), flipped: new Set(), current: null,
+  stale: new Set(), // sheets showing an older version because the newest save couldn't be read
+  generations: new Map(), // per sheet: which refresh is the newest
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -89,6 +91,7 @@ function load(sheet) {
 async function selectSheet(id) {
   if (state.current && state.current !== id && viewer.sheetRoot()) state.views.set(state.current, viewer.getView());
   state.current = id;
+  updateSheetNote();
   for (const tab of $('#tabs').children) tab.setAttribute('aria-selected', String(tab.dataset.id === id));
   const sheet = state.sheets.find((s) => s.id === id);
   const entry = await load(sheet);
@@ -157,28 +160,68 @@ const find = createFindBar({
 
 // ---- auto-refresh (design §7.9) ----
 
-/** A sheet's file changed: read it again. If it can't be read (half-saved), keep the previous one. */
-async function refreshSheet(sheet) {
-  let entry;
+/** The warning under the status line: shown for the sheet on screen while it's an older version. */
+function updateSheetNote() {
+  const note = $('#sheet-note');
+  note.textContent = state.stale.has(state.current) ? keptMessage(state.current) : '';
+  note.hidden = !note.textContent;
+}
+
+/**
+ * A sheet's file changed: read it again. If it can't be read (half-saved), keep the previous one
+ * and say so until the next good save. mtime, when known, makes a picture's address new, so the
+ * browser fetches it again instead of reusing its copy.
+ */
+async function refreshSheet(sheet, mtime) {
+  if (mtime !== undefined) sheet.mtime = mtime;
+  const generation = (state.generations.get(sheet.id) || 0) + 1;
+  state.generations.set(sheet.id, generation);
+  let entry = null;
   try {
     entry = await prepare(sheet);
   } catch (error) {
     if (!(error instanceof SheetError) && !(error instanceof ServerError)) console.error(error);
-    setStatus(keptMessage(sheet.id));
+  }
+  if (state.generations.get(sheet.id) !== generation) return; // a newer read of this sheet started
+  // The tabs may have been rebuilt meanwhile (new sheet objects): find this drawing again.
+  const current = state.sheets.find((s) => s.id === sheet.id && s.path === sheet.path);
+  if (!current) return; // the drawing went away
+  current.mtime = sheet.mtime;
+  if (!entry) {
+    state.stale.add(current.id);
+    updateSheetNote();
     return;
   }
-  if (!state.sheets.includes(sheet)) return; // the tabs were rebuilt meanwhile
-  if ($('#status').textContent === keptMessage(sheet.id)) setStatus('');
-  const before = state.loaded.get(sheet.id);
-  state.cache.set(sheet.id, Promise.resolve(entry));
-  state.loaded.set(sheet.id, entry);
-  if (state.current === sheet.id) {
+  state.stale.delete(current.id);
+  updateSheetNote();
+  const before = state.loaded.get(current.id);
+  if (before && before.kind === 'error' && $('#status').textContent === before.message) setStatus('');
+  entry.sheet = current;
+  state.cache.set(current.id, Promise.resolve(entry));
+  state.loaded.set(current.id, entry);
+  if (state.current === current.id) {
     setStageMessage('');
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
-    if (state.flipped.has(sheet.id)) viewer.setFlipped(true);
+    if (state.flipped.has(current.id)) viewer.setFlipped(true);
     updateFlip();
   }
   find.refresh(true);
+}
+
+/** dev.py is back after a pause: catch up on every drawing that changed meanwhile. */
+async function catchUp() {
+  let project;
+  try {
+    project = await listProject();
+  } catch {
+    return;
+  }
+  const byPath = new Map(project.files.map((f) => [f.path, f]));
+  for (const sheet of state.sheets) {
+    const file = byPath.get(sheet.path);
+    if (file && file.mtime !== sheet.mtime) onFileChange(sheet.path, file.mtime);
+  }
+  relist();
 }
 
 /** Drawings were added or removed: list the folder again and rebuild the tabs. */
@@ -199,6 +242,7 @@ async function relist() {
     if (!now || !was || now.path !== was.path) {
       for (const store of [state.cache, state.loaded, state.views]) store.delete(id);
       state.flipped.delete(id);
+      state.stale.delete(id);
     }
   }
   if (state.current && viewer.sheetRoot()) state.views.set(state.current, viewer.getView());
@@ -228,19 +272,26 @@ function whenQuiet(path, action) {
   }, 300));
 }
 
-function onFileChange(path) {
+function onFileChange(path, mtime) {
   if (path.split('/').pop() === 'forge-project.json') return; // read from release 0.2
   whenQuiet(path, () => {
     const sheet = state.sheets.find((s) => s.path === path);
-    if (sheet) refreshSheet(sheet);
+    if (sheet) refreshSheet(sheet, mtime);
     else relist();
   });
 }
 
+let livePaused = false;
 function onLiveStatus(live) {
   const badge = $('#live');
   badge.textContent = live === 'live' ? 'Auto-refresh on' : 'Auto-refresh paused';
   badge.classList.toggle('paused', live !== 'live');
+  if (live !== 'live') {
+    livePaused = true;
+  } else if (livePaused) {
+    livePaused = false;
+    catchUp();
+  }
 }
 
 function renderTabs() {
