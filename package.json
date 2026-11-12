@@ -1,0 +1,15 @@
+{
+  "name": "maker-forge-bench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "A soldering drawing viewer for any electronics project, part of the Maker Forge suite.",
+  "scripts": {
+    "test": "node --test \"tests/unit/*.test.js\"",
+    "check:browser": "node --test --test-concurrency=1 \"tests/browser/*.test.js\""
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12"
+  }
+}

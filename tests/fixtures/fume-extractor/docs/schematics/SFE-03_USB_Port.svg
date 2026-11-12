@@ -1,0 +1,325 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1250" width="1800" height="1250" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo1OGJmY2RlNC1jYWQyLTRmNTgtYjk0MS00OTE3YzU1YWRlZWQAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaH504K9Jw9m19uYY/8+52QwAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo1ZGM0NzhhNS03NmFjLTRkN2YtYTA1MC03OTk3ZjQ2OGYyM2JscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoMiDG1AuXw1m2vLlMPPo4bQAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggLfdYEq8+0vOBxDropCwDRT7oMop6Pd4+xDNOxcrc0rSkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaIn/4POkDnM4xI+3+1ClX5IAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCC/d1I10Tw3jgFdJBCyiexLUEvDmRCNP5u2hqowVAMR2WRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBiaZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjU4YmZjZGU0LWNhZDItNGY1OC1iOTQxLTQ5MTdjNTVhZGVlZC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmRjNmRhNTZiLTkxZjEtNDdlOC04Y2M2LWZkMjViOTU4M2RiN3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCAt91gSrz7S84HEOuikLANFPugyino93j7EM07FytzStKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggRcJxuK6TJ/JHY9Ta47+qhNJVi4S8pJTxPIqUedb3OHKiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggmn4ZCqd0go6NsH97xMbV8Jr+m4QsJ1b20z1M2/2yTQF0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQIMJg+r/4sXLg+6FqBJO1V2onAoPMS5ESO21WTFUUitxrV+hsusjYmXeWyHmaakhB/fm91amT4aqczKnSTASooo=</c2pa:manifest></metadata>
+<rect width="1800" height="1250" fill="#0b2545"/>
+<g opacity="0.06">
+<line x1="0" y1="0" x2="0" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="50" y1="0" x2="50" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="100" y1="0" x2="100" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="150" y1="0" x2="150" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="200" y1="0" x2="200" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="250" y1="0" x2="250" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="300" y1="0" x2="300" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="350" y1="0" x2="350" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="400" y1="0" x2="400" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="450" y1="0" x2="450" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="500" y1="0" x2="500" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="550" y1="0" x2="550" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="600" y1="0" x2="600" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="650" y1="0" x2="650" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="700" y1="0" x2="700" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="750" y1="0" x2="750" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="800" y1="0" x2="800" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="850" y1="0" x2="850" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="900" y1="0" x2="900" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="950" y1="0" x2="950" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1000" y1="0" x2="1000" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1050" y1="0" x2="1050" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1100" y1="0" x2="1100" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1150" y1="0" x2="1150" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1200" y1="0" x2="1200" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1250" y1="0" x2="1250" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1300" y1="0" x2="1300" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1350" y1="0" x2="1350" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1400" y1="0" x2="1400" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1450" y1="0" x2="1450" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1500" y1="0" x2="1500" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1550" y1="0" x2="1550" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1600" y1="0" x2="1600" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1650" y1="0" x2="1650" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1700" y1="0" x2="1700" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="1750" y1="0" x2="1750" y2="1250" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="0" x2="1800" y2="0" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="50" x2="1800" y2="50" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="100" x2="1800" y2="100" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="150" x2="1800" y2="150" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="200" x2="1800" y2="200" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="250" x2="1800" y2="250" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="300" x2="1800" y2="300" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="350" x2="1800" y2="350" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="400" x2="1800" y2="400" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="450" x2="1800" y2="450" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="500" x2="1800" y2="500" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="550" x2="1800" y2="550" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="600" x2="1800" y2="600" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="650" x2="1800" y2="650" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="700" x2="1800" y2="700" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="750" x2="1800" y2="750" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="800" x2="1800" y2="800" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="850" x2="1800" y2="850" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="900" x2="1800" y2="900" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="950" x2="1800" y2="950" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1000" x2="1800" y2="1000" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1050" x2="1800" y2="1050" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1100" x2="1800" y2="1100" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1150" x2="1800" y2="1150" stroke="#fff" stroke-width="1"/>
+<line x1="0" y1="1200" x2="1800" y2="1200" stroke="#fff" stroke-width="1"/>
+</g>
+<rect x="24" y="24" width="1752" height="1202" rx="0" fill="none" stroke="#e8f1fb" stroke-width="3"/>
+<rect x="36" y="36" width="1728" height="1178" rx="0" fill="none" stroke="#e8f1fb" stroke-width="1"/>
+<rect x="60" y="90" width="740" height="380" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="76" y="77" width="351.2" height="26" fill="#0b2545"/>
+<text x="86" y="95" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">A — USB-A OUTPUT PORT  (RECOMMENDED)</text>
+<line x1="120" y1="174" x2="120" y2="190" stroke="#7fd8ff" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="93.0" y="150" width="54" height="24" rx="4" fill="none" stroke="#7fd8ff" stroke-width="2.0"/>
+<text x="120" y="167" font-family="monospace" font-size="13" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">+5V</text>
+<line x1="120" y1="190" x2="150" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="150" y1="190" x2="158" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="158" y="177" width="60" height="26" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.2"/>
+<line x1="218" y1="190" x2="226" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="166" y1="196" x2="180" y2="196" stroke="#e8f1fb" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="196" x2="180" y2="184" stroke="#e8f1fb" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="184" x2="196" y2="184" stroke="#e8f1fb" stroke-width="2" stroke-linecap="round"/>
+<line x1="196" y1="184" x2="196" y2="196" stroke="#e8f1fb" stroke-width="2" stroke-linecap="round"/>
+<line x1="196" y1="196" x2="210" y2="196" stroke="#e8f1fb" stroke-width="2" stroke-linecap="round"/>
+<text x="188" y="169" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">F2</text>
+<text x="188" y="225" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="middle" font-weight="normal" letter-spacing="0">PTC 1.1A HOLD</text>
+<line x1="226" y1="190" x2="430" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="296" cy="190" r="4.5" fill="#e8f1fb" stroke="#e8f1fb" stroke-width="0"/>
+<line x1="296" y1="190" x2="296" y2="208" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="280" y1="208" x2="312" y2="208" stroke="#e8f1fb" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M 280 221 Q 296 231 312 221" fill="none" stroke="#e8f1fb" stroke-width="3.2"/>
+<text x="273" y="203" font-family="sans-serif" font-size="15" fill="#e8f1fb" text-anchor="middle" font-weight="bold" letter-spacing="0">+</text>
+<line x1="296" y1="221" x2="296" y2="236" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="318" y="206" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">C11</text>
+<text x="318" y="223" font-family="monospace" font-size="12" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">220µ 10V</text>
+<text x="318" y="240" font-family="monospace" font-size="11" fill="#ff8f6b" text-anchor="start" font-weight="bold" letter-spacing="0">ELECTROLYTIC</text>
+<line x1="296" y1="236" x2="296" y2="248" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="280" y1="248" x2="312" y2="248" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="286" y1="254" x2="306" y2="254" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="292" y1="260" x2="300" y2="260" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<rect x="462" y="150" width="150" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.8"/>
+<text x="537.0" y="174" font-family="monospace" font-size="14" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">J5</text>
+<text x="537.0" y="138" font-family="monospace" font-size="12" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">USB-A SOCKET · OUTPUT</text>
+<rect x="459" y="183" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="430" y1="190" x2="459" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="482" y="195" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1 VBUS</text>
+<rect x="459" y="223" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="430" y1="230" x2="459" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="482" y="235" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">2 D−</text>
+<rect x="459" y="263" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="430" y1="270" x2="459" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="482" y="275" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">3 D+</text>
+<rect x="459" y="303" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="430" y1="310" x2="459" y2="310" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="482" y="315" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">4 GND</text>
+<line x1="430" y1="230" x2="400" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="400" y1="230" x2="400" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="400" y1="270" x2="430" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="400" cy="250" r="4.5" fill="#e8f1fb" stroke="#e8f1fb" stroke-width="0"/>
+<text x="392" y="254" font-family="monospace" font-size="11" fill="#ffc857" text-anchor="end" font-weight="bold" letter-spacing="0">SHORT</text>
+<line x1="430" y1="310" x2="398" y2="310" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="398" y1="310" x2="398" y2="322" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="382" y1="322" x2="414" y2="322" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="388" y1="328" x2="408" y2="328" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="394" y1="334" x2="402" y2="334" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<text x="75" y="392" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ D+ tied to D− = BC1.2 dedicated charging port. Phones then draw</text>
+<text x="75" y="410" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  more than the 100 mA a data port allows. Works for Android and</text>
+<text x="75" y="428" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  current iPhones; very old Apple kit wants a resistor divider instead.</text>
+<text x="75" y="452" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">▸ There is NO data connection. This is a power outlet only.</text>
+<rect x="830" y="90" width="470" height="380" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="846" y="77" width="305.2" height="26" fill="#0b2545"/>
+<text x="856" y="95" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">B — USB-C OUTPUT  (ALTERNATIVE)</text>
+<rect x="1080" y="150" width="150" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.8"/>
+<text x="1155.0" y="174" font-family="monospace" font-size="14" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">J5C</text>
+<text x="1155.0" y="138" font-family="monospace" font-size="12" fill="#9fc3e3" text-anchor="middle" font-weight="normal" letter-spacing="0">USB-C · OUTPUT</text>
+<rect x="1077" y="183" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="1048" y1="190" x2="1077" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1100" y="195" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">VBUS</text>
+<rect x="1077" y="223" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="1048" y1="230" x2="1077" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1100" y="235" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">CC1</text>
+<rect x="1077" y="263" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="1048" y1="270" x2="1077" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1100" y="275" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">CC2</text>
+<rect x="1077" y="303" width="14" height="14" rx="0" fill="#0b2545" stroke="#e8f1fb" stroke-width="2"/>
+<line x1="1048" y1="310" x2="1077" y2="310" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1100" y="315" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">GND</text>
+<line x1="1048" y1="190" x2="1010" y2="190" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="1010,190 996,177 934,177 934,203 996,203" fill="none" stroke="#7fd8ff" stroke-width="2"/>
+<text x="965.0" y="195" font-family="monospace" font-size="12.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">+5V</text>
+<line x1="1048" y1="230" x2="1040" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="984" y1="230" x2="990" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="990" y="219" width="44" height="22" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.2"/>
+<line x1="1034" y1="230" x2="1040" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1012" y="211" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">R10  22k</text>
+<line x1="1040" y1="230" x2="1040" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="974" y1="230" x2="984" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="974,230 960,217 898,217 898,243 960,243" fill="none" stroke="#7fd8ff" stroke-width="2"/>
+<text x="929.0" y="235" font-family="monospace" font-size="12.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">+5V</text>
+<line x1="1048" y1="270" x2="1040" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="984" y1="270" x2="990" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="990" y="259" width="44" height="22" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.2"/>
+<line x1="1034" y1="270" x2="1040" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<text x="1012" y="251" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="middle" font-weight="bold" letter-spacing="0">R11  22k</text>
+<line x1="1040" y1="270" x2="1040" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="974" y1="270" x2="984" y2="270" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="974,270 960,257 898,257 898,283 960,283" fill="none" stroke="#7fd8ff" stroke-width="2"/>
+<text x="929.0" y="275" font-family="monospace" font-size="12.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">+5V</text>
+<line x1="1048" y1="310" x2="1016" y2="310" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1016" y1="310" x2="1016" y2="322" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1000" y1="322" x2="1032" y2="322" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="1006" y1="328" x2="1026" y2="328" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="1012" y1="334" x2="1020" y2="334" stroke="#e8f1fb" stroke-width="2.8" stroke-linecap="round"/>
+<text x="845" y="392" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ A USB-C SOURCE needs pull-UPS on CC1 and CC2, not the</text>
+<text x="845" y="410" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  5.1 k pull-downs a sink uses. 22 k advertises 1.5 A;</text>
+<text x="845" y="428" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  56 k advertises default 500 mA.</text>
+<text x="845" y="452" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">▸ Omit them and most devices draw nothing at all.</text>
+<rect x="1330" y="90" width="410" height="380" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="1346" y="77" width="259.2" height="26" fill="#0b2545"/>
+<text x="1356" y="95" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">C — RETURN CURRENT ROUTING</text>
+<circle cx="1460" cy="170" r="11" fill="none" stroke="#7fd8ff" stroke-width="2.8"/>
+<circle cx="1460" cy="170" r="5" fill="#7fd8ff" stroke="#7fd8ff" stroke-width="2.8"/>
+<text x="1460" y="144" font-family="monospace" font-size="10.5" fill="#7fd8ff" text-anchor="middle" font-weight="bold" letter-spacing="0">STAR GND at U1 OUT−</text>
+<line x1="1460" y1="181" x2="1460" y2="230" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1460" y1="230" x2="1520" y2="230" stroke="#8fe388" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="1520" y="214" width="180" height="32" rx="5" fill="none" stroke="#8fe388" stroke-width="2"/>
+<text x="1610" y="235" font-family="monospace" font-size="11" fill="#8fe388" text-anchor="middle" font-weight="bold" letter-spacing="0">LOGIC  0.11 A</text>
+<line x1="1460" y1="181" x2="1460" y2="276" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1460" y1="276" x2="1520" y2="276" stroke="#8fe388" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="1520" y="260" width="180" height="32" rx="5" fill="none" stroke="#8fe388" stroke-width="2"/>
+<text x="1610" y="281" font-family="monospace" font-size="11" fill="#8fe388" text-anchor="middle" font-weight="bold" letter-spacing="0">FANS  0.60 A</text>
+<line x1="1460" y1="181" x2="1460" y2="322" stroke="#e8f1fb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="1460" y1="322" x2="1520" y2="322" stroke="#8fe388" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="1520" y="306" width="180" height="32" rx="5" fill="none" stroke="#8fe388" stroke-width="2"/>
+<text x="1610" y="327" font-family="monospace" font-size="11" fill="#8fe388" text-anchor="middle" font-weight="bold" letter-spacing="0">USB  1.00 A</text>
+<text x="1350" y="390" font-family="monospace" font-size="11" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">▸ The USB return carries up to 1 A.</text>
+<text x="1350" y="408" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  If it shares a track with the pot's</text>
+<text x="1350" y="426" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  ground, the offset shifts your ADC</text>
+<text x="1350" y="444" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">  reading. Run it back on its own.</text>
+<rect x="60" y="500" width="840" height="480" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="76" y="487" width="240.79999999999998" height="26" fill="#0b2545"/>
+<text x="86" y="505" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">D — REVISED POWER BUDGET</text>
+<text x="90" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">LOAD</text>
+<text x="420" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">@ 5 V</text>
+<text x="560" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">@ 12 V</text>
+<text x="700" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">WATTS</text>
+<line x1="80" y1="558" x2="880" y2="558" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<text x="90" y="584" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">Fan A + Fan B (worst case)</text>
+<text x="420" y="584" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">—</text>
+<text x="560" y="584" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">0.60 A</text>
+<text x="700" y="584" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">7.2 W</text>
+<text x="90" y="614" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">ATmega + LCD + LEDs</text>
+<text x="420" y="614" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">0.11 A</text>
+<text x="560" y="614" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">0.065 A</text>
+<text x="700" y="614" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">0.78 W</text>
+<text x="90" y="644" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">USB output port at 1.0 A</text>
+<text x="420" y="644" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">1.00 A</text>
+<text x="560" y="644" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">0.49 A</text>
+<text x="700" y="644" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">5.9 W</text>
+<line x1="80" y1="656" x2="880" y2="656" stroke="#e8f1fb" stroke-width="1.2" stroke-linecap="round"/>
+<text x="90" y="674" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">TOTAL</text>
+<text x="420" y="674" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">1.11 A</text>
+<text x="560" y="674" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">1.16 A</text>
+<text x="700" y="674" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">13.9 W</text>
+<text x="90" y="704" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">12 V 2 A adapter capacity</text>
+<text x="420" y="704" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">—</text>
+<text x="560" y="704" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">2.00 A</text>
+<text x="700" y="704" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">24.0 W</text>
+<text x="90" y="734" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">Headroom</text>
+<text x="420" y="734" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">—</text>
+<text x="560" y="734" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">0.84 A</text>
+<text x="700" y="734" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">42 %</text>
+<line x1="80" y1="772" x2="880" y2="772" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<text x="90" y="798" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">MP1584 loading</text>
+<text x="90" y="822" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1.11 A of a realistic ≈2 A ceiling. The module sits in the fan</text>
+<text x="90" y="840" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">airflow, which is exactly where you want it. Expect it warm,</text>
+<text x="90" y="858" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">not hot. If it exceeds 60 °C, add a small heatsink.</text>
+<text x="90" y="892" font-family="monospace" font-size="12" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">Fan inrush</text>
+<text x="90" y="916" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">Firmware v1.2 ramps the fans up over ~0.85 s. For the first</text>
+<text x="90" y="934" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">~70 ms after switch-on they run full until the chip boots.</text>
+<text x="90" y="962" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">▸ The USB port is dead when SW1 is off. That is deliberate.</text>
+<rect x="930" y="500" width="810" height="260" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="946" y="487" width="231.6" height="26" fill="#0b2545"/>
+<text x="956" y="505" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">E — PROTECTION &amp; FUSING</text>
+<text x="955" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">REF</text>
+<text x="1055" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">WHERE</text>
+<text x="1400" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">RATING</text>
+<text x="1560" y="548" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.1">TYPE</text>
+<line x1="945" y1="558" x2="1725" y2="558" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<text x="955" y="584" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">F1</text>
+<text x="1055" y="584" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">12 V input, before SW1</text>
+<text x="1400" y="584" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">2 A</text>
+<text x="1560" y="584" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">slow-blow (T2A)</text>
+<text x="955" y="614" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">F2</text>
+<text x="1055" y="614" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">+5 V feed to USB socket</text>
+<text x="1400" y="614" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">1.1 A hold</text>
+<text x="1560" y="614" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">PTC resettable</text>
+<text x="955" y="644" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">—</text>
+<text x="1055" y="644" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">or a plain fuse at F2</text>
+<text x="1400" y="644" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">1 A</text>
+<text x="1560" y="644" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">fast-blow (F1A)</text>
+<text x="955" y="674" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">D1</text>
+<text x="1055" y="674" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">reverse polarity, SHUNT</text>
+<text x="1400" y="674" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">3 A</text>
+<text x="1560" y="674" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">1N5402G (3 A)</text>
+<text x="955" y="724" font-family="monospace" font-size="11" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">F1 was 1.5 A in Rev A. The USB port pushes steady draw to 1.16 A, so it must go up.</text>
+<text x="955" y="744" font-family="monospace" font-size="11" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">A PTC at F2 self-resets when a shorted phone cable is unplugged — far better than a glass fuse.</text>
+<rect x="930" y="790" width="810" height="190" fill="none" stroke="#5aa9e6" stroke-width="1.6" stroke-dasharray="10 7" rx="8" opacity="0.8"/>
+<rect x="946" y="777" width="102.8" height="26" fill="#0b2545"/>
+<text x="956" y="795" font-family="sans-serif" font-size="13.5" fill="#5aa9e6" text-anchor="start" font-weight="bold" letter-spacing="1.1">F — NOTES</text>
+<text x="950" y="818" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1. Do NOT use the TP4056 here. It is a single-cell lithium charger;</text>
+<text x="950" y="836" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   its USB-C connector is an INPUT and sources nothing.</text>
+<text x="950" y="854" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">2. C11 220 µF sits AT the socket. Larger values load U1's soft-start</text>
+<text x="950" y="872" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   and can stop the buck from starting at all.</text>
+<text x="950" y="890" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">3. Trim U1 to 5.10 V — F2 drops ≈0.15 V at 1 A, so the socket still</text>
+<text x="950" y="908" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   sees over 4.9 V at full load.</text>
+<text x="950" y="926" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">4. D1 is now a REVERSE SHUNT (1N5402G). Normally reverse-biased, so</text>
+<text x="950" y="944" font-family="monospace" font-size="11.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="0">   it carries nothing and costs no voltage. F1 clears on a reversal.</text>
+<text x="950" y="962" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">5. RV1 is ratiometric against AVCC; rail sag does not shift fan speed.</text>
+<text x="950" y="980" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">6. 22 AWG minimum on +5 V and GND runs. No firmware change.</text>
+<rect x="60" y="1010" width="1180" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2"/>
+<text x="74" y="1034" font-family="sans-serif" font-size="13" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="1.4">CHANGE RECORD — REV A → REV B</text>
+<line x1="60" y1="1044" x2="1240" y2="1044" stroke="#e8f1fb" stroke-width="1.4" stroke-linecap="round"/>
+<text x="80" y="1066" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">F1</text>
+<text x="220" y="1066" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">1.5 A → 2 A</text>
+<text x="430" y="1066" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">slow-blow; steady draw is now 1.16 A</text>
+<text x="80" y="1083" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">D1</text>
+<text x="220" y="1083" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">series → shunt</text>
+<text x="430" y="1083" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1N5402G across the rail: no drop, no heat</text>
+<text x="80" y="1100" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">U1</text>
+<text x="220" y="1100" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">5.00 → 5.10 V</text>
+<text x="430" y="1100" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">offsets the PTC drop at the socket</text>
+<text x="80" y="1117" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">F2</text>
+<text x="220" y="1117" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">new</text>
+<text x="430" y="1117" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">1.1 A hold PTC in the +5 V feed to J5</text>
+<text x="80" y="1134" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">C11</text>
+<text x="220" y="1134" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">new</text>
+<text x="430" y="1134" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">220 µF 10 V at the USB socket</text>
+<text x="80" y="1151" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">J5</text>
+<text x="220" y="1151" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">new</text>
+<text x="430" y="1151" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">USB-A socket, D+ strapped to D−</text>
+<text x="80" y="1168" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">—</text>
+<text x="220" y="1168" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">deleted</text>
+<text x="430" y="1168" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">TP4056 board — wrong device for this job</text>
+<text x="80" y="1185" font-family="monospace" font-size="11.5" fill="#7fd8ff" text-anchor="start" font-weight="bold" letter-spacing="0">Firmware</text>
+<text x="220" y="1185" font-family="monospace" font-size="11.5" fill="#ffc857" text-anchor="start" font-weight="normal" letter-spacing="0">unchanged</text>
+<text x="430" y="1185" font-family="monospace" font-size="11.5" fill="#e8f1fb" text-anchor="start" font-weight="normal" letter-spacing="0">port is passive; no pins used</text>
+<rect x="1270" y="1010" width="470" height="190" rx="0" fill="none" stroke="#e8f1fb" stroke-width="2.4"/>
+<line x1="1270" y1="1074" x2="1740" y2="1074" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1270" y1="1120" x2="1740" y2="1120" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1270" y1="1160" x2="1740" y2="1160" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="1490" y1="1074" x2="1490" y2="1200" stroke="#e8f1fb" stroke-width="1.6" stroke-linecap="round"/>
+<text x="1286" y="1040" font-family="sans-serif" font-size="17" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="1.2">SOLDER FUME EXTRACTOR</text>
+<text x="1286" y="1062" font-family="monospace" font-size="12" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.0">USB OUTPUT &amp; POWER BUDGET</text>
+<text x="1286" y="1092" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">DRAWING</text>
+<text x="1286" y="1110" font-family="monospace" font-size="13" fill="#ffc857" text-anchor="start" font-weight="bold" letter-spacing="0">SHEET 3 — USB PORT</text>
+<text x="1504" y="1092" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">SHEET</text>
+<text x="1504" y="1110" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">3 OF 3</text>
+<text x="1286" y="1138" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">DRAWING No.</text>
+<text x="1286" y="1154" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">SFE-2026-03</text>
+<text x="1504" y="1138" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">REV</text>
+<text x="1504" y="1154" font-family="monospace" font-size="13" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">D</text>
+<text x="1286" y="1178" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">SUPPLY</text>
+<text x="1286" y="1194" font-family="monospace" font-size="12" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">12 VDC 2 A</text>
+<text x="1504" y="1178" font-family="monospace" font-size="9.5" fill="#9fc3e3" text-anchor="start" font-weight="normal" letter-spacing="1.2">USB OUT</text>
+<text x="1504" y="1194" font-family="monospace" font-size="12" fill="#e8f1fb" text-anchor="start" font-weight="bold" letter-spacing="0">5 V 1 A MAX</text>
+</svg>
