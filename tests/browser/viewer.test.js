@@ -160,6 +160,57 @@ describe('fitting when the stage changes size', () => {
   });
 });
 
+describe('drawings that push the viewer', () => {
+  test("a drawing's own CSS can't cover the app or take over zoom", async () => {
+    const dir = await copyFixture(null);
+    await writeFile(path.join(dir, 'hostile.svg'), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100">' +
+      '<style>div{transform:scale(9)!important} svg{position:fixed!important;left:0!important;top:0!important;' +
+      'width:100vw!important;height:100vh!important;z-index:99!important}</style><rect width="200" height="100" fill="#345"/></svg>');
+    const server = await startDevServer(dir);
+    const { browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 });
+    try {
+      await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
+      await nextFrame(page);
+      const onTop = await page.evaluate(() => {
+        const r = document.querySelector('[role=tab]').getBoundingClientRect();
+        return document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2)?.getAttribute('role');
+      });
+      assert.equal(onTop, 'tab', 'the tabs can still be clicked');
+      const before = (await boxes(page)).sheet;
+      await page.locator('#stage').click();
+      await page.keyboard.press('+');
+      await nextFrame(page);
+      assert.ok((await boxes(page)).sheet.width > before.width * 1.2, '+ still zooms');
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+
+  test('a small drawing can be zoomed far past its fit', async () => {
+    const dir = await copyFixture(null);
+    await writeFile(path.join(dir, 'small.svg'), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 30" width="50mm" height="30mm">' +
+      '<rect width="50" height="30" fill="#345"/><text x="5" y="15" font-size="3" fill="#fff">R1</text></svg>');
+    const server = await startDevServer(dir);
+    const { browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 });
+    try {
+      await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
+      await nextFrame(page);
+      const fitted = (await boxes(page)).sheet;
+      await page.locator('#stage').click();
+      for (let i = 0; i < 12; i++) await page.keyboard.press('+');
+      await nextFrame(page);
+      const zoomed = (await boxes(page)).sheet;
+      assert.ok(zoomed.width > fitted.width * 10, `zoomed ${zoomed.width / fitted.width}× past the fit`);
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+});
+
 describe('folders that need a message', () => {
   test('an empty folder says what to do', async () => {
     const dir = await copyFixture(null);

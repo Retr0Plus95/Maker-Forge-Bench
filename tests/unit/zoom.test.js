@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SCALE_LIMITS, fitView, panBy, svgSize, wheelFactor, zoomAt, zoomToRect } from '../../src/zoom.js';
+import { SCALE_LIMITS, fitView, panBy, scaleLimits, svgSize, wheelFactor, zoomAt, zoomToRect } from '../../src/zoom.js';
 
 test('svgSize reads the viewBox first', () => {
   assert.deepEqual(svgSize({ viewBox: '0 0 1560 1536', width: '1560', height: '1536' }), { x: 0, y: 0, w: 1560, h: 1536 });
@@ -30,6 +30,16 @@ test('zoomAt keeps the point under the pointer and clamps', () => {
   assert.deepEqual(zoomAt({ scale: 1, x: 0, y: 0 }, 2, 100, 50), { scale: 2, x: -100, y: -50 });
   assert.equal(zoomAt({ scale: 30, x: 0, y: 0 }, 10, 0, 0).scale, SCALE_LIMITS.max);
   assert.equal(zoomAt({ scale: 0.03, x: 0, y: 0 }, 0.1, 0, 0).scale, SCALE_LIMITS.min);
+});
+
+test('zoom limits follow the sheet: small drawings zoom far, tiny or huge ones still fit', () => {
+  assert.deepEqual(scaleLimits(0.5), { min: 0.02, max: 40 });
+  assert.deepEqual(scaleLimits(21.875), { min: 0.02, max: 1400 });
+  assert.deepEqual(scaleLimits(0.008), { min: 0.001, max: 40 });
+  assert.equal(fitView({ w: 2, h: 1 }, { w: 1000, h: 800 }).scale, 484);
+  assert.equal(fitView({ w: 100000, h: 50000 }, { w: 1032, h: 800 }).scale, 0.01);
+  assert.equal(zoomAt({ scale: 21.875, x: 0, y: 0 }, 2, 0, 0, scaleLimits(21.875)).scale, 43.75);
+  assert.ok(Math.abs(zoomToRect({ x: 0, y: 0, w: 0.1, h: 0.1 }, { w: 960, h: 720 }, scaleLimits(21.875)).scale - 600) < 1e-9);
 });
 
 test('panBy moves the view', () => {

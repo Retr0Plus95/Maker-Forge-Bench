@@ -11,7 +11,7 @@ const shownTextIncludes = (page, s, timeout = 3000) => page.waitForFunction(
   (needle) => [...document.querySelector('#sheet-host').shadowRoot.querySelectorAll('text')].some((t) => t.textContent.includes(needle)),
   s, { timeout });
 
-const wrapTransform = (page) => page.evaluate(() => document.querySelector('#sheet-host').shadowRoot.firstElementChild.style.transform);
+const wrapTransform = (page) => page.evaluate(() => document.querySelector('#sheet-host').style.transform);
 
 describe('auto-refresh', () => {
   let dir; let sfe04Path; let original; let server; let browser; let page; let problems;

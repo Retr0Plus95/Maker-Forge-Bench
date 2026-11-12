@@ -1,5 +1,7 @@
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { copyFixture, nextFrame, openPage, startDevServer } from './harness.js';
 
 const BANNER = 'SOLDER SIDE – seen from underneath';
@@ -99,4 +101,34 @@ describe('flip to the solder side', () => {
   });
 
   test('no errors', () => assert.deepEqual(problems, []));
+});
+
+describe('flipping a big layout', () => {
+  test('3,000 labels among 60,000 shapes flip in under 3 seconds', async () => {
+    const dir = await copyFixture(null);
+    await mkdir(path.join(dir, 'layout'), { recursive: true });
+    const texts = Array.from({ length: 3000 }, (_, i) =>
+      `<text x="${(i % 60) * 50 + 5}" y="${Math.floor(i / 60) * 40 + 20}" font-size="12" fill="#fff">R${i}</text>`).join('');
+    // Many shapes as well as labels: each forced layout walks all of them.
+    const shapes = Array.from({ length: 60000 }, (_, i) =>
+      `<rect x="${(i % 300) * 10}" y="${Math.floor(i / 300) * 10}" width="2" height="2" fill="#1d4e89"/>`).join('');
+    await writeFile(path.join(dir, 'layout', 'big-layout.svg'),
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 2000" width="3000" height="2000"><rect width="3000" height="2000" fill="#0b2545"/>${shapes}${texts}</svg>`);
+    const server = await startDevServer(dir);
+    const { browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 });
+    try {
+      await page.waitForFunction(() => !document.querySelector('#flip').disabled);
+      const ms = await page.evaluate(() => {
+        const t0 = performance.now();
+        document.querySelector('#flip').click();
+        return performance.now() - t0;
+      });
+      assert.ok(ms < 3000, `the flip took ${Math.round(ms)} ms`);
+      assert.equal(await page.locator('#flip-banner').isVisible(), true);
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
 });

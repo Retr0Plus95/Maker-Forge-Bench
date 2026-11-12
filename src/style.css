@@ -78,6 +78,7 @@ h1 {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  contain: strict; /* nothing a drawing does can paint outside the stage */
   background: #1a1a1a;
   touch-action: none;
   cursor: grab;
@@ -87,7 +88,9 @@ h1 {
 
 #sheet-host {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
 }
 
 #stage-message {

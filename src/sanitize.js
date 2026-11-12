@@ -54,8 +54,15 @@ function urlsAreLocal(value) {
   return true;
 }
 
+/**
+ * Things a style may never contain: CSS escapes (they could spell anything), imports, image-set()
+ * (it loads pictures without url()), and :host (it would let the drawing restyle the element it
+ * lives in and cover the app). CSS comments are removed before looking.
+ */
 function styleIsSafe(text) {
-  return !text.includes('\\') && !text.toLowerCase().includes('@import') && urlsAreLocal(text);
+  if (text.includes('\\')) return false;
+  const css = text.toLowerCase().replace(/\/\*[\s\S]*?\*\//g, '');
+  return !css.includes('@import') && !css.includes('image-set(') && !css.includes(':host') && urlsAreLocal(css);
 }
 
 function hrefIsSafe(element, value) {
@@ -75,7 +82,7 @@ function attributeIsSafe(element, attr) {
   if (ns !== null || !ATTRS.has(local)) return false;
   if (local === 'href') return hrefIsSafe(element, attr.value);
   if (local === 'style') return styleIsSafe(attr.value);
-  return urlsAreLocal(attr.value);
+  return urlsAreLocal(attr.value) && !attr.value.toLowerCase().includes('image-set(');
 }
 
 function hasHref(element) {
@@ -106,10 +113,20 @@ function clean(doc, name) {
       const local = child.localName;
       const isSvg = child.namespaceURI === SVG_NS;
       if (isSvg && KEEP.has(local)) {
-        if (local === 'style' && !styleIsSafe(child.textContent || '')) {
-          parent.removeChild(child);
-          state.removed++;
-          continue;
+        if (local === 'style') {
+          // The browser reads a stylesheet from the style's own text only, so child elements or
+          // comments could split "@import" or "url(" past the check. Keep just the text.
+          for (const node of Array.from(child.childNodes)) {
+            if (node.nodeType !== 3 && node.nodeType !== 4) {
+              child.removeChild(node);
+              state.removed++;
+            }
+          }
+          if (!styleIsSafe(child.textContent || '')) {
+            parent.removeChild(child);
+            state.removed++;
+            continue;
+          }
         }
         keep(child);
         if ((local === 'use' || local === 'image') && !hasHref(child)) {

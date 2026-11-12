@@ -24,6 +24,7 @@ const NASTY = [
   ['fill with a local url', svg('<rect fill="url(#g)" width="1" height="1"/>'), 'url(#g)'],
   ['style element with @import', svg('<style>@import url(https://x.example/a.css);</style>'), null],
   ['style element with a local url', svg('<style>.a{fill:url(#g)}</style>'), 'url(#g)'],
+  ['style split by a comment', svg('<style>@imp<!--x-->ort "https://x.example/a.css";</style>'), null],
   ['animate setting href', svg('<a><animate attributeName="href" to="javascript:alert(1)"/><text>x</text></a>'), '>x</text>'],
   ['set adding a handler', svg('<rect width="1" height="1"><set attributeName="onmouseover" to="alert(1)"/></rect>'), '<rect'],
   ['CSS escape in a style', svg('<rect style="fill:u\\rl(https://x.example)" width="1" height="1"/>'), '<rect'],
@@ -31,7 +32,7 @@ const NASTY = [
   ['Inkscape attribute', svg('<g inkscape:label="Layer 1"><rect width="1" height="1"/></g>', 'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"'), '<rect'],
 ];
 
-const DANGER = /<script|foreignobject|\son[a-z]+=|javascript:|href="(?!#|data:image\/(png|jpeg|gif|webp);base64,)|url\(\s*['"]?[^#\s'"]|@import|<animate|<set\b|sodipodi|inkscape:/;
+const DANGER = /image-set|<script|foreignobject|\son[a-z]+=|javascript:|href="(?!#|data:image\/(png|jpeg|gif|webp);base64,)|url\(\s*['"]?[^#\s'"]|@import|<animate|<set\b|sodipodi|inkscape:/;
 
 // Design §10: the fume extractor's sheets "must come out looking identical". They carry a hidden
 // <metadata> block (a C2PA content-credentials record) that the cleaner drops; nothing else may change.
@@ -61,6 +62,29 @@ test('nasty files come out harmless', () => {
     const out = serialize(prepareSvg(input, nodeParser(), 'nasty.svg').doc);
     assert.doesNotMatch(out.toLowerCase(), DANGER, label);
     if (mustKeep) assert.ok(out.includes(mustKeep), `${label} keeps ${mustKeep}`);
+  }
+});
+
+test('style text split by child elements is checked as the browser reads it', () => {
+  // The browser builds a stylesheet from a <style>'s own text only; child elements split the text.
+  for (const body of ['<style>@imp<g>Z</g>ort "https://x.example/a.css";</style>',
+    '<style>.a{fill:ur<title>Z</title>l(https://x.example/t)}</style>']) {
+    const { doc } = prepareSvg(svg(body), nodeParser(), 'split.svg');
+    assert.equal(doc.getElementsByTagName('style').length, 0, body);
+  }
+});
+
+test('image-set and :host are refused wherever styles go', () => {
+  for (const body of [
+    '<rect style="fill:red;background:image-set(\'https://x.example/i.png\' 1x)" width="1" height="1"/>',
+    '<rect fill="image-set(\'https://x.example/i.png\' 1x)" width="1" height="1"/>',
+    '<style>.a{background:-webkit-image-set("https://x.example/i.png" 1x)}</style>',
+    '<style>:host{position:fixed!important;inset:0!important}</style>',
+    '<style>:/**/host{position:fixed}</style>',
+    '<style>:HOST-context(body){display:none}</style>',
+  ]) {
+    const out = serialize(prepareSvg(svg(body), nodeParser(), 'x.svg').doc).toLowerCase();
+    assert.doesNotMatch(out, /image-set|host|<style/, body);
   }
 });
 

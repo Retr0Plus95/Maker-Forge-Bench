@@ -1,14 +1,12 @@
-// One sheet on screen: zoom, pan and (later) flip and highlight.
-// The drawing lives in a shadow root, so a drawing's own <style> rules and ids can't leak into the
-// page, and the page's styles can't change the drawing.
-import { fitView, panBy, wheelFactor, zoomAt, zoomToRect } from './zoom.js';
+// One sheet on screen: zoom, pan, flip and the ring around a found label.
+// The drawing lives in a shadow root holding nothing but the drawing, so its own <style> rules and
+// ids can't reach the page. The zoom is a transform on the host element, outside the shadow tree,
+// so the drawing's CSS can't touch it, and it also contains anything the drawing positions as fixed.
+import { SCALE_LIMITS, fitView, panBy, scaleLimits, wheelFactor, zoomAt, zoomToRect } from './zoom.js';
 
 export function createViewer(stage) {
   const host = stage.querySelector('#sheet-host');
   const shadow = host.attachShadow({ mode: 'open' });
-  const wrap = document.createElement('div');
-  Object.assign(wrap.style, { position: 'absolute', left: '0', top: '0', transformOrigin: '0 0' });
-  shadow.append(wrap);
 
   let view = { scale: 1, x: 0, y: 0 };
   let content = null;
@@ -22,7 +20,12 @@ export function createViewer(stage) {
   const stageSize = () => ({ w: stage.clientWidth, h: stage.clientHeight });
   const apply = (next) => {
     view = { ...next };
-    wrap.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    host.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+  };
+  /** Zoom limits for the sheet on screen: they follow its fitted scale (see scaleLimits). */
+  const limits = () => {
+    const box = stageSize();
+    return size && box.w > 0 && box.h > 0 ? scaleLimits(fitView(size, box).scale) : SCALE_LIMITS;
   };
   /** A view you chose (zoom, pan, a found part): the stage changing size leaves it alone. */
   const setView = (next) => {
@@ -54,14 +57,14 @@ export function createViewer(stage) {
       next.img.height = size.h;
       next.img.style.display = 'block';
     }
-    wrap.replaceChildren(next.kind === 'svg' ? next.root : next.img);
+    shadow.replaceChildren(next.kind === 'svg' ? next.root : next.img);
     content = next;
     if (opts.keepView) apply(view);
     else fit();
   }
 
   function clear() {
-    wrap.replaceChildren();
+    shadow.replaceChildren();
     content = null;
     size = null;
   }
@@ -108,13 +111,19 @@ export function createViewer(stage) {
       group.setAttribute('transform', `translate(${2 * vb.x + vb.width} 0) scale(-1 1)`);
       for (const child of Array.from(root.childNodes)) if (child !== ringLayer) group.append(child);
       root.insertBefore(group, ringLayer && ringLayer.parentNode === root ? ringLayer : null);
-      const originals = new Map();
-      for (const text of Array.from(group.getElementsByTagNameNS(SVG_NS, 'text'))) {
-        const before = text.getAttribute('transform');
+      // Read every label's box first, then write: reading after a write makes the browser lay the
+      // whole drawing out again, once per label (a minute on a big layout).
+      const texts = Array.from(group.getElementsByTagNameNS(SVG_NS, 'text'));
+      const centres = texts.map((text) => {
         const b = text.getBBox();
+        return b.x + b.width / 2;
+      });
+      const originals = new Map();
+      texts.forEach((text, i) => {
+        const before = text.getAttribute('transform');
         originals.set(text, before);
-        text.setAttribute('transform', `${before ? before + ' ' : ''}translate(${2 * (b.x + b.width / 2)} 0) scale(-1 1)`);
-      }
+        text.setAttribute('transform', `${before ? before + ' ' : ''}translate(${2 * centres[i]} 0) scale(-1 1)`);
+      });
       flips.set(root, { group, originals });
     } else {
       const { group, originals } = flips.get(root);
@@ -154,7 +163,7 @@ export function createViewer(stage) {
     if (!size) return;
     e.preventDefault();
     const [px, py] = stagePoint(e);
-    setView(zoomAt(view, wheelFactor(e.deltaY, e.deltaMode), px, py));
+    setView(zoomAt(view, wheelFactor(e.deltaY, e.deltaMode), px, py, limits()));
   }, { passive: false });
 
   stage.addEventListener('pointerdown', (e) => {
@@ -180,7 +189,7 @@ export function createViewer(stage) {
   stage.addEventListener('dblclick', (e) => {
     if (!size) return;
     const [px, py] = stagePoint(e);
-    setView(zoomAt(view, 2, px, py));
+    setView(zoomAt(view, 2, px, py, limits()));
   });
 
   return {
@@ -189,13 +198,13 @@ export function createViewer(stage) {
     fit,
     zoomBy(factor) {
       const s = stageSize();
-      setView(zoomAt(view, factor, s.w / 2, s.h / 2));
+      setView(zoomAt(view, factor, s.w / 2, s.h / 2, limits()));
     },
     panBy(dx, dy) {
       setView(panBy(view, dx, dy));
     },
     zoomToRect(rect) {
-      setView(zoomToRect(rect, stageSize()));
+      setView(zoomToRect(rect, stageSize(), limits()));
     },
     labelRect,
     ring,
