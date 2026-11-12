@@ -9,4 +9,7 @@ python -m unittest discover -s tests/python
 echo "== unit tests (Node)"
 npm test
 
+echo "== browser checks (Chrome or Edge)"
+npm run check:browser
+
 echo "ALL CHECKS PASSED"

@@ -10,6 +10,7 @@
     "check:browser": "node --test --test-concurrency=1 \"tests/browser/*.test.js\""
   },
   "devDependencies": {
-    "@xmldom/xmldom": "^0.9.12"
+    "@xmldom/xmldom": "^0.9.12",
+    "playwright": "^1.65.0"
   }
 }

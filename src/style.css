@@ -1,0 +1,107 @@
+/* Maker Forge Bench 0.1: a plain dark page. Themes and Easy reading come in 0.3. */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #111;
+  color: #eee;
+  font: 15px/1.4 system-ui, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #333;
+  min-width: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.app-name { color: #ffb347; }
+#project-name { color: #ccc; font-weight: 400; }
+
+#tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+#tabs [role="tab"] {
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1d1d1d;
+  color: #ddd;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#tabs [role="tab"][aria-selected="true"] {
+  background: #ffb347;
+  border-color: #ffb347;
+  color: #111;
+  font-weight: 600;
+}
+
+#status {
+  margin: 0;
+  padding: 0 10px;
+  min-height: 1.4em;
+  color: #ffd27a;
+  overflow-wrap: anywhere;
+}
+
+#stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #1a1a1a;
+  touch-action: none;
+  cursor: grab;
+}
+
+#stage.dragging { cursor: grabbing; }
+
+#sheet-host {
+  position: absolute;
+  inset: 0;
+}
+
+#stage-message {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: #ffd27a;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+#stage-message[hidden] { display: none; }
