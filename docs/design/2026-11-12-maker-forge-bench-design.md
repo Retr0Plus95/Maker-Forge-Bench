@@ -29,7 +29,8 @@ tick off what's done, and ask Claude about a part without leaving the drawing.
 **What this design assumes** (the owner can correct any of these)
 - It runs entirely in the browser: no server, no account, no uploads. This is approach "A" from the
   design chat.
-- Electronics calculators come in release 1.1, not 1.0.
+- Electronics calculators become an app of their own, Maker Forge Calc. Bench uses them on its
+  part cards after 1.0 (roadmap 1.1).
 - The project file is built so other apps in the suite can read it ("suite-ready").
 - English only in release 1. MIT licence, like Shape and the fume extractor.
 
@@ -51,17 +52,20 @@ The owner already has the pieces of a hobbyist version of that:
 | What ties them together | **The project file** (section 6) | One project that every app reads and adds to. The home page is where you see it whole. |
 
 **How the apps are named:** the suite and its home are **Maker Forge**. Each app is "Maker Forge"
-plus one plain word that says what it does (Shape, Bench, and later Parts), the way Fusion 360
-names its Design and Electronics workspaces. Only "Maker Forge" has to be a unique name. Ideas for
-future apps are in `ROADMAP.md` (stage 3).
+plus one plain word that says what it does (Shape, Bench, and later Calc, Parts, Layout and
+others), the way Fusion 360 names its Design and Electronics workspaces. Only "Maker Forge" has to
+be a unique name. Ideas for future apps are in `ROADMAP.md` ("The apps in the suite"), grouped by
+the part of a project they serve: learn and plan, design, build, test, share.
 
 Three rules keep this workable:
 1. **Separate apps, separate repos, one shared file and one address.** Each app must be useful on
    its own. They connect through the project file, links, and the browser storage they share at
    forge.retr0plus.se (section 4), never by merging code.
-2. **Don't rebuild KiCad.** Drawing schematics and routing boards is a huge job that KiCad does for free.
-   Bench *imports* from KiCad, EasyEDA, Fritzing or hand-made drawings. The suite's value is
-   the bench and the connections, not another CAD program.
+2. **Don't rebuild KiCad.** Copper circuit boards and large schematics are a huge job that KiCad
+   does for free. Bench *imports* from KiCad, EasyEDA, Fritzing or hand-made drawings. The suite's
+   own builders stay small: Circuit for small schematics, and Layout for perfboard and stripboard,
+   which KiCad is awkward for. The suite's value is the bench and the connections, not another CAD
+   program.
 3. **The same promises in every app**: free and MIT, works without an account, your files stay on
    your device, plain words, Easy reading.
 

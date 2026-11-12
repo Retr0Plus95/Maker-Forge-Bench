@@ -24,8 +24,9 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 | Stage | Releases | What it is for |
 |---|---|---|
 | Build the viewer | 0.1 to 1.0 | The soldering viewer, finished and published |
-| Bench tools | 1.1 to 1.4 | Calculators, more file types, guided building, testing and fault-finding |
-| The Maker Forge suite | 2.0 and on | The home page, Bench, Shape and the website working as one project, then new apps |
+| Bench tools | 1.1 to 1.4 | Calculators on part cards, more file types, guided building, testing and fault-finding |
+| The Maker Forge suite | 2.0 and on | The home page, Bench, Shape and the website working as one project |
+| More apps | any time | Learn and plan, design, build, test, share: see "The apps in the suite" |
 
 ---
 
@@ -71,25 +72,27 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 
 ## Stage 2: bench tools (1.1 to 1.4)
 
-### 1.1 Calculators
-Each one shows its working in plain words, not just the answer.
-- **Resistor colour code**, both ways: bands → value and value → bands. **★ New: on every resistor's
-  part card too** ("10 k = brown, black, orange"), so you can pick the right one out of the bag.
-- Ohm's law and power. It warns when a resistor would run hot ("0.6 W in a ¼ W resistor").
-- LED series resistor: supply, LED colour and current → resistor and its wattage.
-- Voltage divider, both ways, with the nearest standard values (E12/E24).
-- **★ New: Capacitor code reader:** `104` → 100 nF, `22p`, `4n7`, and the voltage letters.
-- Fuse and wire size: current → fuse rating and wire thickness. Your fume extractor's 1 A / 2 A
-  fuse question is exactly this.
-- **★ New: Battery life:** capacity and current draw → hours. Shape already has this for boxes, so
-  share the formula.
+### 1.1 Calculators on the part cards
+The calculators themselves are their own app, **Maker Forge Calc** (see "The apps in the suite"),
+because they're useful without any project. Bench and Calc share one small formulas file, so their
+answers always match. Bench adds the calculations that belong to a part:
+- **★ New: Resistor colour bands on every resistor's part card** ("10 k = brown, black, orange"),
+  so you can pick the right one out of the bag.
+- **Hot-part warning** on a part card when the project file gives the voltage or current: "0.6 W in
+  a ¼ W resistor".
 - **★ New: Power budget:** adds up what every part in the project draws, and checks the regulator,
   fuse and battery against it.
+- **★ New: "How this part works"** on every part card, opening the right page of the Parts library.
+- **Open in Calc**, with the part's values already filled in.
 
 ### 1.2 More files, and offline
 - **PDF**, with its text searchable. KiCad's PDF exports keep text, which fixes the KiCad risk for good.
 - **KiCad parts list (BOM CSV)** as a parts source, so KiCad projects get part cards without
   writing a project file.
+- **★ New: Read KiCad schematic files directly.** KiCad saves schematics (`.kicad_sch`) as plain
+  text, so Bench can read every part and every connection from them, with no export step. That
+  gives part cards and connection highlighting (1.4) without a project file. *Check first:* how much
+  work drawing the sheet itself is. Reading the parts and connections is worth it on its own.
 - **Install on phone and tablet**, and work with no internet at the bench.
 - **One-file download**, like Shape's releases.
 - **★ New: Print the checklist and wire list** on paper, with tick boxes, for builders who prefer it.
@@ -153,28 +156,150 @@ needs work in the other app's own repo and Claude session.
 
 ---
 
-## Future apps in the suite
+## The apps in the suite
 
 **The test for a new app:** it has to be useful on its own, without the other apps. If it isn't, it
-becomes a feature of an app that already exists. That's why the calculators belong to Bench, and the
-parts inventory is an app of its own.
+becomes a feature of an app that already exists.
 
-**Considered, and kept as features instead:** the power budget (a Bench calculator, 1.1), project
-cost (the home page, once Parts knows prices), front panels (Labels and Shape together) and
-off-board wiring (Bench's wire list).
+The apps follow a project from first idea to finished build, the way SolidWorks has a workspace for
+each job:
 
-### Maker Forge Parts: what you have on hand
-*(This was "2.3 Parts inventory".)*
+| Part of a project | App | What it does | Status |
+|---|---|---|---|
+| **Learn and plan** | **Parts** | What each component is, how to use it, and which ones you have | Idea |
+| | **Calc** | Electronics calculators | Idea |
+| | **Pins** | Plan a microcontroller's pins | Idea |
+| **Design** | **Circuit** | Draw small circuits (schematics) | Idea |
+| | **Layout** | Perfboard and stripboard layouts | Idea |
+| | **Shape** | 3D-printed cases and parts | Exists (today's Maker Forge) |
+| **Build** | **Bench** | Read the drawings and build the board | This repo |
+| | **Labels** | Labels for bins, wires and front panels | Idea |
+| **Test** | **Serial** | Talk to the board and graph what it says | Idea |
+| **Share** | **Journal** | A build notebook, published to retr0plus.se | Idea |
+| | **Live** | A stream page for OBS | Idea |
+| **The whole project** | **Maker Forge** (home) | The assembly: every piece of one project | Planned for 2.0 |
+
+Copper circuit boards and large schematics stay in KiCad (see "Not planned").
+
+**Considered, and kept as features instead:** the power budget (Bench 1.1, using Calc's formulas),
+project cost (the home page, once Parts knows prices), front panels (Labels and Shape together),
+off-board wiring (Bench's wire list) and reading circuits (Bench is the reader).
+
+### Learn and plan
+
+#### Maker Forge Parts: know your components
+Two halves that work alone or together.
+
+**★ New: The library, or how to use each component.** One page for each kind of part, in plain
+words, starting with the ones a hobbyist meets first: resistors, capacitors (ceramic and
+electrolytic), diodes, LEDs, Zener diodes, transistors (NPN and PNP), MOSFETs, voltage regulators,
+potentiometers, switches and buttons, relays, fuses, crystals, chips and sockets, connectors, fans
+and motors, buzzers and displays. Each page covers:
+- what it does, and a typical circuit it's used in;
+- how to recognise it and read its value or markings;
+- which way round it goes;
+- how to test it with a multimeter;
+- common mistakes ("an LED with no resistor");
+- the calculator in Calc that goes with it.
+
+Where the same part comes with different pin orders (some small transistors do), the page says so
+and points to the exact part's datasheet.
+
+**★ New: Identify a part from a photo.** Photograph a resistor's bands or a chip's markings, and
+Claude (with your own key) reads the value or part number and opens its page. It's shown as a
+guess for you to check.
+
+**My parts, or what you have on hand.** *(This was "2.3 Parts inventory".)*
 - A list of the parts you own and which bin each is in. The fume extractor notes already track
   "1N4007 and 1N4002 on hand".
 - A project's parts list then shows **"have 3 × 1N5402G, need 1"**, and what's missing becomes a
   shopping list.
 - **★ New: Filament too:** spools, colours and how much is left, so the 3D-printing side uses it
   as well.
-- **Connects:** Bench's part cards and checklist show have and need. Shape says how much filament a
-  print takes. Labels prints the bin labels.
 
-### Maker Forge Serial: talk to the board ★ New
+**Connects:** Bench's part cards open the library page and show have and need. Labels prints the bin
+labels. Shape says how much filament a print takes.
+
+**Order:** the library first, because every visitor can use it with nothing to type in. The
+inventory comes second.
+
+#### Maker Forge Calc: electronics calculators
+*(These were planned as Bench 1.1. They're useful without any project, so they're an app of their
+own, and Bench uses them.)*
+
+Each one shows its working in plain words, not just the answer.
+- **Resistor colour code**, both ways: bands → value and value → bands.
+- **Ohm's law and power.** It warns when a resistor would run hot ("0.6 W in a ¼ W resistor").
+- **LED series resistor:** supply, LED colour and current → resistor and its wattage.
+- **Voltage divider**, both ways, with the nearest standard values (E12/E24).
+- **★ New: Capacitor code reader:** `104` → 100 nF, `22p`, `4n7`, and the voltage letters.
+- **Fuse and wire size:** current → fuse rating and wire thickness. Your fume extractor's 1 A / 2 A
+  fuse question is exactly this.
+- **★ New: Battery life:** capacity and current draw → hours. Shape already has this for boxes, so
+  share the formula.
+- **★ New: RC timing and the 555 timer:** resistor and capacitor → delay or frequency, and back.
+- **★ New: Unit converter** for the ones that trip people up: mA and A, µF, nF and pF, kΩ and MΩ.
+- **Links that open a calculator already filled in**, such as
+  `forge.retr0plus.se/calc/led?supply=12&color=red`. Bench, Parts and the library pages use them.
+
+#### Maker Forge Pins: plan the microcontroller's pins ★ New
+- Pick a chip (ATmega328P, ESP32 and Raspberry Pi Pico to start), give each pin a job, and it warns
+  about clashes: two jobs on one pin, PWM on a pin that can't do it, or a pin the chip needs at
+  start-up (the ESP32's strapping pins).
+- Writes the pin list for the firmware (the `#define` lines) and a pin table for the drawings, so
+  the code and the schematic agree.
+- **Connects:** U2's part card in Bench shows the pin table. Serial labels its graphs with pin names.
+  Circuit draws the chip with its pins already named.
+- **Useful on its own** because you plan the pins before any drawing exists.
+
+### Design
+
+#### Maker Forge Circuit: draw small circuits ★ New
+- A simple schematic builder for small circuits, about 50 parts or fewer, made for beginners. Parts
+  come from the Parts library, wires snap into place, and it points out common mistakes as you
+  draw: an LED with no resistor, a pin connected to nothing, two outputs wired together.
+- Saves the drawing (as SVG, which Bench reads) and the list of connections (the netlist) in the
+  project file. Layout builds on that list, and Bench uses it to highlight a connection (1.4).
+- Exports a netlist for KiCad, for when a project outgrows it. *Check first:* which KiCad netlist
+  format to write.
+- Maybe later: **Try it in Falstad**, which opens the circuit in Falstad's free simulator.
+- **Useful on its own** for sketching any small circuit.
+- **The biggest app on this list**, so it comes late. Layout works without it first, using a
+  netlist from KiCad or one typed in.
+
+#### Maker Forge Layout: perfboard and stripboard layouts ★ New
+- What `board.py`, `pcb.py` and `render.py` do for the fume extractor, as an app for any project.
+  Place parts on a perfboard or stripboard grid, draw links and wires, and mark stripboard track
+  cuts.
+- Checks the layout against the circuit's connections as you go, the way `pcb.py` checks the fume
+  extractor: a missing connection, a short, two parts in one hole.
+- Produces the layout drawing and the build order that Bench uses for step-by-step mode (1.3), and
+  the board outline that Shape uses for the case.
+- KiCad is built for copper boards and is awkward for perfboard and stripboard. Free desktop tools
+  such as VeroRoute and DIY Layout Creator exist. This one runs in the browser, on a tablet too,
+  and is tied to the rest of the project.
+- **Useful on its own** for any perfboard or stripboard build.
+
+#### Maker Forge Shape: 3D-printed cases and parts
+Today's Maker Forge, with its own roadmap (fully parametric at its 2.0). It takes the Shape name at
+this roadmap's 2.0, above.
+
+### Build
+
+#### Maker Forge Bench: read the drawings and build the board
+This app: stages 1 and 2 above.
+
+#### Maker Forge Labels: print labels for everything ★ New
+- Bin labels with a QR code that opens the part in Parts on your phone.
+- Wire tags from Bench's wire list, and cable markers.
+- Front-panel labels for a case (LCD, knob, switch), placed from the project's `board` section.
+- Prints on paper or sticker sheets, exports SVG for a laser or vinyl cutter, and makes a
+  raised-text plate for Shape to 3D-print.
+- **Useful on its own** for labelling anything, with or without a project.
+
+### Test
+
+#### Maker Forge Serial: talk to the board ★ New
 - A serial monitor and live graph in the browser for Arduino-type boards, such as the fume
   extractor's ATmega328P. It uses the browser's Web Serial feature, which works in Chrome and Edge
   on a PC, but not in Firefox or Safari, or on an iPhone or iPad.
@@ -185,42 +310,33 @@ off-board wiring (Bench's wire list).
 - *Check first:* whether uploading firmware from the browser is practical for AVR chips. Until then,
   the Arduino IDE does that.
 
-### Maker Forge Pins: plan the microcontroller's pins ★ New
-- Pick a chip (ATmega328P, ESP32 and Raspberry Pi Pico to start), give each pin a job, and it warns
-  about clashes: two jobs on one pin, PWM on a pin that can't do it, or a pin the chip needs at
-  start-up (the ESP32's strapping pins).
-- Writes the pin list for the firmware (the `#define` lines) and a pin table for the drawings, so
-  the code and the schematic agree.
-- **Connects:** U2's part card in Bench shows the pin table. Serial labels its graphs with pin names.
-- **Useful on its own** because you plan the pins before any drawing exists.
+Bench's own test tools (1.4) cover the meter side: connection highlighting, the measurement log and
+the photo check.
 
-### Maker Forge Labels: print labels for everything ★ New
-- Bin labels with a QR code that opens the part in Parts on your phone.
-- Wire tags from Bench's wire list, and cable markers.
-- Front-panel labels for a case (LCD, knob, switch), placed from the project's `board` section.
-- Prints on paper or sticker sheets, exports SVG for a laser or vinyl cutter, and makes a
-  raised-text plate for Shape to 3D-print.
-- **Useful on its own** for labelling anything, with or without a project.
+### Share
 
-### Maker Forge Journal: a notebook for every project ★ New
+#### Maker Forge Journal: a notebook for every project ★ New
 - Notes, photos (kept on your device), time spent and what went wrong, across every project.
 - The entries you choose are published to the Logs or Journal page on retr0plus.se.
 - **Connects:** Bench's ticks, notes and measurements, and Shape's prints, arrive as entries by
   themselves. This takes over Bench's build log export (2.1).
 
-### Maker Forge Live: stream your build ★ New
+#### Maker Forge Live: stream your build ★ New
 - One clean page for OBS that shows what you're doing in any app: "Soldering R6, 10 k, step 31 of
   50" from Bench, or "Printing the case lid, 43 %" from your printer bridge on retr0plus.se.
 - It replaces Bench's own stream view (planned as 2.2), because it isn't tied to one app. It fits
   next to the OBS overlays already in the website's `overlays/` folder.
 
 ### Suggested order
-1. **Parts:** the most everyday use, and both Labels and Bench build on it.
-2. **Serial:** finishes the testing side of Bench (1.4).
-3. **Pins:** ready before the next new electronics project.
-4. **Labels:** once Parts exists, for the bin QR codes.
-5. **Journal:** once at least two apps have something to write into it.
-6. **Live:** whenever streaming builds becomes a priority.
+1. **Calc:** small, useful to everyone, and Bench's part cards (1.1) use its formulas.
+2. **Parts:** the library first, then the inventory.
+3. **Serial:** finishes the testing side of Bench (1.4).
+4. **Pins:** ready before the next new electronics project.
+5. **Layout:** turns the fume extractor's layout tools into an app for every project.
+6. **Labels:** once Parts exists, for the bin QR codes.
+7. **Circuit:** the biggest, so it comes once Layout has proved the connection list.
+8. **Journal:** once at least two apps have something to write into it.
+9. **Live:** whenever streaming builds becomes a priority.
 
 ---
 
@@ -237,9 +353,11 @@ off-board wiring (Bench's wire list).
 
 ## Not planned
 
-- **A schematic or PCB editor.** KiCad does that for free; Bench reads its output.
+- **A KiCad replacement.** Copper circuit boards and large schematics stay in KiCad, which does
+  them for free, and Bench reads its output. The suite's own builders stay small: Circuit for small
+  schematics, and Layout for perfboard and stripboard.
 - **A circuit simulator.** Falstad's circuit simulator and Wokwi already do it for free in the
-  browser; Bench can link to them.
+  browser. Bench and Circuit can link to them.
 - **A slicer.** PrusaSlicer and OrcaSlicer already do it; Shape's models go to them.
 - **A code editor.** VS Code and the Arduino IDE already do it.
 - **Accounts, cloud storage or syncing through a server.** Moving progress between devices is done
