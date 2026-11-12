@@ -1,6 +1,6 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
-import { sheetsFromFiles } from './project.js';
+import { ProjectError, guessParts, parseProject, sheetsForProject, sheetsFromFiles } from './project.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
@@ -24,6 +24,10 @@ const state = {
   root: '', sheets: [], cache: new Map(), loaded: new Map(), views: new Map(), flipped: new Set(), current: null,
   stale: new Set(), // sheets showing an older version because the newest save couldn't be read
   generations: new Map(), // per sheet: which refresh is the newest
+  project: null, // forge-project.json, read and checked (design §6)
+  projectProblem: '', // why the project file couldn't be used, shown whenever the status line is free
+  parts: [], // the project's parts, or parts guessed from the drawings' labels
+  partsByRef: new Map(),
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -82,7 +86,7 @@ const keptMessage = (id) => `${id} couldn't be read; keeping the previous one.`;
 const noDrawingsMessage = (root) => `No drawings found in ${root}. Bench shows SVG, PNG and JPG files: add some to the folder, or check the folder you gave dev.py.`;
 
 function setStatus(text) {
-  $('#status').textContent = text;
+  $('#status').textContent = text || state.projectProblem;
 }
 
 function setStageMessage(text) {
@@ -93,6 +97,7 @@ function setStageMessage(text) {
 
 async function prepare(sheet) {
   const name = fileName(sheet.path);
+  if (sheet.missing) throw new SheetError('missing', `${sheet.label}: ${sheet.path} isn't in the folder. Check the file name in forge-project.json.`);
   if (sheet.type === 'svg') {
     const { text, size } = await fetchText(sheet.path);
     const { doc } = prepareSvg(text, parser, name, size);
@@ -217,6 +222,67 @@ const find = createFindBar({
   setStatus,
 });
 
+// ---- the project file and its parts (design §6) ----
+
+/** Reads forge-project.json. On a problem, says why (whenever the status line is free) and gives null. */
+async function readProjectFile() {
+  try {
+    const { text } = await fetchText('forge-project.json');
+    const project = parseProject(text);
+    state.projectProblem = '';
+    return project;
+  } catch (error) {
+    state.projectProblem = error instanceof ProjectError ? error.message : SERVER_DOWN;
+    return null;
+  }
+}
+
+function showProjectName() {
+  const p = state.project;
+  const name = p ? `${p.name}${p.revision ? ` (${p.revision})` : ''}` : state.root;
+  $('#project-name').textContent = name;
+  document.title = `${name} – Maker Forge Bench`;
+}
+
+function sheetsFor(files) {
+  return state.project ? sheetsForProject(state.project, files) : sheetsFromFiles(files);
+}
+
+/** The project's parts, or parts guessed from every read sheet's labels. */
+function updateParts() {
+  if (state.project) {
+    state.parts = state.project.parts;
+  } else {
+    state.parts = guessParts(state.sheets.flatMap((s) => {
+      const entry = state.loaded.get(s.id);
+      return entry && entry.kind === 'svg' ? entry.labels : [];
+    }));
+  }
+  state.partsByRef = new Map(state.parts.map((p) => [p.ref, p]));
+}
+
+/** forge-project.json changed: read it again. A broken version keeps the previous project. */
+async function reloadProject() {
+  const next = await readProjectFile();
+  if (next) state.project = next;
+  showProjectName();
+  setStatus('');
+  await relist();
+  updateParts();
+  find.refresh(true);
+}
+
+/** forge-project.json was deleted: go back to guessing from the drawings. */
+async function forgetProject() {
+  state.project = null;
+  state.projectProblem = '';
+  showProjectName();
+  setStatus('');
+  await relist();
+  updateParts();
+  find.refresh(true);
+}
+
 // ---- auto-refresh (design §7.9) ----
 
 /** The warning under the status line: shown for the sheet on screen while it's an older version. */
@@ -258,6 +324,7 @@ async function refreshSheet(sheet, mtime) {
   entry.sheet = current;
   state.cache.set(current.id, Promise.resolve(entry));
   state.loaded.set(current.id, entry);
+  if (!state.project) updateParts(); // guessed parts follow the drawings
   if (state.current === current.id) {
     setStageMessage('');
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
@@ -291,9 +358,9 @@ async function relist() {
   } catch {
     return;
   }
-  const sheets = sheetsFromFiles(project.files);
-  const same = sheets.length === state.sheets.length &&
-    sheets.every((s, i) => s.id === state.sheets[i].id && s.path === state.sheets[i].path);
+  const sheets = sheetsFor(project.files);
+  const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
+    s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing);
   if (same) return;
   for (const id of [...state.cache.keys()]) {
     const now = sheets.find((s) => s.id === id);
@@ -318,6 +385,7 @@ async function relist() {
   state.current = null; // the view is saved already
   await selectSheet(keep);
   await Promise.all(sheets.map(load));
+  updateParts();
   find.refresh(true);
 }
 
@@ -332,7 +400,10 @@ function whenQuiet(path, action) {
 }
 
 function onFileChange(path, mtime) {
-  if (path.split('/').pop() === 'forge-project.json') return; // read from release 0.2
+  if (path === 'forge-project.json') {
+    whenQuiet(path, reloadProject);
+    return;
+  }
   whenQuiet(path, () => {
     const sheet = state.sheets.find((s) => s.path === path);
     if (sheet) refreshSheet(sheet, mtime);
@@ -419,11 +490,12 @@ async function start() {
     return;
   }
   state.root = project.root;
-  $('#project-name').textContent = project.root;
-  document.title = `${project.root} – Maker Forge Bench`;
-  state.sheets = sheetsFromFiles(project.files);
+  if (project.files.some((f) => f.path === 'forge-project.json')) state.project = await readProjectFile();
+  showProjectName();
+  setStatus('');
+  state.sheets = sheetsFor(project.files);
   renderTabs();
-  connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, relist), onStatus: onLiveStatus });
+  connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });
   if (state.sheets.length === 0) {
     setStatus(noDrawingsMessage(project.root));
     return;
@@ -431,6 +503,7 @@ async function start() {
   await selectSheet(state.sheets[0].id);
   // Read the other sheets in the background, so Find part can search all of them.
   await Promise.all(state.sheets.map(load));
+  updateParts();
   find.refresh();
 }
 
