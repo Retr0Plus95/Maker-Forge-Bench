@@ -329,3 +329,20 @@ h1 {
 #part-tick[aria-pressed="true"] { border-color: var(--good); color: var(--good); font-weight: 700; }
 .part-sheets-label { margin: 10px 0 4px; color: var(--muted); font-size: .85rem; }
 .part-sheets { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---- build checklist ---- */
+.progress-text { margin: 0 0 4px; font-weight: 700; }
+#checklist progress { width: 100%; height: 10px; accent-color: var(--good); }
+#checklist-notes p { margin: 6px 0; padding: 6px 8px; border-left: 4px solid var(--warn); background: var(--accent-soft); }
+#checklist-notes:empty { display: none; }
+.checklist-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.button-like {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 6px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer;
+}
+.button-like:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.checklist-items { list-style: none; margin: 6px 0 0; padding: 0; columns: 2; column-gap: 12px; }
+.checklist-items li { break-inside: avoid; }
+.checklist-items label { display: flex; align-items: center; gap: 6px; min-height: 30px; cursor: pointer; }
+.checklist-items input { width: 18px; height: 18px; accent-color: var(--good); }

@@ -9,7 +9,8 @@ import { indexSheet } from './search.js';
 import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
-import { createStore } from './store.js';
+import { createStore, projectKey } from './store.js';
+import { ProgressError, changedSince, exportProgress, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
@@ -30,6 +31,8 @@ const state = {
   parts: [], // the project's parts, or parts guessed from the drawings' labels
   partsByRef: new Map(),
   selected: null, // the ref of the part whose card is open
+  ticked: new Set(), // refs marked soldered (design §7.7)
+  checklistNotes: [], // "this sheet changed since you ticked" notes, from the last load
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -112,7 +115,7 @@ async function prepare(sheet) {
     root.setAttribute('width', String(box.w));
     root.setAttribute('height', String(box.h));
     root.style.display = 'block';
-    return { sheet, kind: 'svg', root, labels: indexSheet(sheet.id, root) };
+    return { sheet, kind: 'svg', root, labels: indexSheet(sheet.id, root), size };
   }
   const img = new Image();
   img.alt = sheet.label;
@@ -198,6 +201,7 @@ function setSheetFlipped(id, on) {
   else state.flipped.delete(id);
   if (state.current === id && viewer.sheetRoot()) viewer.setFlipped(on);
   updateFlip();
+  saveProgress();
 }
 
 function toggleFlip() {
@@ -262,6 +266,8 @@ function renderPartCard() {
   renderCard($('#part-card'), part, {
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
+    ticked: state.ticked.has(part.ref),
+    onTick: () => toggleTick(part.ref),
     onSheet: (id) => showPartOn(id, part.ref),
     onClose: clearPart,
   });
@@ -349,6 +355,132 @@ function updateParts() {
   if (state.selected && !state.partsByRef.has(state.selected)) state.selected = null;
   updatePartDots();
   renderPartCard();
+  applyTickMarks();
+  renderChecklist();
+}
+
+// ---- the build checklist (design §7.7): ticks, saved progress, progress files ----
+const projectName = () => (state.project ? state.project.name : state.root);
+
+function currentPrints() {
+  return Object.fromEntries(state.sheets.filter((s) => !s.missing).map((s) => [s.id, sheetPrint(s)]));
+}
+
+/** Progress saved in this browser for this project and revision, checked like a progress file. */
+function loadProgress() {
+  let data = null;
+  const saved = store.get(projectKey(state.project, state.root), null);
+  if (saved) {
+    try {
+      data = importProgress(JSON.stringify({ format: 'bench-progress', version: 1, ...saved }));
+    } catch {
+      data = null;
+    }
+  }
+  state.ticked = new Set(data ? data.ticked : []);
+  state.flipped = new Set(data ? data.flipped : []);
+  state.checklistNotes = data ? changedSince(data.sheetPrints, state.sheets.filter((s) => !s.missing), state.ticked.size) : [];
+}
+
+function saveProgress() {
+  const saved = store.set(projectKey(state.project, state.root), { ticked: [...state.ticked], sheetPrints: currentPrints(), flipped: [...state.flipped] });
+  if (saved) flashSaved();
+}
+
+/** Ticked parts' labels turn green on every sheet that has been read. */
+function applyTickMarks() {
+  for (const entry of state.loaded.values()) {
+    if (entry.kind !== 'svg') continue;
+    for (const label of entry.labels) {
+      label.el.toggleAttribute('data-bench-done', state.ticked.has(refOfLabel(label.text, isKnownRef)));
+    }
+  }
+}
+
+function setProgress({ ticked, flipped }) {
+  state.ticked = new Set(ticked);
+  if (flipped) {
+    state.flipped = new Set(flipped);
+    if (viewer.sheetRoot() && state.flipped.has(state.current) !== viewer.isFlipped()) viewer.setFlipped(state.flipped.has(state.current));
+    updateFlip();
+  }
+  applyTickMarks();
+  saveProgress();
+  renderChecklist();
+  renderPartCard();
+}
+
+function toggleTick(ref) {
+  const on = !state.ticked.has(ref);
+  const before = [...state.ticked];
+  const after = on ? [...before, ref] : before.filter((r) => r !== ref);
+  history.do({ label: `${on ? 'Tick' : 'Untick'} ${ref}`, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
+}
+
+function el(tag, props = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(props)) {
+    if (key === 'className') node.className = value;
+    else node.setAttribute(key, value);
+  }
+  node.append(...children);
+  return node;
+}
+
+function renderChecklist() {
+  const total = state.parts.length;
+  const done = state.parts.filter((p) => state.ticked.has(p.ref)).length;
+  const bar = el('progress', { max: String(Math.max(total, 1)) });
+  bar.value = done;
+  const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)));
+  const items = el('ul', { className: 'checklist-items' }, ...state.parts.map((part) => {
+    const box = el('input', { type: 'checkbox', 'data-ref': part.ref });
+    box.checked = state.ticked.has(part.ref);
+    return el('li', {}, el('label', {}, box, ` ${part.ref}${part.value ? ` ${part.value}` : ''}`));
+  }));
+  const open = el('label', { className: 'button-like' }, 'Open progress file',
+    el('input', { id: 'progress-open', type: 'file', accept: '.json,application/json', className: 'visually-hidden' }));
+  $('#checklist').replaceChildren(
+    el('h2', {}, 'Build checklist'),
+    el('p', { className: 'progress-text' }, `${done} of ${total} soldered`),
+    bar,
+    notes,
+    el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open),
+    items,
+  );
+}
+
+function saveProgressFile() {
+  const text = exportProgress({
+    project: projectName(), revision: state.project ? state.project.revision : null,
+    ticked: [...state.ticked], sheetPrints: currentPrints(), flipped: [...state.flipped],
+  });
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function openProgressFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  let data;
+  try {
+    data = importProgress(await file.text());
+  } catch (error) {
+    setStatus(error instanceof ProgressError ? error.message : new ProgressError().message);
+    return;
+  }
+  if (data.project && data.project !== projectName()) {
+    setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
+    return;
+  }
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped] };
+  const after = { ticked: data.ticked, flipped: data.flipped };
+  history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
 /** forge-project.json changed: read it again. A broken version keeps the previous project. */
@@ -412,9 +544,11 @@ async function refreshSheet(sheet, mtime) {
   const before = state.loaded.get(current.id);
   if (before && before.kind === 'error' && $('#status').textContent === before.message) setStatus('');
   entry.sheet = current;
+  if (entry.size !== undefined) current.size = entry.size;
   state.cache.set(current.id, Promise.resolve(entry));
   state.loaded.set(current.id, entry);
   if (!state.project) updateParts(); // guessed parts follow the drawings
+  applyTickMarks();
   if (state.current === current.id) {
     setStageMessage('');
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
@@ -570,6 +704,14 @@ async function start() {
   $('#flip').addEventListener('click', toggleFlip);
   $('#undo').addEventListener('click', () => history.undo());
   $('#redo').addEventListener('click', () => history.redo());
+  $('#checklist').addEventListener('change', (e) => {
+    const t = e.target;
+    if (t instanceof HTMLInputElement && t.type === 'checkbox' && t.dataset.ref) toggleTick(t.dataset.ref);
+    else if (t instanceof HTMLInputElement && t.id === 'progress-open') openProgressFile(t);
+  });
+  $('#checklist').addEventListener('click', (e) => {
+    if (e.target instanceof HTMLElement && e.target.id === 'progress-save') saveProgressFile();
+  });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
     const before = settings;
     history.do({ label, apply: () => setSettings(next), revert: () => setSettings(before) });
@@ -586,6 +728,7 @@ async function start() {
   showProjectName();
   setStatus('');
   state.sheets = sheetsFor(project.files);
+  loadProgress();
   renderTabs();
   connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });
   if (state.sheets.length === 0) {

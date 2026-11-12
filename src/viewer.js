@@ -7,6 +7,10 @@ import { SCALE_LIMITS, fitView, panBy, scaleLimits, wheelFactor, zoomAt, zoomToR
 export function createViewer(stage) {
   const host = stage.querySelector('#sheet-host');
   const shadow = host.attachShadow({ mode: 'open' });
+  // Bench's own rules inside the shadow root (the drawing's own <style> can't reach out, nor ours in):
+  // ticked parts' labels turn green.
+  const ownStyle = document.createElement('style');
+  ownStyle.textContent = 'text[data-bench-done]{fill:#3ddc84 !important}';
 
   let view = { scale: 1, x: 0, y: 0 };
   let content = null;
@@ -57,14 +61,14 @@ export function createViewer(stage) {
       next.img.height = size.h;
       next.img.style.display = 'block';
     }
-    shadow.replaceChildren(next.kind === 'svg' ? next.root : next.img);
+    shadow.replaceChildren(ownStyle, next.kind === 'svg' ? next.root : next.img);
     content = next;
     if (opts.keepView) apply(view);
     else fit();
   }
 
   function clear() {
-    shadow.replaceChildren();
+    shadow.replaceChildren(ownStyle);
     content = null;
     size = null;
   }
