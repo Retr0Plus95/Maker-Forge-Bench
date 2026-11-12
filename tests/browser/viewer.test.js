@@ -108,6 +108,58 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 
   });
 }
 
+describe('fitting when the stage changes size', () => {
+  test('a sheet shown while the stage had no size is fitted once it gets one', async () => {
+    const server = await startDevServer(await copyFixture('fume-extractor'));
+    const { browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 });
+    try {
+      // Like a page loaded in a hidden pane: the stage has no size when the first sheet is shown.
+      await page.addInitScript(() => {
+        document.addEventListener('readystatechange', () => {
+          if (document.readyState === 'interactive') document.querySelector('#stage').style.display = 'none';
+        });
+      });
+      await page.reload();
+      await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
+      await page.evaluate(() => { document.querySelector('#stage').style.display = ''; });
+      await nextFrame(page);
+      const { sheet, stage } = await boxes(page);
+      assert.ok(sheet.width > stage.width * 0.5 || sheet.height > stage.height * 0.5, `fitted: ${sheet.width}×${sheet.height} in ${stage.width}×${stage.height}`);
+      assert.ok(sheet.left >= stage.left - 1 && sheet.right <= stage.right + 1 && sheet.top >= stage.top - 1 && sheet.bottom <= stage.bottom + 1);
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+
+  test('a fitted sheet follows the window, a zoomed one stays put', async () => {
+    const server = await startDevServer(await copyFixture('fume-extractor'));
+    const { browser, page, problems } = await openPage(server.url, { width: 640, height: 480 });
+    try {
+      await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
+      await nextFrame(page);
+      const small = (await boxes(page)).sheet;
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await nextFrame(page);
+      const big = await boxes(page);
+      assert.ok(big.sheet.width > small.width * 1.3, 'grew with the window');
+      assert.ok(big.sheet.right <= big.stage.right + 1 && big.sheet.bottom <= big.stage.bottom + 1, 'still fits');
+      await page.locator('#stage').click();
+      await page.keyboard.press('+');
+      await nextFrame(page);
+      const zoomed = (await boxes(page)).sheet;
+      await page.setViewportSize({ width: 900, height: 700 });
+      await nextFrame(page);
+      assert.ok(Math.abs((await boxes(page)).sheet.width - zoomed.width) <= 1, 'your zoom is kept');
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+});
+
 describe('folders that need a message', () => {
   test('an empty folder says what to do', async () => {
     const dir = await copyFixture(null);

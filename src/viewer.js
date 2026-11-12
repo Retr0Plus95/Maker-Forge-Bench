@@ -14,11 +14,20 @@ export function createViewer(stage) {
   let content = null;
   let size = null;
   let drag = null;
+  // True while the sheet shows as fitted and you haven't zoomed or moved it since. A fitted sheet is
+  // fitted again when the stage changes size, including when it first gets one: a page opened in a
+  // hidden pane has a 0×0 stage when its first sheet is shown.
+  let fitted = false;
 
   const stageSize = () => ({ w: stage.clientWidth, h: stage.clientHeight });
-  const setView = (next) => {
+  const apply = (next) => {
     view = { ...next };
     wrap.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+  };
+  /** A view you chose (zoom, pan, a found part): the stage changing size leaves it alone. */
+  const setView = (next) => {
+    fitted = false;
+    apply(next);
   };
   const stagePoint = (e) => {
     const r = stage.getBoundingClientRect();
@@ -26,8 +35,14 @@ export function createViewer(stage) {
   };
 
   function fit() {
-    if (size) setView(fitView(size, stageSize()));
+    fitted = true;
+    const box = stageSize();
+    if (size && box.w > 0 && box.h > 0) apply(fitView(size, box));
   }
+
+  new ResizeObserver(() => {
+    if (fitted) fit();
+  }).observe(stage);
 
   /** content: { kind: 'svg', root } or { kind: 'image', img } (the img already decoded). */
   function show(next, opts = {}) {
@@ -41,7 +56,7 @@ export function createViewer(stage) {
     }
     wrap.replaceChildren(next.kind === 'svg' ? next.root : next.img);
     content = next;
-    if (opts.keepView) setView(view);
+    if (opts.keepView) apply(view);
     else fit();
   }
 
