@@ -1,7 +1,12 @@
-# Bench Forge: design for release 1
+# Maker Forge Bench: design for release 1
 
-*Written 2026-11-12. Status: **draft for the owner's review**. Nothing is built yet.*
-*"Bench Forge" is a working name. The owner picks the real one (see "Decisions for the owner").*
+*Written 2026-11-12, with names and hosting updated the same day. Status: **draft for the owner's
+review**. Nothing is built yet.*
+
+*Names: **Maker Forge** is the suite. This app is **Maker Forge Bench**, or "Bench" for short. It
+was called "Bench Forge" while it only had a working name. Today's Maker Forge 3D app becomes
+**Maker Forge Shape** at 2.0. Until then it keeps its current name, but this document calls it
+**Shape**, so the two meanings of "Maker Forge" can't be mixed up.*
 
 ## 1. What it is, and who it's for
 
@@ -18,16 +23,17 @@ tick off what's done, and ask Claude about a part without leaving the drawing.
 - **Visitors** can use it with their own projects.
 - Release 1: zoom, find part, auto-refresh, works with any project, part card + Ask Claude, the same
   part highlighted on every sheet, flip to the solder side, build checklist.
-- Long term: part of a **hobbyist suite**, closer to SolidWorks or Fusion 360 than to Office (section 2).
+- Long term: part of a **hobbyist suite called Maker Forge**, closer to SolidWorks or Fusion 360
+  than to Office (section 2).
 
 **What this design assumes** (the owner can correct any of these)
 - It runs entirely in the browser: no server, no account, no uploads. This is approach "A" from the
   design chat.
 - Electronics calculators come in release 1.1, not 1.0.
 - The project file is built so other apps in the suite can read it ("suite-ready").
-- English only in release 1. MIT licence, like Maker Forge and the fume extractor.
+- English only in release 1. MIT licence, like Shape and the fume extractor.
 
-## 2. The bigger picture: a hobbyist's SolidWorks
+## 2. The bigger picture: Maker Forge, a hobbyist's SolidWorks
 
 SolidWorks and Fusion 360 are not a box of separate programs. They have **one project** that
 several *workspaces* work on: parts, assemblies, drawings, electronics and manufacturing. The
@@ -38,18 +44,25 @@ The owner already has the pieces of a hobbyist version of that:
 
 | Workspace | App | Job |
 |---|---|---|
-| Mechanical: parts, boxes, prints | **Maker Forge** (exists, 0.57) | Design and 3D-print. Its roadmap makes it fully parametric at 2.0, with sketches, constraints and an editable history. That *is* the SolidWorks part. |
-| Electrical: drawings, building, testing | **Bench Forge** (this design) | Read the drawings, build the board, test it. |
+| The assembly: the whole project | **Maker Forge**, the home page at forge.retr0plus.se (roadmap 2.0) | Opens a project and shows every piece of it: drawings and build progress, the case, the parts. Opens each piece in the right app. |
+| Mechanical: parts, boxes, prints | **Maker Forge Shape** (today's Maker Forge, 0.57) | Design and 3D-print. Its roadmap makes it fully parametric at 2.0, with sketches, constraints and an editable history. That *is* the SolidWorks part. |
+| Electrical: drawings, building, testing | **Maker Forge Bench** (this design) | Read the drawings, build the board, test it. |
 | Publishing | **retr0plus.se** | Project pages, build logs, downloads. |
-| The link between them | **The project file** (section 6) | The "assembly": one project that every app reads and adds to. |
+| What ties them together | **The project file** (section 6) | One project that every app reads and adds to. The home page is where you see it whole. |
+
+**How the apps are named:** the suite and its home are **Maker Forge**. Each app is "Maker Forge"
+plus one plain word that says what it does (Shape, Bench, and later Parts), the way Fusion 360
+names its Design and Electronics workspaces. Only "Maker Forge" has to be a unique name. Ideas for
+future apps are in `ROADMAP.md` (stage 3).
 
 Three rules keep this workable:
-1. **Separate apps, separate repos, one shared file.** Each app must be useful on its own. They connect
-   through the project file and links between them, never by merging code.
+1. **Separate apps, separate repos, one shared file and one address.** Each app must be useful on
+   its own. They connect through the project file, links, and the browser storage they share at
+   forge.retr0plus.se (section 4), never by merging code.
 2. **Don't rebuild KiCad.** Drawing schematics and routing boards is a huge job that KiCad does for free.
-   Bench Forge *imports* from KiCad, EasyEDA, Fritzing or hand-made drawings. The suite's value is
+   Bench *imports* from KiCad, EasyEDA, Fritzing or hand-made drawings. The suite's value is
    the bench and the connections, not another CAD program.
-3. **The same promises as Maker Forge**: free and MIT, works without an account, your files stay on
+3. **The same promises in every app**: free and MIT, works without an account, your files stay on
    your device, plain words, Easy reading.
 
 ## 3. Release 1 scope
@@ -72,24 +85,33 @@ each step gets its own implementation plan.
 
 **Not in release 1** (all in `ROADMAP.md`): calculators, PDF, step-by-step mode, hole finder,
 highlighting a whole connection, measurement log, photo check, comparing revisions, offline install,
-links to Maker Forge.
+links to Shape and the Maker Forge home.
 
 ## 4. Where it runs
 
-| | In the Claude app (PC) | bench.retr0plus.se (PC, phone, tablet, visitors) |
+| | In the Claude app (PC) | forge.retr0plus.se/bench/ (PC, phone, tablet, visitors) |
 |---|---|---|
-| How | `python dev.py <project folder>` serves the app on this PC; it opens in the Claude app's browser pane | Static files on one.com, like forge.retr0plus.se |
+| How | `python dev.py <project folder>` serves the app on this PC; it opens in the Claude app's browser pane | Static files in a folder of Maker Forge's one.com website, next to Shape |
 | Auto-refresh when a drawing changes | **Yes** | No: shows what was last pushed or opened |
 | Ask Claude | Claude in the chat reads what you've selected | Copy for Claude, open claude.ai, or the visitor's own Claude key |
 | Projects | Any folder on this PC | Files on the device, a public GitHub repo, the examples |
 
 The same app code runs in both. The only difference is where the files come from.
 
+**Why a folder on forge.retr0plus.se, and not a website of its own.** The one.com plan includes 3
+websites. Two are in use (retr0plus.se and forge.retr0plus.se), and every future app would need one
+too. So all Maker Forge apps share forge.retr0plus.se, each in its own folder (`/bench/`, later
+`/shape/` and `/parts/`), and the last website stays free.
+- Each folder sets its own browser rules (section 8), so Bench keeps its strict script rules even
+  though Shape needs looser ones.
+- Apps at the same address share the browser's saved data. That's how the suite connects without a
+  server: a project opened in Bench can be there in Shape. Section 8 covers the price of this.
+
 ## 5. How it's built
 
 ### 5.1 Files
 
-Each file has one job, and the files without page code run in Node for tests (as Maker Forge's
+Each file has one job, and the files without page code run in Node for tests (as Shape's
 `core.js` does).
 
 ```
@@ -113,10 +135,10 @@ tests/            Node tests + a real-browser check (section 10)
 check.sh          runs every test; must end "ALL CHECKS PASSED", like the fume extractor's
 ```
 
-### 5.2 Why several files and not one, unlike Maker Forge
+### 5.2 Why several files and not one, unlike Shape
 
 retr0plus.se's security rules forbid inline scripts (only scripts loaded from files may run) and use
-Trusted Types, a browser lock that stops page code from turning text into HTML. Bench Forge follows
+Trusted Types, a browser lock that stops page code from turning text into HTML. Bench follows
 the same rules from day one: scripts in their own files, and all screen elements built with
 `createElement`/`textContent`, never `innerHTML`. This stops a booby-trapped drawing from running
 code. A one-file download for offline use comes in release 1.2, made by `build.py`.
@@ -132,13 +154,13 @@ code. A one-file download for offline use comes in release 1.2, made by `build.p
 - A `.claude/launch.json` entry so Claude can start it in the browser pane.
 
 The editing loop this gives: you say "move R4 one hole left" → Claude edits `board.py` →
-`check.sh` checks it and redraws sheet 4 → Bench Forge reloads sheet 4 by itself.
+`check.sh` checks it and redraws sheet 4 → Bench reloads sheet 4 by itself.
 
 ## 6. The project file (suite-ready)
 
-A small JSON file at the root of a project: **`forge-project.json`** (name to confirm). Every app in
-the suite reads it and may add its own section. **Rule: an app keeps every section it doesn't
-understand exactly as it found it**, so Maker Forge's section survives a save in Bench Forge and
+A small JSON file at the root of a project: **`forge-project.json`**, named after the suite. Every
+app in the suite reads it and may add its own section. **Rule: an app keeps every section it
+doesn't understand exactly as it found it**, so Shape's section survives a save in Bench and
 the other way round.
 
 Only `format`, `version` and `name` are required, and everything else is optional, so a minimal file
@@ -170,9 +192,9 @@ is three lines.
 | `sheets[].kind` | `schematic`, `layout`, `detail` or `photo`. Only `layout` sheets can be flipped. |
 | `sheets[].side` | Which side a layout shows: `component` (default) or `solder`. |
 | `parts[]` | `ref` is required. Optional: `value`, `type`, `package`, `role`, `polarized`, `orientation`, `datasheet` (https only), `note`, `qty`. |
-| Reserved for later | `board` (outline and openings, for Maker Forge), `build` (steps, wire list), `nets` (connections), `page` (website). Release 1 ignores them but keeps them. |
+| Reserved for later | `board` (outline and openings, for Shape), `build` (steps, wire list), `nets` (connections), `page` (website). Release 1 ignores them but keeps them. |
 
-**With no project file**, Bench Forge still works:
+**With no project file**, Bench still works:
 - **Sheets:** every SVG, PNG and JPG it was given.
 - **Parts:** text labels that look like part names, meaning one to three capital letters, a number,
   and an optional letter: R6, C1A, U2, SW1, J0. These are shown as *guessed*. The project file is
@@ -243,10 +265,10 @@ which sheets it's on, and the text near it on the drawing.
 
 | Route | Where | How |
 |---|---|---|
-| **In the Claude app** | PC, dev server | The app publishes the current selection as `window.benchForge.context()` and on the page. You ask in the chat ("what does this part do?"), and Claude reads the selection from the browser pane and answers with the whole repo in view. |
+| **In the Claude app** | PC, dev server | The app publishes the current selection as `window.makerForge.context()` and on the page. Every Maker Forge app is meant to use this same call, with `"app": "bench"` in Bench's answer. You ask in the chat ("what does this part do?"), and Claude reads the selection from the browser pane and answers with the whole repo in view. |
 | **Copy for Claude** | Everywhere | Copies the context block plus your question, to paste into any Claude chat. |
 | **Open in claude.ai** | Everywhere | Opens claude.ai with the question filled in. *To verify:* that claude.ai accepts a pre-filled question in the link. If it doesn't, this becomes "copy, then open claude.ai". |
-| **Your own Claude key** | Everywhere, optional | Same design as Maker Forge's AI help: the key is kept only in this browser's memory, unless "remember" is ticked. It is only ever sent to `api.anthropic.com`, and answers show inside the card. Ollama on your own computer as an alternative. The model choice and settings are decided in the implementation plan, using the current Claude API reference. |
+| **Your own Claude key** | Everywhere, optional | Same design as Shape's AI help: the key is kept only in this browser's memory, unless "remember" is ticked. It is only ever sent to `api.anthropic.com`, and answers show inside the card. Ollama on your own computer as an alternative. The model choice and settings are decided in the implementation plan, using the current Claude API reference. Sharing one key with Shape comes at 2.0, agreed with Shape's own session; release 1 keeps its own. |
 
 ### 7.9 Auto-refresh (dev server only)
 - When a drawing or the project file changes, only that sheet reloads. Zoom, position, selection
@@ -257,7 +279,7 @@ which sheets it's on, and the text near it on the drawing.
 
 ### 7.10 Easy reading and the bench
 - Text size up to 175 %, high contrast, the Atkinson Hyperlegible font, and less motion, matching
-  Maker Forge and retr0plus.se.
+  Shape and retr0plus.se.
 - Light and dark themes. Dark is the default at the bench because it causes less glare.
 - **Keep screen on** (the browser's Wake Lock) while a project is open on a tablet.
 - Touch targets at least 44 px, for fingers with flux on them.
@@ -274,21 +296,29 @@ cleaned by `sanitize.js` before it reaches the page:
 - `<use>` may only point inside the same file. `<image>` may only use pictures embedded in the file.
 - Limits: 25 MB per file, and 200,000 elements per sheet, so a giant file can't freeze the page.
 
-**The website's address rules (CSP)** for bench.retr0plus.se:
+**The browser rules (CSP)** for `forge.retr0plus.se/bench/`, set by a `.htaccess` file in that folder:
 - `script-src 'self'` plus Trusted Types: only the app's own script files run.
 - `style-src 'self' 'unsafe-inline'`: drawings style themselves with inline styles, which retr0plus.se
-  forbids. That's the main reason Bench Forge gets **its own address**, like forge.retr0plus.se.
+  forbids. That's the main reason Bench lives on forge.retr0plus.se and not on the main site.
   Inline styles can't run code. The one risk, a style loading a remote picture to track you, is
   blocked twice: the cleaner removes outside links, and the rules below allow no unknown sites.
 - `img-src 'self' blob: data: https://raw.githubusercontent.com`; `connect-src 'self'
   https://raw.githubusercontent.com https://api.github.com https://api.anthropic.com
   http://localhost:11434`; `frame-ancestors 'none'`; `base-uri 'none'`; `form-action 'none'`.
 
+**Sharing an address with Shape.** Apps at the same address share the browser's storage, so a
+security hole in one app could read the other's saved data (projects, ticks, a remembered Claude
+key). Because of that:
+- Bench keeps the strict rules above, whatever Shape needs for itself.
+- Everything Bench saves has a `bench.` prefix, and its files go in its own IndexedDB database, so
+  the apps never overwrite each other.
+- **Forget everything** clears only Bench's own data, never Shape's autosave.
+
 **Privacy**
 - Nothing is uploaded to retr0plus.se. No cookies, no analytics, no tracking.
 - **Nothing loads from other websites unless the visitor asks for it**: opening a GitHub link fetches
   from GitHub, and asking with their own key talks to Anthropic. The built-in examples are served
-  from Bench Forge's own address.
+  from Bench's own folder.
 - Projects, ticks and settings live only in the visitor's browser, with a **Forget everything**
   button.
 
@@ -300,7 +330,7 @@ Every message says what happened and what to try, in plain words:
   it. PDF support (coming) or a project file fixes that." Zoom, flip and the checklist still work.
 - GitHub: not found, private repo, or the hourly limit reached ("GitHub allows 60 lookups an hour
   without signing in; try again at 14:05"), each with its own message.
-- Claude: wrong key, no credit or network errors, shown in the card exactly as Maker Forge does.
+- Claude: wrong key, no credit or network errors, shown in the card exactly as Shape does.
 - The dev server stopped: a small "Auto-refresh paused" badge, which reconnects by itself.
 
 ## 10. Testing
@@ -313,9 +343,10 @@ Every message says what happened and what to try, in plain words:
 - `parts`: guessing part names on the fume extractor's sheets: R6, C1A, U2 found, `+12V` and `SFE-01` not.
   `D4`, which is a *pin* label on J6 of sheet 4, is shown as guessed, and the project file corrects it.
 - `search`: every label indexed, with the right sheet and position.
-- `checklist`: save, reload, a new revision, export and import.
+- `checklist`: save, reload, a new revision, export and import. Saved names all carry the `bench.`
+  prefix, and **Forget everything** leaves other apps' data alone.
 
-**Browser check** (Playwright in real Chromium, like Maker Forge's `check:browser`), at 375 px and at
+**Browser check** (Playwright in real Chromium, like Shape's `check:browser`), at 375 px and at
 desktop size: open the fume extractor example, find R6, open its card, flip SFE-04, tick three
 parts, reload, and confirm the ticks stayed. Also: no sideways scrolling, and no errors in the
 console.
@@ -332,29 +363,38 @@ console.
 | GitHub's limit of 60 lookups an hour without signing in | Heavy use could hit it | One lookup per project open, then raw files, which don't count |
 | Selection reading in the Claude app | Relies on Claude's access to the browser pane | Copy for Claude always works as the fallback |
 | claude.ai pre-filled link | Not confirmed | Fallback in section 7.8 |
+| Shape's automatic updates touching `/bench/` | `tools/forge-update.mjs` uploads Shape to the site's root and might delete what it didn't upload | Checked in the website repo before the first upload (section 12) |
 
 ## 12. Website and hosting work (done in the website's own repo and Claude session, not from here)
 
 The website's CLAUDE.md says each app is worked on in its own repo and session. These steps belong
 to the website project:
-1. A new one.com website `bench.retr0plus.se`, set up the way `deploy/forge/` set up Maker Forge, with
-   the rules in section 8.
-2. A Workbench page entry: `id: "bench-forge"`, `type: "Web app"`, `madeByMe: true`, with a link to
-   the app and to its repo.
-3. Later (roadmap 2.0): an "Open in Bench Forge" button on project pages.
+1. A `/bench/` folder on forge.retr0plus.se with its own `.htaccess`, holding the rules in section 8.
+   First check that `tools/forge-update.mjs`, which uploads Shape to the site's root, never deletes
+   or overwrites `/bench/`.
+2. Keeping `/bench/` up to date the way `forge-update` does for Shape: when Bench's `main` branch
+   changes, the desktop runs `check.sh`, builds and uploads. A commit that fails its checks never
+   goes up.
+3. A Workbench page entry: `id: "maker-forge-bench"`, `name: "Maker Forge Bench"`, `type: "Web app"`,
+   `madeByMe: true`, with a link to the app and to its repo.
+4. Later (roadmap 2.0): Shape moves to `/shape/`, the site's root becomes the Maker Forge home, old
+   links are redirected, and project pages get an "Open in Maker Forge Bench" button.
 
 ## 13. Decisions for the owner
 
-1. **Name.** "Bench Forge" (matches Maker Forge), or something else. It can't be "Workbench", which
-   is already the name of the site page that will list it.
-2. **Hosting.** Its own one.com website, `bench.retr0plus.se` (recommended, as above). The website notes
-   say the plan includes 3 websites, so check that one is still free. Otherwise it needs a folder on
-   an existing site with the looser style rule.
-3. **Project file name.** `forge-project.json`, or another name.
-4. **Language.** English only at first, or Swedish too.
+**Decided on 2026-11-12**
+1. **Name:** Maker Forge Bench ("Bench" for short), in a suite called **Maker Forge**. It couldn't be
+   "Workbench", which is already the name of the site page that will list it.
+2. **Hosting:** the folder `forge.retr0plus.se/bench/` (section 4), which keeps the plan's last free
+   website for something else.
+3. **Project file name:** `forge-project.json`, which matches the suite's name.
+
+**Still open**
+4. **Language.** English only at first, or Swedish too. This design assumes English for release 1.
 
 ## 14. What happens after this design is approved
 
 The owner reviews this document and `ROADMAP.md`. Then an implementation plan is written for
-release 0.1, and the work moves into a Claude session opened on this folder, with its own GitHub
-repo created by the owner (or with the `gh` tool, which isn't installed yet).
+release 0.1, and the work moves into a Claude session opened on this folder. The app gets its own
+GitHub repo, suggested name `Maker-Forge-Bench`, created by the owner (or with the `gh` tool, which
+isn't installed yet). The local folder `G:\Bench-Forge` can be renamed to match at the same time.

@@ -1,7 +1,12 @@
-# Bench Forge roadmap
+# Maker Forge Bench roadmap
 
-*Written 2026-11-12. A plan, not a promise: each release gets its own pull request and can be
-reordered. The design for release 1 is in `docs/design/2026-11-12-bench-forge-design.md`.*
+*Written 2026-11-12, with names, hosting and future apps updated the same day. A plan, not a
+promise: each release gets its own pull request and can be reordered. The design for release 1 is
+in `docs/design/2026-11-12-maker-forge-bench-design.md`.*
+
+**Names:** **Maker Forge** is the suite and its home page. This app is **Maker Forge Bench**
+("Bench"). **Shape** is today's Maker Forge 3D app, which takes the name Maker Forge Shape at 2.0.
+Every app is "Maker Forge" plus one plain word for what it does.
 
 Ideas marked **★ New** were added while writing this roadmap. The others came from the design chat.
 
@@ -20,7 +25,7 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 |---|---|---|
 | Build the viewer | 0.1 to 1.0 | The soldering viewer, finished and published |
 | Bench tools | 1.1 to 1.4 | Calculators, more file types, guided building, testing and fault-finding |
-| The Forge suite | 2.0 and on | Bench Forge, Maker Forge and the website working as one project |
+| The Maker Forge suite | 2.0 and on | The home page, Bench, Shape and the website working as one project, then new apps |
 
 ---
 
@@ -48,16 +53,17 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 - Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
 - Easy reading, light and dark themes, **★ New: Keep screen on** at the bench.
 - Open a public GitHub repo by pasting its link.
-- **★ New: Links straight to a part.** `…/?repo=Retr0Plus95/Solder-Fume-Extractor&sheet=SFE-04&part=R6`
+- **★ New: Links straight to a part.**
+  `forge.retr0plus.se/bench/?repo=Retr0Plus95/Solder-Fume-Extractor&sheet=SFE-04&part=R6`
   opens right at R6. Good for sending a friend "look here", and for buttons on your website.
-- **★ New: Built-in examples**, like Maker Forge's *Start from*: the fume extractor, plus the RGB Lamp
+- **★ New: Built-in examples**, like Shape's *Start from*: the fume extractor, plus the RGB Lamp
   Controller once it has drawings.
-- Your own Claude key (or Ollama), the same way Maker Forge does it.
+- Your own Claude key (or Ollama), the same way Shape does it.
 
 ### 1.0 Launch
-- Security review of the cleaner and the address rules. Real-phone and real-tablet test. User
+- Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
   manual inside the app.
-- Live at `bench.retr0plus.se`, listed on the Workbench page (work done in the website repo).
+- Live at `forge.retr0plus.se/bench/`, listed on the Workbench page (work done in the website repo).
 - **★ New: "Report a problem with this drawing."** Opens a new GitHub issue on the project's repo,
   with the sheet and part already filled in. Builders who spot a mistake can tell you in one click.
 
@@ -75,15 +81,17 @@ Each one shows its working in plain words, not just the answer.
 - **★ New: Capacitor code reader:** `104` → 100 nF, `22p`, `4n7`, and the voltage letters.
 - Fuse and wire size: current → fuse rating and wire thickness. Your fume extractor's 1 A / 2 A
   fuse question is exactly this.
-- **★ New: Battery life:** capacity and current draw → hours. Maker Forge already has this for
-  boxes, so share the formula.
+- **★ New: Battery life:** capacity and current draw → hours. Shape already has this for boxes, so
+  share the formula.
+- **★ New: Power budget:** adds up what every part in the project draws, and checks the regulator,
+  fuse and battery against it.
 
 ### 1.2 More files, and offline
 - **PDF**, with its text searchable. KiCad's PDF exports keep text, which fixes the KiCad risk for good.
 - **KiCad parts list (BOM CSV)** as a parts source, so KiCad projects get part cards without
   writing a project file.
 - **Install on phone and tablet**, and work with no internet at the bench.
-- **One-file download**, like Maker Forge's releases.
+- **One-file download**, like Shape's releases.
 - **★ New: Print the checklist and wire list** on paper, with tick boxes, for builders who prefer it.
 
 ### 1.3 Guided building
@@ -106,7 +114,8 @@ Each one shows its working in plain words, not just the answer.
   netlist, or `board.py` for the fume extractor.
 - **★ New: Measurement log with expected values.** Bring-up checks come from the project file
   ("U1 output: 5.00 V ± 0.05"). Type what your meter shows, and anything out of range turns red.
-  The log can go along with a question to Claude.
+  The log can go along with a question to Claude. Later, Maker Forge Serial can fill in readings
+  straight from the board.
 - **Photo check:** add a photo of your board, and Claude compares it with the layout, pointing out a
   missing link or a backwards diode.
 - **★ New: Revision compare, with ticks that know what changed.** Load two versions of a project
@@ -116,47 +125,123 @@ Each one shows its working in plain words, not just the answer.
 
 ---
 
-## Stage 3: the Forge suite (2.0 and on)
+## Stage 3: the Maker Forge suite (2.0 and on)
 
-The SolidWorks idea: separate apps, one project file between them. Each item needs work in the
-other app's own repo and Claude session.
+The SolidWorks idea: separate apps, with one project file and one address between them. Each item
+needs work in the other app's own repo and Claude session.
 
-### 2.0 Board to box
-- **Bench Forge → Maker Forge:** the project file's `board` section (board outline, mounting holes,
-  where the fans, LCD, pot and connectors sit) opens in Maker Forge's project-box maker. Change the
-  board, and the box can follow. This is the link SolidWorks users pay extra for.
-- **Maker Forge → Bench Forge:** the box's printed parts appear in the project, so the build
-  checklist can include "fit the board on its standoffs".
+### 2.0 The home, and board to box
+- **The Maker Forge home at forge.retr0plus.se.** This is the assembly: open a project and see every
+  piece of it (drawings and build progress from Bench, the case from Shape, and later the parts),
+  each with a button that opens it in its app.
+- **★ New: What's next, across every app:** "3 parts left to solder, the case lid isn't printed yet."
+- **Today's Maker Forge becomes Maker Forge Shape**, at `forge.retr0plus.se/shape/`. That's work in
+  Maker Forge's own repo and session, plus the website's `forge-update`. Old links are redirected.
+- **★ New: One Claude key for the whole suite.** The apps share an address, so a visitor enters it
+  once.
+- **Bench → Shape:** the project file's `board` section (board outline, mounting holes, where the
+  fans, LCD, pot and connectors sit) opens in Shape's project-box maker. Change the board, and the
+  box can follow. This is the link SolidWorks users pay extra for.
+- **Shape → Bench:** the box's printed parts appear in the project, so the build checklist can
+  include "fit the board on its standoffs".
 
 ### 2.1 Publish
 - **★ New: Project page from the project file.** retr0plus.se builds a project's page (drawings,
-  parts list, downloads) from its `forge-project.json`, with an **Open in Bench Forge** button.
+  parts list, downloads) from its `forge-project.json`, with an **Open in Maker Forge Bench** button.
 - **★ New: Build log export.** Your checklist history, notes and measurements become a build-log
-  entry on the website's Logs or Journal page.
+  entry on the website's Logs or Journal page. Once Maker Forge Journal exists, this goes through it.
 
-### 2.2 Stream the build
-- **★ New: Stream view for OBS.** A clean page showing the part or step you're on, as a browser source
-  next to your camera. Your website already has OBS overlays in `overlays/`, so this fits there.
-  Viewers see "Soldering R6, 10 k, step 31 of 50".
+---
 
-### 2.3 Parts inventory (a new app in the suite)
-- **★ New:** a list of the parts you own (the fume extractor notes already track "1N4007 and 1N4002
-  on hand"). A project's parts list then shows **"have 3 × 1N5402G, need 1"**, and what's missing
-  becomes a shopping list. It's its own app because it's useful even without a project.
+## Future apps in the suite
+
+**The test for a new app:** it has to be useful on its own, without the other apps. If it isn't, it
+becomes a feature of an app that already exists. That's why the calculators belong to Bench, and the
+parts inventory is an app of its own.
+
+**Considered, and kept as features instead:** the power budget (a Bench calculator, 1.1), project
+cost (the home page, once Parts knows prices), front panels (Labels and Shape together) and
+off-board wiring (Bench's wire list).
+
+### Maker Forge Parts: what you have on hand
+*(This was "2.3 Parts inventory".)*
+- A list of the parts you own and which bin each is in. The fume extractor notes already track
+  "1N4007 and 1N4002 on hand".
+- A project's parts list then shows **"have 3 × 1N5402G, need 1"**, and what's missing becomes a
+  shopping list.
+- **★ New: Filament too:** spools, colours and how much is left, so the 3D-printing side uses it
+  as well.
+- **Connects:** Bench's part cards and checklist show have and need. Shape says how much filament a
+  print takes. Labels prints the bin labels.
+
+### Maker Forge Serial: talk to the board ★ New
+- A serial monitor and live graph in the browser for Arduino-type boards, such as the fume
+  extractor's ATmega328P. It uses the browser's Web Serial feature, which works in Chrome and Edge
+  on a PC, but not in Firefox or Safari, or on an iPhone or iPad.
+- Saves what the board printed with the project, so you can read a session back later or send it
+  with a question to Claude.
+- **Connects:** Bench's measurement log (1.4) takes readings straight from the board and shows the
+  project's bring-up checks as pass or fail.
+- *Check first:* whether uploading firmware from the browser is practical for AVR chips. Until then,
+  the Arduino IDE does that.
+
+### Maker Forge Pins: plan the microcontroller's pins ★ New
+- Pick a chip (ATmega328P, ESP32 and Raspberry Pi Pico to start), give each pin a job, and it warns
+  about clashes: two jobs on one pin, PWM on a pin that can't do it, or a pin the chip needs at
+  start-up (the ESP32's strapping pins).
+- Writes the pin list for the firmware (the `#define` lines) and a pin table for the drawings, so
+  the code and the schematic agree.
+- **Connects:** U2's part card in Bench shows the pin table. Serial labels its graphs with pin names.
+- **Useful on its own** because you plan the pins before any drawing exists.
+
+### Maker Forge Labels: print labels for everything ★ New
+- Bin labels with a QR code that opens the part in Parts on your phone.
+- Wire tags from Bench's wire list, and cable markers.
+- Front-panel labels for a case (LCD, knob, switch), placed from the project's `board` section.
+- Prints on paper or sticker sheets, exports SVG for a laser or vinyl cutter, and makes a
+  raised-text plate for Shape to 3D-print.
+- **Useful on its own** for labelling anything, with or without a project.
+
+### Maker Forge Journal: a notebook for every project ★ New
+- Notes, photos (kept on your device), time spent and what went wrong, across every project.
+- The entries you choose are published to the Logs or Journal page on retr0plus.se.
+- **Connects:** Bench's ticks, notes and measurements, and Shape's prints, arrive as entries by
+  themselves. This takes over Bench's build log export (2.1).
+
+### Maker Forge Live: stream your build ★ New
+- One clean page for OBS that shows what you're doing in any app: "Soldering R6, 10 k, step 31 of
+  50" from Bench, or "Printing the case lid, 43 %" from your printer bridge on retr0plus.se.
+- It replaces Bench's own stream view (planned as 2.2), because it isn't tied to one app. It fits
+  next to the OBS overlays already in the website's `overlays/` folder.
+
+### Suggested order
+1. **Parts:** the most everyday use, and both Labels and Bench build on it.
+2. **Serial:** finishes the testing side of Bench (1.4).
+3. **Pins:** ready before the next new electronics project.
+4. **Labels:** once Parts exists, for the bin QR codes.
+5. **Journal:** once at least two apps have something to write into it.
+6. **Live:** whenever streaming builds becomes a priority.
 
 ---
 
 ## Decisions for the owner
 
-1. The app's real name (design §13).
-2. Hosting: its own one.com website `bench.retr0plus.se`, if the plan still has one free.
-3. The project file's name: `forge-project.json`, or another.
+**Decided on 2026-11-12**
+1. The app's name: **Maker Forge Bench**, in the **Maker Forge** suite.
+2. Hosting: the folder `forge.retr0plus.se/bench/`, which keeps the plan's last free website spare.
+3. The project file's name: `forge-project.json`.
+
+**Still open**
 4. Languages: English only at first, or Swedish too.
-5. A suite name, if you want one: the "Forge" family (Maker Forge, Bench Forge, ...), or your own.
+5. Which future apps to keep, and in what order.
 
 ## Not planned
 
-- **A schematic or PCB editor.** KiCad does that for free; Bench Forge reads its output.
+- **A schematic or PCB editor.** KiCad does that for free; Bench reads its output.
+- **A circuit simulator.** Falstad's circuit simulator and Wokwi already do it for free in the
+  browser; Bench can link to them.
+- **A slicer.** PrusaSlicer and OrcaSlicer already do it; Shape's models go to them.
+- **A code editor.** VS Code and the Arduino IDE already do it.
 - **Accounts, cloud storage or syncing through a server.** Moving progress between devices is done
   with a file, so no server is needed.
 - **Adverts or tracking**, ever.
