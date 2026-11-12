@@ -77,6 +77,33 @@ export async function openPage(url, viewport) {
       console.error(`CSP violation: ${e.violatedDirective} ${e.blockedURI}`);
     });
   });
+  // When a wait times out, say what the page was doing: unfinished and failed requests, the last
+  // console lines and the page's own state. (Hunting an intermittent stall at first load.)
+  const pending = new Map();
+  const failed = [];
+  const lines = [];
+  page.on('request', (r) => pending.set(r, `${r.method()} ${r.url()} @${Date.now()}`));
+  page.on('requestfinished', (r) => pending.delete(r));
+  page.on('requestfailed', (r) => { pending.delete(r); failed.push(`${r.url()}: ${r.failure()?.errorText}`); });
+  page.on('console', (m) => { lines.push(`${m.type()}: ${m.text()}`); if (lines.length > 15) lines.shift(); });
+  const wait = page.waitForFunction.bind(page);
+  page.waitForFunction = async (...args) => {
+    try {
+      return await wait(...args);
+    } catch (error) {
+      const pageState = await page.evaluate(() => ({
+        ready: document.readyState,
+        tabs: document.querySelectorAll('[role=tab]').length,
+        status: document.querySelector('#status')?.textContent,
+        sheet: Boolean(document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg, img')),
+      })).catch((e) => `unavailable: ${e.message}`);
+      const note = `\n  diagnostics @${Date.now()}: pending=${JSON.stringify([...pending.values()])} failed=${JSON.stringify(failed)}` +
+        ` console=${JSON.stringify(lines)} page=${JSON.stringify(pageState)}`;
+      error.message += note;
+      error.stack = `${error.stack}${note}`; // the test report prints the stack
+      throw error;
+    }
+  };
   await page.goto(url);
   return { browser, page, problems };
 }

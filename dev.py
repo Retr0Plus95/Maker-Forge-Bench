@@ -34,6 +34,7 @@ APP_TYPES = {
     ".svg": "image/svg+xml",
     ".png": "image/png",
     ".json": "application/json",
+    ".woff2": "font/woff2",
 }
 APP_NAME = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9_.-]*$")
 WATCH_INTERVAL = 0.5

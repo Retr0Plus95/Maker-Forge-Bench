@@ -1,42 +1,111 @@
-/* Maker Forge Bench 0.1: a plain dark page. Themes and Easy reading come in 0.3. */
+/* Maker Forge Bench: Maker Forge's family look (same tokens and switches), with solder gold as
+   Bench's accent. Dark is the default at the bench. Easy reading switches live on <html>. */
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("atkinson-hyperlegible-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("atkinson-hyperlegible-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #0e1319; --panel: #161d25; --panel2: #1b232c; --ink: #e8eef4; --muted: #93a2b1; --line: #27313b;
+  --accent: #e0b55a; --accent-ink: #141008; --accent-soft: #2b2516;
+  --stage-top: #19212a; --stage-bot: #0b1014; --field: #121921;
+  --danger: #f08a72; --warn: #ddb45f; --good: #77c9a3;
+  --find: #ff2bd6;
+  --r: 12px; --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 26px rgba(0, 0, 0, .25);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef1f5; --panel: #ffffff; --panel2: #f4f6f9; --ink: #141b24; --muted: #63707f; --line: #e2e7ee;
+  --accent: #8a5d0b; --accent-ink: #ffffff; --accent-soft: #f6eedd;
+  --stage-top: #e6eaef; --stage-bot: #ccd4dd; --field: #ffffff;
+  --danger: #b2402b; --warn: #8a6100; --good: #1f7a55;
+  --find: #c0109f;
+  --shadow: 0 1px 2px rgba(16, 24, 32, .06), 0 8px 24px rgba(16, 24, 32, .05);
+}
+:root[data-contrast="high"] { --ink: #ffffff; --muted: #d4dde6; --line: #8193a5; --accent: #ffd27a; --accent-soft: #3a3016; }
+:root[data-contrast="high"][data-theme="light"] { --ink: #000000; --muted: #26313d; --line: #56616e; --accent: #6b4706; --accent-soft: #efe2c4; }
+:root[data-contrast="high"] :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+:root[data-font="clear"] body, :root[data-font="clear"] button, :root[data-font="clear"] input {
+  font-family: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  letter-spacing: .01em;
+}
+:root[data-motion="reduce"] * { transition: none !important; animation: none !important; }
+
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   height: 100%;
-  background: #111;
-  color: #eee;
-  font: 15px/1.4 system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  font: 0.95rem/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- header ---- */
 #top {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 14px;
-  padding: 6px 10px;
-  border-bottom: 1px solid #333;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
   min-width: 0;
 }
 
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.spacer { flex: 1; }
+
 h1 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 
-.app-name { color: #ffb347; }
-#project-name { color: #ccc; font-weight: 400; }
+.app-name { color: var(--accent); }
+#project-name { color: var(--muted); font-weight: 400; }
+
+.tool, .primary, #find-results button, #panel button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.tool:hover:not(:disabled), #panel button:hover { border-color: var(--accent); }
+.tool:disabled { opacity: .45; cursor: not-allowed; }
+.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 
 #tabs {
   display: flex;
@@ -47,43 +116,103 @@ h1 {
 }
 
 #tabs [role="tab"] {
+  position: relative;
   flex: none;
-  padding: 6px 10px;
-  border: 1px solid #444;
-  border-radius: 6px;
-  background: #1d1d1d;
-  color: #ddd;
-  font: inherit;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel2);
+  color: var(--ink);
   white-space: nowrap;
   cursor: pointer;
 }
 
 #tabs [role="tab"][aria-selected="true"] {
-  background: #ffb347;
-  border-color: #ffb347;
-  color: #111;
-  font-weight: 600;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
 }
 
+#tabs [role="tab"][data-has-part]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--find);
+}
+
+#findbar { display: flex; align-items: center; gap: 6px; min-width: 0; }
+#findbar label { color: var(--muted); white-space: nowrap; }
+
+#find {
+  width: 13em;
+  max-width: 50vw;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+}
+
+#find-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  min-width: 0;
+}
+#find-results:empty { display: none; }
+#find-results button { border-color: var(--find); min-height: 30px; padding: 3px 10px; }
+#find-results .note { color: var(--muted); font-size: .85rem; }
+
+#flip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+#live { font-size: .8rem; color: var(--good); white-space: nowrap; }
+#live:empty { display: none; }
+#live.paused { color: var(--danger); }
+#saved { font-size: .8rem; color: var(--muted); min-width: 3.5em; text-align: right; }
+
+/* ---- status lines ---- */
 #status {
   margin: 0;
-  padding: 0 10px;
-  min-height: 1.4em;
-  color: #ffd27a;
+  padding: 2px 12px;
+  min-height: 1.5em;
+  color: var(--warn);
   overflow-wrap: anywhere;
+}
+
+#sheet-note {
+  margin: 0;
+  padding: 3px 12px;
+  background: var(--accent-soft);
+  color: var(--warn);
+  overflow-wrap: anywhere;
+}
+#sheet-note[hidden] { display: none; }
+
+/* ---- workspace: the drawing, and the panel beside it ---- */
+#workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 #stage {
   position: relative;
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   contain: strict; /* nothing a drawing does can paint outside the stage */
-  background: #1a1a1a;
+  background: linear-gradient(var(--stage-top), var(--stage-bot));
   touch-action: none;
   cursor: grab;
 }
-
 #stage.dragging { cursor: grabbing; }
 
 #sheet-host {
@@ -102,68 +231,11 @@ h1 {
   justify-content: center;
   padding: 24px;
   text-align: center;
-  color: #ffd27a;
-  font-size: 17px;
+  color: var(--warn);
+  font-size: 1.05rem;
   overflow-wrap: anywhere;
 }
-
 #stage-message[hidden] { display: none; }
-
-#findbar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-#findbar label { color: #bbb; white-space: nowrap; }
-
-#find {
-  width: 13em;
-  max-width: 50vw;
-  padding: 6px 8px;
-  border: 1px solid #555;
-  border-radius: 6px;
-  background: #0c0c0c;
-  color: #eee;
-  font: inherit;
-}
-
-#find-results {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  align-items: center;
-  flex-basis: 100%;
-  min-width: 0;
-}
-
-#find-results:empty { display: none; }
-
-#find-results button {
-  padding: 3px 8px;
-  border: 1px solid #ff2bd6;
-  border-radius: 6px;
-  background: #2a1026;
-  color: #ffd6f6;
-  font: inherit;
-  cursor: pointer;
-}
-
-#find-results .note { color: #aaa; font-size: 13px; }
-
-#flip {
-  padding: 6px 10px;
-  border: 1px solid #4fb3ff;
-  border-radius: 6px;
-  background: #0f2233;
-  color: #cfe9ff;
-  font: inherit;
-  cursor: pointer;
-}
-
-#flip[aria-pressed="true"] { background: #4fb3ff; color: #06121c; font-weight: 600; }
-#flip:disabled { opacity: 0.45; cursor: not-allowed; }
 
 #flip-banner {
   position: absolute;
@@ -172,27 +244,53 @@ h1 {
   transform: translateX(-50%);
   margin: 0;
   padding: 4px 14px;
-  border-radius: 6px;
-  background: #4fb3ff;
-  color: #06121c;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: .04em;
   white-space: nowrap;
   pointer-events: none;
+  box-shadow: var(--shadow);
 }
-
 #flip-banner[hidden] { display: none; }
 
-#live { font-size: 13px; color: #8fd18f; white-space: nowrap; }
-#live:empty { display: none; }
-#live.paused { color: #ff9b7a; }
+#panel {
+  width: 340px;
+  flex: none;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#panel section { background: var(--panel2); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; }
+#panel section:empty { display: none; }
+#panel h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.hint { color: var(--muted); margin: 0; }
 
-#sheet-note {
-  margin: 0;
-  padding: 2px 10px;
-  background: #3a2400;
-  color: #ffc46b;
-  overflow-wrap: anywhere;
+@media (max-width: 899px) {
+  #workspace { flex-direction: column; }
+  #stage { flex: none; height: 55vh; }
+  #panel { width: auto; flex: 1; border-left: 0; border-top: 1px solid var(--line); }
 }
 
-#sheet-note[hidden] { display: none; }
+/* ---- Easy reading settings ---- */
+#settings {
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+#settings::backdrop { background: rgba(0, 0, 0, .45); }
+#settings h2 { margin: 0 0 10px; font-size: 1.15rem; }
+#settings fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 10px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+#settings legend { color: var(--muted); padding: 0 4px; }
+#settings label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
+#settings label.check { display: flex; margin-bottom: 4px; }
+#settings .hint { margin: 8px 0 12px; }

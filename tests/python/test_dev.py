@@ -106,6 +106,33 @@ class TestLiveServer(DevServerTestCase):
         self.assertEqual(resp.getheader("Content-Type"), "image/svg+xml")
         self.assertIn(b"<svg", body)
 
+    def test_many_requests_at_once_are_all_served(self):
+        # A page load opens ~15 connections at once. Python's default queue of 5 waiting
+        # connections made Windows refuse or delay some of them, so pages sometimes stalled.
+        results = []
+
+        def fetch():
+            try:
+                resp, _ = self.request("GET", "/api/files")
+                results.append(resp.status)
+            except OSError as error:
+                results.append(repr(error))
+
+        threads = [threading.Thread(target=fetch) for _ in range(60)]
+        start = time.time()
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(10)
+        self.assertEqual(results.count(200), 60, [r for r in results if r != 200][:3])
+        self.assertLess(time.time() - start, 5)
+
+    def test_font_served(self):
+        resp, body = self.request("GET", "/atkinson-hyperlegible-latin-400-normal.woff2")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "font/woff2")
+        self.assertEqual(body[:4], b"wOF2")
+
     def test_project_file_outside_refused(self):
         resp, _ = self.request("GET", "/project/%2e%2e/secret.svg")
         self.assertEqual(resp.status, 404)

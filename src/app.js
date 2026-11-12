@@ -7,6 +7,9 @@ import { createFindBar } from './findbar.js';
 import { indexSheet } from './search.js';
 import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 import { connectLive } from './live.js';
+import { createHistory } from './history.js';
+import { createStore } from './store.js';
+import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -23,6 +26,54 @@ const state = {
   generations: new Map(), // per sheet: which refresh is the newest
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
+
+// ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
+const history = createHistory();
+
+/** localStorage, or a stand-in that forgets on reload if the browser won't give us one. */
+function browserStorage() {
+  try {
+    window.localStorage.getItem('bench.probe');
+    return window.localStorage;
+  } catch {
+    const mem = new Map();
+    return {
+      getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+      setItem: (k, v) => mem.set(k, String(v)),
+      removeItem: (k) => mem.delete(k),
+      get length() { return mem.size; },
+      key: (i) => [...mem.keys()][i] ?? null,
+    };
+  }
+}
+const store = createStore(browserStorage());
+
+let savedTimer = null;
+function flashSaved() {
+  const mark = $('#saved');
+  mark.textContent = 'Saved';
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => { mark.textContent = ''; }, 2000);
+}
+
+let settings = cleanSettings(store.get('settings', DEFAULT_SETTINGS));
+applySettings(document.documentElement, settings);
+
+function setSettings(next) {
+  settings = next;
+  applySettings(document.documentElement, next);
+  fillSettings($('#settings'), next);
+  if (store.set('settings', next)) flashSaved();
+}
+
+history.subscribe((h) => {
+  const undo = $('#undo');
+  const redo = $('#redo');
+  undo.disabled = !h.canUndo;
+  redo.disabled = !h.canRedo;
+  undo.title = h.undoLabel ? `Undo ${h.undoLabel}` : 'Nothing to undo';
+  redo.title = h.redoLabel ? `Redo ${h.redoLabel}` : 'Nothing to redo';
+});
 
 const SERVER_DOWN = "Can't reach dev.py. Is it still running? Start it again with: python dev.py <project folder>";
 const fileName = (path) => path.split('/').pop();
@@ -108,7 +159,7 @@ async function selectSheet(id) {
   const saved = state.views.get(id);
   viewer.show(entry, { keepView: Boolean(saved) });
   if (saved) viewer.setView(saved);
-  if (state.flipped.has(id) && !viewer.isFlipped()) viewer.setFlipped(true);
+  if (state.flipped.has(id) !== viewer.isFlipped()) viewer.setFlipped(state.flipped.has(id));
   updateFlip();
   return true;
 }
@@ -130,12 +181,20 @@ function updateFlip() {
   $('#flip-banner').hidden = !flipped;
 }
 
+/** Flips or unflips a sheet. The sheet needn't be on screen (an undo after switching tabs). */
+function setSheetFlipped(id, on) {
+  if (on) state.flipped.add(id);
+  else state.flipped.delete(id);
+  if (state.current === id && viewer.sheetRoot()) viewer.setFlipped(on);
+  updateFlip();
+}
+
 function toggleFlip() {
   if (!canFlip()) return;
-  viewer.setFlipped(!viewer.isFlipped());
-  if (viewer.isFlipped()) state.flipped.add(state.current);
-  else state.flipped.delete(state.current);
-  updateFlip();
+  const id = state.current;
+  const on = !viewer.isFlipped();
+  const sheet = state.sheets.find((s) => s.id === id);
+  history.do({ label: `Flip ${sheet.label}`, apply: () => setSheetFlipped(id, on), revert: () => setSheetFlipped(id, !on) });
 }
 
 /** Find part: show the label's sheet, zoom to the label and ring it. */
@@ -308,9 +367,20 @@ function renderTabs() {
 }
 
 function onKey(e) {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target;
-  if (t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+  const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
+    const key = e.key.toLowerCase();
+    if (key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      history.undo();
+    } else if (key === 'y' || (key === 'z' && e.shiftKey)) {
+      e.preventDefault();
+      history.redo();
+    }
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey || typing) return;
   const { w, h } = viewer.stageSize();
   const actions = {
     0: () => viewer.fit(),
@@ -335,6 +405,12 @@ function onKey(e) {
 async function start() {
   document.addEventListener('keydown', onKey);
   $('#flip').addEventListener('click', toggleFlip);
+  $('#undo').addEventListener('click', () => history.undo());
+  $('#redo').addEventListener('click', () => history.redo());
+  wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
+    const before = settings;
+    history.do({ label, apply: () => setSettings(next), revert: () => setSettings(before) });
+  });
   let project;
   try {
     project = await listProject();
