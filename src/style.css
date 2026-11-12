@@ -346,3 +346,13 @@ h1 {
 .checklist-items li { break-inside: avoid; }
 .checklist-items label { display: flex; align-items: center; gap: 6px; min-height: 30px; cursor: pointer; }
 .checklist-items input { width: 18px; height: 18px; accent-color: var(--good); }
+
+/* ---- Ask Claude ---- */
+.ask-box { margin: 10px 0 4px; display: flex; flex-direction: column; gap: 6px; }
+.ask-box label { color: var(--muted); font-size: .85rem; }
+#ask-question {
+  width: 100%; min-height: 3.2em; padding: 6px 8px; resize: vertical;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--ink); font: inherit;
+}
+.ask-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+#ask-done { color: var(--good); font-size: .85rem; }

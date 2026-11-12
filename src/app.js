@@ -2,6 +2,7 @@
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, guessParts, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
 import { renderCard, renderHint } from './panel.js';
+import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
@@ -268,6 +269,7 @@ function renderPartCard() {
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
     onTick: () => toggleTick(part.ref),
+    ask: { placeholder: DEFAULT_QUESTION, onCopy: copyForClaude, onOpen: openClaude },
     onSheet: (id) => showPartOn(id, part.ref),
     onClose: clearPart,
   });
@@ -296,6 +298,66 @@ async function showPartOn(sheetId, ref) {
     viewer.zoomToRect(viewer.labelRect(label.el));
     viewer.ring(label.el);
   }
+}
+
+// ---- Ask Claude (design §7.8) ----
+const PART_FIELDS = ['ref', 'value', 'type', 'package', 'role', 'polarized', 'orientation', 'note', 'datasheet'];
+
+/** Up to 8 label texts nearest the part's label on the sheet on screen, nearest first. */
+function nearbyText(ref) {
+  const entry = state.loaded.get(state.current);
+  const own = firstLabelFor(state.current, ref);
+  if (!entry || entry.kind !== 'svg' || !own || !own.el.isConnected || viewer.sheetRoot() !== entry.root) return [];
+  const centre = (el) => {
+    const r = viewer.labelRect(el);
+    return [r.x + r.w / 2, r.y + r.h / 2];
+  };
+  const [ox, oy] = centre(own.el);
+  const seen = new Set();
+  return entry.labels
+    .filter((l) => refOfLabel(l.text, isKnownRef) !== ref)
+    .map((l) => {
+      const [x, y] = centre(l.el);
+      return { text: l.text, d: Math.hypot(x - ox, y - oy) };
+    })
+    .sort((a, b) => a.d - b.d)
+    .filter((l) => !seen.has(l.text) && seen.add(l.text))
+    .slice(0, 8)
+    .map((l) => l.text);
+}
+
+/** What's selected, for the Claude app (it reads window.makerForge.context() from the browser pane) and for copying. */
+function buildContext() {
+  const part = state.selected ? state.partsByRef.get(state.selected) : null;
+  const sheet = state.sheets.find((s) => s.id === state.current);
+  const fields = part ? Object.fromEntries(PART_FIELDS.filter((k) => part[k] !== undefined).map((k) => [k, part[k]])) : null;
+  return {
+    app: 'bench',
+    project: state.project ? state.project.name : null,
+    revision: state.project ? state.project.revision : null,
+    sheet: sheet ? sheet.label : null,
+    part: fields,
+    onSheets: part ? sheetsWithPart(part.ref).map((s) => s.label) : [],
+    nearbyText: part ? nearbyText(part.ref) : [],
+  };
+}
+
+window.makerForge = Object.freeze({ context: () => buildContext() });
+
+async function copyForClaude(question) {
+  try {
+    await navigator.clipboard.writeText(contextText(buildContext(), question));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Starts the copy, then opens claude.ai at once: opening after a wait would be blocked as a popup. */
+function openClaude(question) {
+  const copying = copyForClaude(question);
+  window.open('https://claude.ai/new', '_blank', 'noopener');
+  return copying;
 }
 
 viewer.onLabelClick((el) => {

@@ -20,7 +20,8 @@ export function renderHint(container) {
  * @param {HTMLElement} container
  * @param {object} part  a Part from project.js
  * @param {{ sheetsWithPart: object[], datasheetHref: string|null, ticked?: boolean,
- *           onSheet(id: string): void, onTick?(): void, onAsk?(): void, onClose(): void }} o
+ *           onSheet(id: string): void, onTick?(): void, onClose(): void,
+ *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> } }} o
  */
 export function renderCard(container, part, o) {
   const title = el('h2', {}, part.ref);
@@ -49,15 +50,27 @@ export function renderCard(container, part, o) {
     tick.addEventListener('click', o.onTick);
     actions.append(tick);
   }
-  if (o.onAsk) {
+  let askBox = null;
+  if (o.ask) {
+    const question = el('textarea', { id: 'ask-question', rows: '2', placeholder: o.ask.placeholder });
+    const done = el('span', { id: 'ask-done', 'aria-live': 'polite' });
+    const say = (ok) => { done.textContent = ok ? 'Copied' : "Couldn't copy: allow the clipboard, or select the text and copy it."; };
+    const copy = el('button', { id: 'ask-copy', type: 'button' }, 'Copy for Claude');
+    copy.addEventListener('click', async () => say(await o.ask.onCopy(question.value)));
+    const open = el('button', { id: 'ask-open', type: 'button' }, 'Open claude.ai');
+    open.addEventListener('click', async () => say(await o.ask.onOpen(question.value)));
+    askBox = el('div', { className: 'ask-box' },
+      el('label', { for: 'ask-question' }, 'Ask Claude about this part'), question,
+      el('div', { className: 'ask-actions' }, copy, open, done));
     const ask = el('button', { id: 'part-ask', type: 'button' }, 'Ask Claude');
-    ask.addEventListener('click', o.onAsk);
+    ask.addEventListener('click', () => question.focus());
     actions.append(ask);
   }
   const close = el('button', { id: 'part-close', type: 'button' }, 'Close');
   close.addEventListener('click', o.onClose);
   actions.append(close);
   children.push(actions);
+  if (askBox) children.push(askBox);
 
   if (o.sheetsWithPart.length) {
     const list = el('div', { className: 'part-sheets' });
