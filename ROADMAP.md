@@ -33,8 +33,8 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 ## Stage 1: build the viewer (0.1 to 1.0)
 
 ### 0.1 First look (PC, inside the Claude app)
-- **Check first:** whether KiCad SVG exports keep their text as text (design §11). The answer decides
-  whether PDF support moves earlier.
+- **Checked (2026-11-12):** KiCad 9 SVG exports draw text as lines, but also keep every label as
+  invisible text in the same place, so Find part works on them and PDF stays in 1.2 (design §11).
 - Open a folder through `dev.py`, with auto-refresh.
 - SVG cleaner with its nasty-file tests.
 - Sheet tabs, zoom and pan with mouse and keys, fit to screen.

@@ -154,7 +154,8 @@ code. A one-file download for offline use comes in release 1.2, made by `build.p
 - Every half second it checks the project folder's drawings and project file for changes. A change
   is pushed to the page (Server-Sent Events), which reloads just that sheet and keeps your zoom,
   position, selection and ticks.
-- Python standard library only, so there's nothing to install. Python 3.12 is already on the PC.
+- Python 3.10 or newer, standard library only, so there's nothing to install. Python 3.10.6 is
+  already on the PC.
 - A `.claude/launch.json` entry so Claude can start it in the browser pane.
 
 The editing loop this gives: you say "move R4 one hole left" → Claude edits `board.py` →
@@ -362,7 +363,7 @@ console.
 
 | Risk | Why it matters | Plan |
 |---|---|---|
-| **KiCad SVGs may draw text as lines, not text** | Find part, part cards and the checklist would see no part names in KiCad drawings | First task of release 0.1: export a real KiCad 8/9 schematic as SVG and look. If the text is lines, KiCad's PDF export keeps searchable text, which moves PDF support earlier. |
+| ~~KiCad SVGs may draw text as lines, not text~~ **Checked 2026-11-12: no risk** | Find part, part cards and the checklist would see no part names in KiCad drawings | Tested with KiCad 9.0.6 (`kicad-cli sch export svg` on its `complex_hierarchy` demo). KiCad draws text as lines, but it also writes every label as invisible text (`<text opacity="0">`) in the same place, inside `<g class="stroked-text">` groups. Find part works as long as the index includes invisible text, so it does. PDF stays in release 1.2. |
 | Folder picking on iPhone/iPad | Not supported by those browsers | Files or a GitHub link there (section 7.1) |
 | GitHub's limit of 60 lookups an hour without signing in | Heavy use could hit it | One lookup per project open, then raw files, which don't count |
 | Selection reading in the Claude app | Relies on Claude's access to the browser pane | Copy for Claude always works as the fallback |
