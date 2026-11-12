@@ -45,7 +45,7 @@ test('refuses files that are broken, not a project, or too big', () => {
 
 test('drops hostile or broken values, keeps unknown sections', () => {
   const hostile = parseProject(project({
-    board: { cols: 3 },
+    inventory: { bins: 3 },
     parts: [{ ref: '<script>' }, { ref: 'R1', datasheet: 'javascript:alert(1)', datasheetFile: '../x.pdf', polarized: 'yes', qty: -2 },
       { ref: 'r1', datasheetFile: 'docs/ds/r1.pdf', qty: 3 }, { ref: 'R1', value: 'dup' }, 'not a part', { ref: 'C1', role: 'x'.repeat(5000) }],
     sheets: [{ id: 'S1', file: '../outside.svg' }, { id: 'S2', file: 'C:/x.svg' }, { id: 'S3', file: 'a.svg', kind: 'weird', side: 'nope' }, { file: 'b.svg' }],
@@ -59,7 +59,7 @@ test('drops hostile or broken values, keeps unknown sections', () => {
   assert.equal(hostile.parts[1].qty, 3);
   assert.equal(hostile.parts[2].role.length, PROJECT_LIMITS.maxText);
   assert.deepEqual(hostile.sheets, [{ id: 'S3', title: '', file: 'a.svg', kind: 'schematic', side: 'component' }]);
-  assert.deepEqual(hostile.extra, { board: { cols: 3 } });
+  assert.deepEqual(hostile.extra, { inventory: { bins: 3 } });
 });
 
 test('sheets come from the project, in its order, with missing files marked', () => {

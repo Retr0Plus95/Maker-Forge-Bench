@@ -1,5 +1,9 @@
 three.js r128 (npm three@0.128.0): src/three.module.js unchanged; src/three-orbit-controls.js is examples/jsm/controls/OrbitControls.js with its import changed from "three" to "./three.module.js".
 
+sha256 (as shipped here):
+  src/three.module.js          af527c374b56b8688737a42d7fcea7cb8aaeb57a4e3c6da98b4dffd55bcc3514
+  src/three-orbit-controls.js  0a42def2551b01e123deb45fc37df6215fe564bdb33777053a60a75d58e5f832
+
 The MIT License
 
 Copyright © 2010-2021 three.js authors

@@ -51,6 +51,12 @@ describe('connections, holes and build step on the part card', () => {
     assert.match(await page.locator('#part-card .part-where').textContent(), /Underneath the board/);
   });
 
+  test('a resistor that lies flat does not claim to stand', async () => {
+    await openCard(page, 'R4');
+    assert.equal(await page.locator('#part-card .part-standing').count(), 0);
+    assert.equal(await page.locator('#part-card .part-flat').textContent(), 'Lies flat on the board');
+  });
+
   test('a big net is summed up, not listed in full', async () => {
     await openCard(page, 'R6');
     const ground = (await page.locator('#part-card .part-connections li').allTextContents()).find((l) => l.startsWith('pin 2'));

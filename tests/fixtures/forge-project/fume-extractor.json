@@ -506,7 +506,7 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "mount": "flat"
       },
       "U2": {
         "type": "dip",
@@ -723,7 +723,8 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "body": "1",
+        "mount": "stand"
       },
       "R12": {
         "type": "res",
@@ -738,7 +739,8 @@
           ]
         },
         "side": "top",
-        "body": "2"
+        "body": "2",
+        "mount": "stand"
       },
       "R9": {
         "type": "res",
@@ -753,7 +755,8 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "body": "1",
+        "mount": "stand"
       },
       "R13": {
         "type": "res",
@@ -768,7 +771,8 @@
           ]
         },
         "side": "top",
-        "body": "2"
+        "body": "2",
+        "mount": "stand"
       },
       "R7": {
         "type": "res",
@@ -783,7 +787,8 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "body": "1",
+        "mount": "stand"
       },
       "R5": {
         "type": "res",
@@ -798,7 +803,8 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "body": "1",
+        "mount": "stand"
       },
       "Q1": {
         "type": "to92",
@@ -832,7 +838,8 @@
           ]
         },
         "side": "top",
-        "body": "2"
+        "body": "2",
+        "mount": "stand"
       },
       "R2": {
         "type": "res",
@@ -847,7 +854,8 @@
           ]
         },
         "side": "top",
-        "body": "1"
+        "body": "1",
+        "mount": "stand"
       },
       "R3": {
         "type": "res",
@@ -862,7 +870,8 @@
           ]
         },
         "side": "top",
-        "body": "2"
+        "body": "2",
+        "mount": "stand"
       },
       "C4": {
         "type": "cer",

@@ -16,7 +16,7 @@ export class ProjectError extends Error {
 
 export const PROJECT_LIMITS = { maxBytes: 1048576, maxSheets: 200, maxParts: 2000, maxText: 2000 };
 
-const KNOWN_KEYS = new Set(['format', 'version', 'name', 'revision', 'repo', 'sheets', 'parts']);
+const KNOWN_KEYS = new Set(['format', 'version', 'name', 'revision', 'repo', 'sheets', 'parts', 'board', 'build']);
 const REF = /^[A-Za-z0-9_+.\-]{1,20}$/;
 const GUESSABLE = /^[A-Z]{1,3}[0-9]{1,3}[A-Z]?$/;
 const KINDS = new Set(['schematic', 'layout', 'detail', 'photo']);
@@ -107,19 +107,40 @@ const isHole = (h) => isPoint(h) && h.every(Number.isInteger);
 const hole = (h) => [h[0], h[1]];
 const side = (v, fallback) => (v === 'top' || v === 'bottom' ? v : fallback);
 const BUILD_WHAT = new Set(['buses', 'links', 'bridges']);
+// Names come from the file: keep them in objects with no prototype, so "constructor" or
+// "__proto__" are ordinary names and never reach Object.prototype.
+const table = () => Object.create(null);
+const own = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+const isOutline = (k) => Array.isArray(k) && k.length === 4 && k.every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 200);
+/** pcb.py's rule when the file doesn't say: a resistor spanning 4 or more holes lies flat. */
+function holeSpan(pins) {
+  const [a, b] = Object.values(pins);
+  return b ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : 0;
+}
 
 /** The board section, checked: anything out of range is dropped, never fatal. */
 export function readBoard(raw) {
   if (!isObject(raw)) return null;
-  const parts = {};
+  const parts = table();
+  let partCount = 0;
   for (const [ref, p] of Object.entries(isObject(raw.parts) ? raw.parts : {})) {
-    if (Object.keys(parts).length >= BOARD_LIMITS.parts) break;
+    if (partCount >= BOARD_LIMITS.parts) break;
     if (!REF.test(ref) || !isObject(p) || !isName(p.type) || !isObject(p.pins)) continue;
     const entries = Object.entries(p.pins);
     if (!entries.length || entries.length > BOARD_LIMITS.pins || !entries.every(([pin, h]) => isName(pin) && isHole(h))) continue;
-    const part = { type: p.type, pins: Object.fromEntries(entries.map(([pin, h]) => [pin, hole(h)])), side: side(p.side, 'top') };
-    if (isName(p.body) && part.pins[p.body]) part.body = p.body;
+    const pins = table();
+    for (const [pin, h] of entries) pins[pin] = hole(h);
+    const part = { type: p.type, pins, side: side(p.side, 'top') };
+    if (isName(p.body) && own(pins, p.body)) part.body = p.body;
     if (typeof p.D === 'number' && p.D > 0 && p.D <= 50) part.D = p.D;
+    if (p.round === 'up' || p.round === 'down') part.round = p.round;
+    if (typeof p.half === 'number' && p.half > 0 && p.half <= 10) part.half = p.half;
+    if (isOutline(p.keepout)) part.keepout = [...p.keepout];
+    if (part.type === 'res') {
+      part.mount = p.mount === 'flat' || p.mount === 'stand' ? p.mount : holeSpan(pins) >= 4 ? 'flat' : 'stand';
+      if (part.mount === 'flat') delete part.body; // lying flat, no body over a pin
+    }
+    if (!own(parts, ref)) partCount++;
     parts[ref] = part;
   }
   const inRange = (n) => Number.isInteger(n) && n >= 1 && n <= 200;
@@ -135,20 +156,27 @@ export function readBoard(raw) {
     .filter((b) => isObject(b) && Array.isArray(b.holes) && b.holes.length === 2 && b.holes.every(isHole))
     .slice(0, BOARD_LIMITS.links)
     .map((b) => ({ holes: b.holes.map(hole), side: side(b.side, 'bottom') }));
-  const nets = {};
+  const nets = table();
+  let netCount = 0;
   for (const [name, members] of Object.entries(isObject(raw.nets) ? raw.nets : {})) {
-    if (Object.keys(nets).length >= BOARD_LIMITS.nets) break;
+    if (netCount >= BOARD_LIMITS.nets) break;
     if (!isName(name) || !Array.isArray(members)) continue;
     const ok = members.filter((m) => Array.isArray(m) && m.length === 2 && REF.test(m[0]) && isName(m[1])).slice(0, BOARD_LIMITS.members);
-    if (ok.length) nets[name] = ok.map(([ref, pin]) => [ref, pin]);
+    if (!ok.length) continue;
+    if (!own(nets, name)) netCount++;
+    nets[name] = ok.map(([ref, pin]) => [ref, pin]);
   }
-  const netLabels = {};
+  const netLabels = table();
   for (const [name, label] of Object.entries(isObject(raw.netLabels) ? raw.netLabels : {})) {
     if (isName(name) && isName(label)) netLabels[name] = label;
   }
   for (const bus of buses) if (!netLabels[bus.net] && bus.label !== bus.net) netLabels[bus.net] = bus.label;
   const pitch = typeof raw.pitch === 'number' && raw.pitch > 0 && raw.pitch <= 10 ? raw.pitch : 2.54;
-  const most = (axis) => Math.max(1, ...Object.values(parts).flatMap((p) => Object.values(p.pins).map((h) => Math.ceil(h[axis]))));
+  const most = (axis) => {
+    let n = 1;
+    for (const p of Object.values(parts)) for (const h of Object.values(p.pins)) n = Math.max(n, Math.ceil(h[axis]));
+    return n;
+  };
   return {
     pitch,
     cols: inRange(raw.cols) ? raw.cols : most(0),

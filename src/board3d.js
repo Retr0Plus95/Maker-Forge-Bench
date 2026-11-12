@@ -10,7 +10,9 @@ const STEP = '#28c4ff';
 function webglAvailable() {
   try {
     const probe = document.createElement('canvas');
-    return Boolean(probe.getContext('webgl2') || probe.getContext('webgl'));
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+    if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext(); // browsers allow only a few contexts: give it back
+    return Boolean(gl);
   } catch {
     return false;
   }
@@ -216,24 +218,27 @@ export async function createBoard3D(host, board, { onPick }) {
   function view(name) {
     side = name === 'bottom' ? 'bottom' : 'top';
     const lift = span * 1.55;
-    camera.position.set(cx, side === 'top' ? lift : -lift, cz + span * 0.85);
+    // From below, look from the row-1 edge: columns mirror left to right and row 1 stays at the top,
+    // the same as turning the board over and as Flip on sheet 4.
+    camera.position.set(cx, side === 'top' ? lift : -lift, side === 'top' ? cz + span * 0.85 : cz - span * 0.85);
     camera.up.set(0, 1, 0);
     controls.target.set(cx, 0, cz);
     controls.update();
     render();
   }
 
-  // a click (not a drag) on a part selects it
+  // a main-button click (not a drag) on a part you can see selects it: the board hides what's behind it
   const ray = new THREE.Raycaster();
+  const blockers = [boardMesh, ...pickable];
   let downAt = null;
-  renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener('pointerdown', (e) => { downAt = e.button === 0 ? [e.clientX, e.clientY] : null; });
   renderer.domElement.addEventListener('pointerup', (e) => {
-    if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+    if (e.button !== 0 || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
     downAt = null;
     const rect = renderer.domElement.getBoundingClientRect();
     ray.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
-    const hit = ray.intersectObjects(pickable, false)[0];
-    if (hit) onPick(hit.object.userData.ref);
+    const hit = ray.intersectObjects(blockers, false)[0];
+    if (hit && hit.object !== boardMesh) onPick(hit.object.userData.ref);
   });
 
   resize();
@@ -265,7 +270,16 @@ export async function createBoard3D(host, board, { onPick }) {
     dispose() {
       sizer.disconnect();
       controls.dispose();
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (obj.material.map) obj.material.map.dispose();
+          obj.material.dispose();
+        }
+      });
+      for (const mat of materials.values()) mat.dispose();
       renderer.dispose();
+      renderer.forceContextLoss(); // r128's dispose keeps the WebGL context; browsers allow only a few
       host.replaceChildren();
     },
   };

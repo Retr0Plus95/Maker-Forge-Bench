@@ -22,7 +22,7 @@ export function renderHint(container) {
  * @param {{ sheetsWithPart: object[], datasheetHref: string|null, ticked?: boolean,
  *           onSheet(id: string): void, onTick?(): void, onClose(): void,
  *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> },
- *           step?: { number, total, title }, where?: { pins: [string, number[]][], body?: string, side: string },
+ *           step?: { number, total, title }, where?: { pins: [string, number[]][], body?: string, mount?: string, side: string },
  *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
 export function renderCard(container, part, o) {
@@ -50,6 +50,7 @@ export function renderCard(container, part, o) {
     const under = o.where.side === 'bottom' ? ' · Underneath the board' : '';
     children.push(el('p', { className: 'part-where' }, `Where (sheet 4): ${holes}${under}`));
     if (o.where.body) children.push(el('p', { className: 'part-standing' }, `Standing: body over pin ${o.where.body}`));
+    else if (o.where.mount === 'flat') children.push(el('p', { className: 'part-flat' }, 'Lies flat on the board'));
   }
   if (o.offBoard) children.push(el('p', { className: 'part-offboard' }, 'Not on the board (wired to it).'));
   if (o.connections && o.connections.length) {
@@ -127,12 +128,16 @@ export function renderSteps(container, steps, o) {
     container.replaceChildren();
     return;
   }
+  // the panel is rebuilt on every change: put the keyboard focus back where it was
+  const active = document.activeElement;
+  const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
   const list = el('ol', { className: 'steps-list' });
   steps.forEach((step, i) => {
-    const open = el('button', { type: 'button', 'aria-current': String(i === o.current) }, step.title);
+    const open = el('button', { type: 'button', 'aria-current': String(i === o.current), 'data-focus': `step-${i}` }, step.title);
     open.addEventListener('click', () => o.onOpen(i));
     const item = el('li', {}, open);
-    if (step.parts.length) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${step.parts.length} soldered`));
+    const found = step.parts.filter((r) => !step.missing.includes(r)).length;
+    if (found) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${found} soldered`));
     list.append(item);
   });
   const children = [el('h2', {}, 'Build steps'), list];
@@ -147,22 +152,22 @@ export function renderSteps(container, steps, o) {
     if (found.length) {
       const parts = el('div', { className: 'step-parts' });
       for (const ref of found) {
-        const b = el('button', { type: 'button', className: 'part-link' }, ref);
+        const b = el('button', { type: 'button', className: 'part-link', 'data-focus': `part-${ref}` }, ref);
         b.addEventListener('click', () => o.onPart(ref));
         parts.append(b);
       }
       box.append(parts);
     }
     if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
-    const back = el('button', { type: 'button', id: 'step-back' }, '← Back');
+    const back = el('button', { type: 'button', id: 'step-back', 'data-focus': 'back' }, '← Back');
     back.disabled = o.current === 0;
     back.addEventListener('click', () => o.onOpen(o.current - 1));
-    const next = el('button', { type: 'button', id: 'step-next' }, 'Next →');
+    const next = el('button', { type: 'button', id: 'step-next', 'data-focus': 'next' }, 'Next →');
     next.disabled = o.current === steps.length - 1;
     next.addEventListener('click', () => o.onOpen(o.current + 1));
     const nav = el('div', { className: 'step-nav' }, back, next);
     if (found.length) {
-      const all = el('button', { type: 'button', id: 'step-tick-all' }, 'Tick all in this step');
+      const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all in this step');
       all.addEventListener('click', () => o.onTickAll(o.current));
       nav.append(all);
     }
@@ -170,4 +175,9 @@ export function renderSteps(container, steps, o) {
     children.push(box);
   }
   container.replaceChildren(...children);
+  if (focusKey) {
+    const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
+    const fallback = container.querySelector('#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"]');
+    (again && !again.disabled ? again : fallback || container.querySelector('button'))?.focus();
+  }
 }

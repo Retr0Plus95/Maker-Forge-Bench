@@ -289,7 +289,7 @@ function renderPartCard() {
   const stepIndex = build.findIndex((s) => s.parts.includes(part.ref));
   renderCard($('#part-card'), part, {
     connections: connectionsOf(board, part.ref),
-    where: onBoard ? { pins: Object.entries(onBoard.pins), body: onBoard.body, side: onBoard.side } : null,
+    where: onBoard ? { pins: Object.entries(onBoard.pins), body: onBoard.body, mount: onBoard.mount, side: onBoard.side } : null,
     offBoard: Boolean(board) && !onBoard,
     step: stepIndex >= 0 ? { number: stepIndex + 1, total: build.length, title: build[stepIndex].title } : null,
     onPart: (ref) => selectPart(ref),
@@ -556,10 +556,14 @@ function updateBoard3DButton() {
 function syncStep3D() {
   if (!board3d || !board3dOn) return;
   const steps = stepsOf();
-  const now = state.openStep !== null ? steps[state.openStep].parts : [];
-  const later = state.openStep !== null ? steps.slice(state.openStep + 1).flatMap((s) => s.parts) : [];
+  const open = state.openStep !== null && steps[state.openStep] ? state.openStep : null;
+  const now = open !== null ? steps[open].parts : [];
+  const later = open !== null ? steps.slice(open + 1).flatMap((s) => s.parts) : [];
   board3d.setStep(now, later);
 }
+
+let board3dBuilding = null; // the build in progress, so two quick toggles build one view
+let board3dBoard = '';       // the board the view was built from, to rebuild only when it changes
 
 async function setBoard3D(on) {
   board3dOn = on && Boolean(state.project && state.project.board);
@@ -572,24 +576,36 @@ async function setBoard3D(on) {
   if (schematic && (!shown || shown.kind !== 'schematic')) await selectSheet(schematic.id);
   const message = $('#board3d-message');
   if (!board3d) {
-    message.hidden = true;
-    board3d = await createBoard3D($('#board3d-view'), state.project.board, { onPick: (ref) => selectPart(ref) });
-    if (!board3d) {
+    if (!board3dBuilding) {
+      message.hidden = true;
+      const board = state.project.board;
+      board3dBuilding = createBoard3D($('#board3d-view'), board, { onPick: (ref) => selectPart(ref) }).then((view) => {
+        board3d = view;
+        board3dBoard = JSON.stringify(board);
+        board3dBuilding = null;
+        return view;
+      });
+    }
+    if (!(await board3dBuilding)) {
       message.textContent = "This browser can't draw 3D here. Sheet 4 shows the same layout flat.";
       message.hidden = false;
       return;
     }
   }
+  if (!board3dOn || !board3d) return;
   board3d.select(state.selected);
   syncStep3D();
-  board3d.view('top');
 }
 
-/** The project's board changed: build the 3D view again the next time it's shown. */
-function resetBoard3D() {
+/** The project file changed: build the 3D view again if its board did (the camera stays otherwise). */
+async function resetBoard3D() {
+  updateBoard3DButton();
+  if (board3dBuilding) await board3dBuilding;
+  const board = state.project ? state.project.board : null;
+  if (board3d && board && JSON.stringify(board) === board3dBoard) return;
   if (board3d) board3d.dispose();
   board3d = null;
-  updateBoard3DButton();
+  board3dBoard = '';
   if (board3dOn) setBoard3D(true);
 }
 
@@ -612,7 +628,7 @@ function stepWhatText(step) {
 }
 
 function updateStepRings() {
-  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  const step = state.openStep !== null ? stepsOf()[state.openStep] || null : null;
   const els = step ? step.parts.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean) : [];
   viewer.stepRings(els);
   syncStep3D();
@@ -634,7 +650,7 @@ function openStep(i) {
   const steps = stepsOf();
   if (i < 0 || i >= steps.length) return;
   state.openStep = i;
-  store.set(stepKey(), i);
+  store.set(stepKey(), steps[i].id);
   renderStepsPanel();
   updateStepRings();
 }
@@ -643,12 +659,23 @@ function tickStep(i) {
   const step = stepsOf()[i];
   const before = [...state.ticked];
   const after = [...new Set([...before, ...step.parts.filter((r) => isKnownRef(r))])];
+  if (after.length === before.length) return; // all done already: nothing to undo
   history.do({ label: `Tick step ${i + 1}`, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
 }
 
+/** The saved open step: by its id (or, from release 0.3's first files, its number), if it's still there. */
 function loadOpenStep() {
   const saved = store.get(stepKey(), null);
-  state.openStep = Number.isInteger(saved) && saved >= 0 && saved < stepsOf().length ? saved : null;
+  const steps = stepsOf();
+  const byId = typeof saved === 'string' ? steps.findIndex((s) => s.id === saved) : -1;
+  state.openStep = byId >= 0 ? byId : Number.isInteger(saved) && saved >= 0 && saved < steps.length ? saved : null;
+}
+
+/** The project file changed: the open step follows its id, or closes if it's gone. */
+function refreshOpenStep() {
+  loadOpenStep();
+  renderStepsPanel();
+  updateStepRings();
 }
 
 // ---- the build checklist (design §7.7): ticks, saved progress, progress files ----
@@ -839,6 +866,7 @@ async function reloadProject() {
   await relist();
   updateParts();
   checkProgressKey();
+  refreshOpenStep();
   resetBoard3D();
   find.refresh(true);
 }
@@ -852,6 +880,7 @@ async function forgetProject() {
   await relist();
   updateParts();
   checkProgressKey();
+  refreshOpenStep();
   resetBoard3D();
   find.refresh(true);
 }
@@ -1035,7 +1064,8 @@ function onKey(e) {
     return;
   }
   if (e.ctrlKey || e.metaKey || e.altKey || typing) return;
-  if (e.key === ' ' && state.openStep !== null) {
+  const control = t instanceof Element && t.closest('button, a[href], summary, [role=tab], [role=button], [tabindex]:not(#stage)');
+  if (e.key === ' ' && state.openStep !== null && !control) {
     e.preventDefault();
     openStep(state.openStep + (e.shiftKey ? -1 : 1));
     return;

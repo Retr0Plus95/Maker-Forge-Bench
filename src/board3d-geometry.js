@@ -35,7 +35,8 @@ export function partGeometry(part, pitch = 2.54, ref = '') {
   switch (part.type) {
     case 'res': {
       const names = Object.keys(pins);
-      if (holeSpan(part) >= 4 || !part.body) {
+      const flat = part.mount ? part.mount === 'flat' : holeSpan(part) >= 4; // pcb.py's rule when the file doesn't say
+      if (flat || !part.body) {
         const [a, b] = pts;
         const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
         const ux = (b[0] - a[0]) / len;
@@ -109,7 +110,13 @@ export function partGeometry(part, pitch = 2.54, ref = '') {
       out.push({ kind: 'box', x: mx, y: my, z0: 0, w: x2 - x1, d: y2 - y1, h: 1, colour: '#e6e6e6', role: 'foam' });
       out.push({ kind: 'box', x: mx, y: my, z0: 1, w: x2 - x1, d: y2 - y1, h: 1.6, colour: '#1e6b52', role: 'body' });
       out.push({ kind: 'box', x: mx, y: my, z0: 2.6, w: Math.min(6, x2 - x1), d: Math.min(6, y2 - y1), h: 3, colour: '#3a3a3a', role: 'inductor' });
-      for (const p of pts) out.push({ kind: 'wire', points: [[p[0], p[1], 0], [p[0], p[1], 1.5], [p[0] + (mx - p[0]) * 0.15, p[1] + (my - p[1]) * 0.15, 2.6]], radius: 0.4, colour: '#d23b3b', role: 'wire' });
+      // each wire runs from its hole to the nearest point just inside the module's edge, where it's soldered
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+      for (const p of pts) {
+        const ex = clamp(p[0], x1 + 1, x2 - 1);
+        const ey = clamp(p[1], y1 + 1, y2 - 1);
+        out.push({ kind: 'wire', points: [[p[0], p[1], 0], [p[0], p[1], 3.5], [ex, ey, 3.5], [ex, ey, 2.6]], radius: 0.4, colour: '#d23b3b', role: 'wire' });
+      }
       break;
     }
     case 'underside': {
