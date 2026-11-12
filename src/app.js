@@ -1,6 +1,6 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
-import { ProjectError, guessParts, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
+import { ProjectError, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
 import { renderCard, renderHint } from './panel.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -33,7 +33,9 @@ const state = {
   partsByRef: new Map(),
   selected: null, // the ref of the part whose card is open
   ticked: new Set(), // refs marked soldered (design §7.7)
-  checklistNotes: [], // "this sheet changed since you ticked" notes, from the last load
+  checklistNotes: [], // "this sheet changed since you ticked" notes
+  tickPrints: {}, // each sheet's fingerprint when its ticks were last confirmed (design §7.7)
+  progressKey: null, // where the progress on screen is saved (per project and revision)
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -116,7 +118,7 @@ async function prepare(sheet) {
     root.setAttribute('width', String(box.w));
     root.setAttribute('height', String(box.h));
     root.style.display = 'block';
-    return { sheet, kind: 'svg', root, labels: indexSheet(sheet.id, root), size };
+    return { sheet, kind: 'svg', root, pristine: root.cloneNode(true), labels: indexSheet(sheet.id, root), size };
   }
   const img = new Image();
   img.alt = sheet.label;
@@ -170,7 +172,8 @@ async function selectSheet(id) {
   const saved = state.views.get(id);
   viewer.show(entry, { keepView: Boolean(saved) });
   if (saved) viewer.setView(saved);
-  if (state.flipped.has(id) !== viewer.isFlipped()) viewer.setFlipped(state.flipped.has(id));
+  const wantFlip = state.flipped.has(id) && isLayout(id);
+  if (wantFlip !== viewer.isFlipped()) viewer.setFlipped(wantFlip);
   updateFlip();
   if (state.selected) {
     const label = firstLabelFor(id, state.selected);
@@ -187,13 +190,24 @@ function canFlip() {
 function updateFlip() {
   const button = $('#flip');
   const allowed = canFlip();
-  const flipped = allowed && viewer.isFlipped();
+  const flipped = Boolean(viewer.sheetRoot()) && viewer.isFlipped();
   button.disabled = !allowed;
   if (allowed) button.removeAttribute('title');
   else button.title = FLIP_DISABLED;
-  button.setAttribute('aria-pressed', String(flipped));
-  button.textContent = flipped ? 'Back to component side' : 'Flip to solder side';
-  $('#flip-banner').hidden = !flipped;
+  button.setAttribute('aria-pressed', String(allowed && flipped));
+  button.textContent = allowed && flipped ? 'Back to component side' : 'Flip to solder side';
+  $('#flip-banner').hidden = !flipped; // a mirrored drawing always says so
+}
+
+const isLayout = (id) => state.sheets.some((s) => s.id === id && s.kind === 'layout');
+
+/** Brings the sheet on screen in line with the saved flips (layout sheets only). */
+function syncFlip() {
+  if (viewer.sheetRoot()) {
+    const want = state.flipped.has(state.current) && isLayout(state.current);
+    if (want !== viewer.isFlipped()) viewer.setFlipped(want);
+  }
+  updateFlip();
 }
 
 /** Flips or unflips a sheet. The sheet needn't be on screen (an undo after switching tabs). */
@@ -366,12 +380,11 @@ function openClaude(question) {
 // ---- two sheets side by side (design §7.5) ----
 const viewer2 = createViewer($('#stage2-view'), '#sheet-host2');
 const SPLIT_MIN_WIDTH = 1000;
-const split = { on: false, sheetId: null, clones: new WeakMap() };
+const split = { on: false, sheetId: null };
 
 /** The second view draws its own copy of a sheet: one element can't be on screen twice. */
 function cloneFor(entry) {
-  if (!split.clones.has(entry)) split.clones.set(entry, entry.root.cloneNode(true));
-  return split.clones.get(entry);
+  return entry.pristine.cloneNode(true); // never the main view's root: that one may be flipped or ringed
 }
 
 function ringInSplit() {
@@ -402,6 +415,7 @@ async function showInSplit(sheetId, keepView = false) {
   message.hidden = true;
   if (entry.kind === 'svg') {
     viewer2.show({ kind: 'svg', root: cloneFor(entry) }, { keepView });
+    applyTickMarks();
   } else {
     const img = entry.img.cloneNode();
     await img.decode().catch(() => {});
@@ -529,39 +543,84 @@ function loadProgress() {
       data = null;
     }
   }
+  state.progressKey = projectKey(state.project, state.root);
   state.ticked = new Set(data ? data.ticked : []);
-  state.flipped = new Set(data ? data.flipped : []);
-  state.checklistNotes = data ? changedSince(data.sheetPrints, state.sheets.filter((s) => !s.missing), state.ticked.size) : [];
+  state.flipped = new Set((data ? data.flipped : []).filter(isLayout));
+  state.tickPrints = data ? { ...data.sheetPrints } : currentPrints();
+  refreshNotes();
 }
 
+function refreshNotes() {
+  state.checklistNotes = changedSince(state.tickPrints, state.sheets.filter((s) => !s.missing), state.ticked.size);
+}
+
+/**
+ * Saves the progress on screen under its own key. Nothing is saved while forge-project.json can't be
+ * read: the key would be the folder's, and the project's real progress must never be overwritten.
+ */
 function saveProgress() {
-  const saved = store.set(projectKey(state.project, state.root), { ticked: [...state.ticked], sheetPrints: currentPrints(), flipped: [...state.flipped] });
+  if (state.projectProblem) return;
+  const saved = store.set(state.progressKey || projectKey(state.project, state.root),
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped] });
   if (saved) flashSaved();
+}
+
+/** The project or revision changed: show (and from now on save) that project's own progress. */
+function checkProgressKey() {
+  if (projectKey(state.project, state.root) === state.progressKey) return;
+  loadProgress();
+  history.clear(); // undo steps belong to the progress they were made on
+  syncFlip();
+  applyTickMarks();
+  renderChecklist();
+  renderPartCard();
+}
+
+/** "Mark them checked": the changed sheets have been looked at, so their notes go. */
+function acknowledgeNotes() {
+  const before = { ...state.tickPrints };
+  const after = currentPrints();
+  const set = (prints) => {
+    state.tickPrints = { ...prints };
+    refreshNotes();
+    saveProgress();
+    renderChecklist();
+  };
+  history.do({ label: 'Mark changed sheets checked', apply: () => set(after), revert: () => set(before) });
 }
 
 /** Ticked parts' labels turn green on every sheet that has been read. */
 function applyTickMarks() {
+  const done = (text) => labelDone(text, isKnownRef, (r) => state.ticked.has(r));
   for (const entry of state.loaded.values()) {
     if (entry.kind !== 'svg') continue;
     for (const label of entry.labels) {
-      label.el.toggleAttribute('data-bench-done', state.ticked.has(refOfLabel(label.text, isKnownRef)));
+      label.el.toggleAttribute('data-bench-done', done(label.text));
     }
   }
   const second = split.on ? viewer2.sheetRoot() : null;
   if (second) {
     for (const t of second.querySelectorAll('text')) {
-      t.toggleAttribute('data-bench-done', state.ticked.has(refOfLabel(labelText(t), isKnownRef)));
+      t.toggleAttribute('data-bench-done', done(labelText(t)));
     }
   }
 }
 
-function setProgress({ ticked, flipped }) {
+function setProgress({ ticked, flipped, prints }) {
+  const wasEmpty = state.ticked.size === 0;
   state.ticked = new Set(ticked);
-  if (flipped) {
-    state.flipped = new Set(flipped);
-    if (viewer.sheetRoot() && state.flipped.has(state.current) !== viewer.isFlipped()) viewer.setFlipped(state.flipped.has(state.current));
-    updateFlip();
+  if (prints) {
+    state.tickPrints = { ...prints };
+  } else if (wasEmpty && state.ticked.size) {
+    state.tickPrints = currentPrints(); // the first tick starts from the drawings as they are now
+  } else {
+    for (const [id, print] of Object.entries(currentPrints())) if (!(id in state.tickPrints)) state.tickPrints[id] = print;
   }
+  if (flipped) {
+    state.flipped = new Set(flipped.filter(isLayout));
+    syncFlip();
+  }
+  refreshNotes();
   applyTickMarks();
   saveProgress();
   renderChecklist();
@@ -590,7 +649,8 @@ function renderChecklist() {
   const done = state.parts.filter((p) => state.ticked.has(p.ref)).length;
   const bar = el('progress', { max: String(Math.max(total, 1)) });
   bar.value = done;
-  const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)));
+  const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)),
+    ...(state.checklistNotes.length ? [el('button', { id: 'notes-checked', type: 'button' }, 'Mark them checked')] : []));
   const items = el('ul', { className: 'checklist-items' }, ...state.parts.map((part) => {
     const box = el('input', { type: 'checkbox', 'data-ref': part.ref });
     box.checked = state.ticked.has(part.ref);
@@ -611,7 +671,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: currentPrints(), flipped: [...state.flipped],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped],
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -636,8 +696,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped] };
-  const after = { ticked: data.ticked, flipped: data.flipped };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints } };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -649,6 +709,7 @@ async function reloadProject() {
   setStatus('');
   await relist();
   updateParts();
+  checkProgressKey();
   find.refresh(true);
 }
 
@@ -660,6 +721,7 @@ async function forgetProject() {
   setStatus('');
   await relist();
   updateParts();
+  checkProgressKey();
   find.refresh(true);
 }
 
@@ -708,10 +770,12 @@ async function refreshSheet(sheet, mtime) {
   if (!state.project) updateParts(); // guessed parts follow the drawings
   applyTickMarks();
   if (split.on && split.sheetId === current.id) showInSplit(current.id, true);
+  refreshNotes();
+  renderChecklist();
   if (state.current === current.id) {
     setStageMessage('');
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
-    if (state.flipped.has(current.id)) viewer.setFlipped(true);
+    if (state.flipped.has(current.id) && isLayout(current.id)) viewer.setFlipped(true);
     updateFlip();
   }
   find.refresh(true);
@@ -743,12 +807,13 @@ async function relist() {
   }
   const sheets = sheetsFor(project.files);
   const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
-    s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing);
+    s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing &&
+    s.kind === state.sheets[i].kind && s.side === state.sheets[i].side);
   if (same) return;
   for (const id of [...state.cache.keys()]) {
     const now = sheets.find((s) => s.id === id);
     const was = state.sheets.find((s) => s.id === id);
-    if (!now || !was || now.path !== was.path) {
+    if (!now || !was || now.path !== was.path || now.missing !== was.missing) {
       for (const store of [state.cache, state.loaded, state.views]) store.delete(id);
       state.flipped.delete(id);
       state.stale.delete(id);
@@ -756,6 +821,7 @@ async function relist() {
   }
   if (state.current && viewer.sheetRoot()) state.views.set(state.current, viewer.getView());
   state.sheets = sheets;
+  state.flipped = new Set([...state.flipped].filter(isLayout));
   renderTabs();
   if (sheets.length === 0) {
     state.current = null;
@@ -789,8 +855,8 @@ function onFileChange(path, mtime) {
   }
   whenQuiet(path, () => {
     const sheet = state.sheets.find((s) => s.path === path);
-    if (sheet) refreshSheet(sheet, mtime);
-    else relist();
+    if (sheet && !sheet.missing) refreshSheet(sheet, mtime);
+    else relist(); // a new drawing, or a listed sheet whose file has just appeared
   });
 }
 
@@ -875,6 +941,7 @@ async function start() {
   });
   $('#checklist').addEventListener('click', (e) => {
     if (e.target instanceof HTMLElement && e.target.id === 'progress-save') saveProgressFile();
+    if (e.target instanceof HTMLElement && e.target.id === 'notes-checked') acknowledgeNotes();
   });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
     const before = settings;

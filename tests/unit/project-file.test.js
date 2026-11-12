@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROJECT_LIMITS, ProjectError, firstWord, guessParts, parseProject, refOfLabel, sheetsForProject } from '../../src/project.js';
+import { PROJECT_LIMITS, ProjectError, firstWord, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject } from '../../src/project.js';
 import { prepareSvg } from '../../src/sanitize.js';
 import { indexSheet } from '../../src/search.js';
 import { FUME_SVGS, nodeParser, readFixture } from './helpers.js';
@@ -96,4 +96,17 @@ test('a label stands for a part by its whole text or its first word', () => {
   assert.equal(refOfLabel('R60', known), null);
   assert.equal(refOfLabel('Q1 2N2222A', known), null);
   assert.equal(firstWord('R4,R6,R7'), 'R4');
+});
+
+test('a label is done only when every part it names is ticked', () => {
+  const known = (r) => ['U2', 'R5', 'Q1', 'R4', 'R6', 'R7', 'D1'].includes(r);
+  const ticked = (list) => (r) => list.includes(r);
+  assert.equal(labelDone('U2 ATmega328P', known, ticked(['U2'])), true);
+  assert.equal(labelDone('U2 pin 15 (D9/OC1A) → R5 → Q1 base', known, ticked(['U2'])), false);
+  assert.equal(labelDone('U2 pin 15 (D9/OC1A) → R5 → Q1 base', known, ticked(['U2', 'R5', 'Q1'])), true);
+  assert.equal(labelDone('R4,R6,R7', known, ticked(['R4'])), false);
+  assert.equal(labelDone('R4,R6,R7', known, ticked(['R4', 'R6', 'R7'])), true);
+  assert.equal(labelDone('D1 band to +12V row', known, ticked(['D1'])), true);
+  assert.equal(labelDone('PWMCTL', known, ticked(['R5'])), false);
+  assert.equal(labelDone('R6', known, ticked([])), false);
 });

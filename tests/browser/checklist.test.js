@@ -108,7 +108,7 @@ describe('the build checklist', () => {
     await page.reload();
     await ready(page);
     await page.waitForFunction(() => document.querySelector('#checklist-notes')?.textContent.length > 0);
-    assert.equal(await page.locator('#checklist-notes').textContent(),
+    assert.equal(await page.locator('#checklist-notes p').textContent(),
       'Sheet SFE-04 Perfboard layout changed since you ticked 2 parts: check them.');
   });
 

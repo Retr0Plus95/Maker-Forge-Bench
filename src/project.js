@@ -173,6 +173,17 @@ export function refOfLabel(labelText, isKnown) {
   return word !== labelText && isKnown(word) ? word : null;
 }
 
+/**
+ * Whether a label counts as done: it must be (or start with) a known ref, and every known ref it
+ * names must be ticked. "U2 ATmega328P" follows U2; "U2 pin 15 → R5 → Q1 base" waits for all three.
+ */
+export function labelDone(labelText, isKnown, isTicked) {
+  if (!isKnown(labelText) && !isKnown(firstWord(labelText))) return false;
+  const refs = new Set(labelText.split(/[^A-Za-z0-9_+.\-]+/).filter((t) => t && isKnown(t)));
+  if (isKnown(labelText)) refs.add(labelText);
+  return refs.size > 0 && [...refs].every(isTicked);
+}
+
 /** Parts guessed from labels that start with a part name (R6, C1A, "U2 ATmega328P"), each once, in order seen. */
 export function guessParts(labels) {
   const seen = new Set();
