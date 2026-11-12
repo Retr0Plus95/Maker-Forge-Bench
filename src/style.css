@@ -370,3 +370,47 @@ h1 {
 #stage2-message { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--warn); }
 #stage2-message[hidden] { display: none; }
 #split[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+/* ---- connections, holes and build step on the part card ---- */
+.part-step { margin: 6px 0; color: var(--accent); font-weight: 700; }
+.part-where, .part-standing, .part-offboard { margin: 4px 0; font-size: .92rem; }
+.part-offboard { color: var(--muted); }
+.part-connections { list-style: none; margin: 4px 0 0; padding: 0; font-size: .92rem; }
+.part-connections li { margin: 0 0 6px; line-height: 1.7; overflow-wrap: anywhere; }
+.part-link {
+  min-height: 26px; padding: 1px 7px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel); color: var(--ink); cursor: pointer; font-size: .88rem;
+}
+.part-link:hover { border-color: var(--accent); }
+
+/* ---- build steps ---- */
+.steps-list { margin: 0; padding-left: 1.6em; }
+.steps-list li { margin: 2px 0; }
+.steps-list button {
+  min-height: 30px; padding: 3px 8px; border: 1px solid transparent; border-radius: 6px;
+  background: none; color: var(--ink); cursor: pointer; text-align: left;
+}
+.steps-list button:hover { border-color: var(--line); }
+.steps-list button[aria-current="true"] { border-color: #28c4ff; background: var(--panel); font-weight: 700; }
+.step-count { color: var(--muted); font-size: .82rem; }
+.step-open { margin-top: 10px; padding: 10px; border: 2px solid #28c4ff; border-radius: 10px; background: var(--panel); }
+.step-title { margin: 0 0 6px; font-weight: 700; }
+.step-why, .step-what { margin: 6px 0; }
+.step-what { color: var(--muted); }
+.step-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.step-missing { color: var(--warn); margin: 6px 0; }
+.step-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* ---- the 3D board, over the dimmed schematic ---- */
+#board3d { position: absolute; inset: 0; z-index: 2; cursor: default; }
+#board3d[hidden] { display: none; }
+#board3d-view { position: absolute; inset: 0; }
+#board3d-view canvas { display: block; }
+.board3d-bar {
+  position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  max-width: calc(100% - 16px); padding: 4px 8px; border-radius: 8px; background: var(--panel); box-shadow: var(--shadow);
+}
+.board3d-bar .hint { font-size: .8rem; }
+#board3d-message { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--warn); background: var(--panel); }
+#board3d-message[hidden] { display: none; }
+#board3d-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }

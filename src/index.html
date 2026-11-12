@@ -27,6 +27,7 @@
     </div>
     <button id="flip" class="tool" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
     <button id="split" class="tool" type="button" aria-pressed="false">Side by side</button>
+    <button id="board3d-toggle" class="tool" type="button" aria-pressed="false" hidden>3D board</button>
   </div>
   <div id="find-results"></div>
 </header>
@@ -35,6 +36,15 @@
 <div id="workspace">
   <main id="stage" aria-label="Drawing">
     <div id="sheet-host"></div>
+    <div id="board3d" hidden>
+      <div id="board3d-view"></div>
+      <div class="board3d-bar">
+        <button id="board3d-top" class="tool" type="button">Top</button>
+        <button id="board3d-under" class="tool" type="button">Underside</button>
+        <span class="hint">Sheet 4 positions · typical part sizes · drag to turn, wheel to zoom, click a part</span>
+      </div>
+      <p id="board3d-message" hidden></p>
+    </div>
     <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
     <p id="stage-message" hidden></p>
   </main>
@@ -46,6 +56,7 @@
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
+    <section id="steps" aria-label="Build steps"></section>
     <section id="checklist" aria-label="Build checklist"></section>
   </aside>
 </div>

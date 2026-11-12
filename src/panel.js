@@ -21,7 +21,9 @@ export function renderHint(container) {
  * @param {object} part  a Part from project.js
  * @param {{ sheetsWithPart: object[], datasheetHref: string|null, ticked?: boolean,
  *           onSheet(id: string): void, onTick?(): void, onClose(): void,
- *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> } }} o
+ *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> },
+ *           step?: { number, total, title }, where?: { pins: [string, number[]][], body?: string, mount?: string, side: string },
+ *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
 export function renderCard(container, part, o) {
   const title = el('h2', {}, part.ref);
@@ -38,6 +40,38 @@ export function renderCard(container, part, o) {
   if (part.note) children.push(el('p', { className: 'part-note' }, part.note));
   if (part.guessed) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
+  }
+
+  if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
+  if (o.where) {
+    const pins = [...o.where.pins].sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }));
+    const at = ([pin, [c, r]]) => `pin ${pin} at ${c},${r}`;
+    const holes = pins.length > 6 ? `${pins.length} pins, ${at(pins[0])}` : pins.map(at).join(' · ');
+    const under = o.where.side === 'bottom' ? ' · Underneath the board' : '';
+    children.push(el('p', { className: 'part-where' }, `Where (sheet 4): ${holes}${under}`));
+    if (o.where.body) children.push(el('p', { className: 'part-standing' }, `Standing: body over pin ${o.where.body}`));
+    else if (o.where.mount === 'flat') children.push(el('p', { className: 'part-flat' }, 'Lies flat on the board'));
+  }
+  if (o.offBoard) children.push(el('p', { className: 'part-offboard' }, 'Not on the board (wired to it).'));
+  if (o.connections && o.connections.length) {
+    const list = el('ul', { className: 'part-connections' });
+    for (const c of o.connections) {
+      const line = el('li', {}, `pin ${c.pin} → ${c.label}`);
+      if (!c.others.length) {
+        line.append(' (nothing else)');
+      } else {
+        line.append(': ');
+        c.others.slice(0, 8).forEach(([ref, pin], i) => {
+          if (i) line.append(', ');
+          const button = el('button', { type: 'button', className: 'part-link' }, `${ref} ${pin}`);
+          button.addEventListener('click', () => o.onPart(ref));
+          line.append(button);
+        });
+        if (c.others.length > 8) line.append(` … and ${c.others.length - 8} more`);
+      }
+      list.append(line);
+    }
+    children.push(el('p', { className: 'part-sheets-label' }, 'Connects to:'), list);
   }
 
   const actions = el('div', { className: 'part-actions' });
@@ -82,4 +116,68 @@ export function renderCard(container, part, o) {
     children.push(el('p', { className: 'part-sheets-label' }, 'On sheets:'), list);
   }
   container.replaceChildren(...children);
+}
+
+
+/**
+ * The build steps (board-view design §5): the list, and the open step with its why, its parts,
+ * Back / Next and "Tick all in this step".
+ */
+export function renderSteps(container, steps, o) {
+  if (!steps.length) {
+    container.replaceChildren();
+    return;
+  }
+  // the panel is rebuilt on every change: put the keyboard focus back where it was
+  const active = document.activeElement;
+  const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
+  const list = el('ol', { className: 'steps-list' });
+  steps.forEach((step, i) => {
+    const open = el('button', { type: 'button', 'aria-current': String(i === o.current), 'data-focus': `step-${i}` }, step.title);
+    open.addEventListener('click', () => o.onOpen(i));
+    const item = el('li', {}, open);
+    const found = step.parts.filter((r) => !step.missing.includes(r)).length;
+    if (found) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${found} soldered`));
+    list.append(item);
+  });
+  const children = [el('h2', {}, 'Build steps'), list];
+  const step = o.current !== null ? steps[o.current] : null;
+  if (step) {
+    const box = el('div', { className: 'step-open' },
+      el('p', { className: 'step-title' }, `Step ${o.current + 1} of ${steps.length}: ${step.title}`));
+    if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
+    const what = o.whatText(step);
+    if (what) box.append(el('p', { className: 'step-what' }, what));
+    const found = step.parts.filter((r) => !step.missing.includes(r));
+    if (found.length) {
+      const parts = el('div', { className: 'step-parts' });
+      for (const ref of found) {
+        const b = el('button', { type: 'button', className: 'part-link', 'data-focus': `part-${ref}` }, ref);
+        b.addEventListener('click', () => o.onPart(ref));
+        parts.append(b);
+      }
+      box.append(parts);
+    }
+    if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
+    const back = el('button', { type: 'button', id: 'step-back', 'data-focus': 'back' }, '← Back');
+    back.disabled = o.current === 0;
+    back.addEventListener('click', () => o.onOpen(o.current - 1));
+    const next = el('button', { type: 'button', id: 'step-next', 'data-focus': 'next' }, 'Next →');
+    next.disabled = o.current === steps.length - 1;
+    next.addEventListener('click', () => o.onOpen(o.current + 1));
+    const nav = el('div', { className: 'step-nav' }, back, next);
+    if (found.length) {
+      const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all in this step');
+      all.addEventListener('click', () => o.onTickAll(o.current));
+      nav.append(all);
+    }
+    box.append(nav, el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
+    children.push(box);
+  }
+  container.replaceChildren(...children);
+  if (focusKey) {
+    const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
+    const fallback = container.querySelector('#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"]');
+    (again && !again.disabled ? again : fallback || container.querySelector('button'))?.focus();
+  }
 }

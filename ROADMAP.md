@@ -53,6 +53,16 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
   less motion), and **undo and redo for every change**.
 - The fume extractor repo gets its `forge-project.json`.
 
+### 0.3 Board view — done 2026-11-12
+- The fume extractor's `forge-project.json` gains its board and build steps, generated from
+  `board.py` and `build_steps.py` by `export_board.py` (its `check.sh` runs it).
+- Part cards: **what each pin connects to**, the holes on sheet 4, standing and underside parts, the
+  build step.
+- **Build steps** one at a time, with why and the parts ringed; Space to go on; tick all in a step.
+- **The 3D board** over the dimmed schematic: click a part, step highlighting, top and underside.
+- Still to come from the board-view design: the parts library with verified sizes, pinout drawings,
+  and the owner's own placement in `board.py`.
+
 The board-view design (`docs/design/2026-11-12-board-view-parts-ui-design.md` §10) puts two
 releases before "Everywhere": **0.3 Board view** (the 3D perfboard with the schematic behind, part
 cards with where and why, step-by-step building, and the parts library) and **0.4 Make it yours**
