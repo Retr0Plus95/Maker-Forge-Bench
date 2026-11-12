@@ -9,6 +9,9 @@ import { chromium } from 'playwright';
 export const REPO = fileURLToPath(new URL('../../', import.meta.url));
 export const FIXTURES = path.join(REPO, 'tests', 'fixtures');
 
+/** Running dev.py servers by URL, so a timed-out wait can say whether its server is still alive. */
+const servers = new Map();
+
 /** An 8×8 orange PNG. */
 export const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP438OAFWEXHbQSANXCYsHiPhRjAAAAAElFTkSuQmCC', 'base64');
@@ -35,7 +38,12 @@ export async function startDevServer(folder, port = 0) {
   // A killed process has a signalCode and no exitCode, so track the exit ourselves: stop() may be
   // called twice (a test stops the server, then the after hook does).
   let exited = false;
-  const done = new Promise((resolve) => proc.once('exit', () => { exited = true; resolve(); }));
+  let exitInfo = null;
+  let output = '';
+  proc.stdout.on('data', (d) => { output = (output + d).slice(-2000); });
+  proc.stderr.on('data', (d) => { output = (output + d).slice(-2000); });
+  const done = new Promise((resolve) => proc.once('exit', (code, signal) => { exited = true; exitInfo = { code, signal }; resolve(); }));
+  servers.set(url, { alive: () => !exited, exitInfo: () => exitInfo, output: () => output });
   return {
     url,
     stop: () => {
@@ -97,8 +105,10 @@ export async function openPage(url, viewport) {
         status: document.querySelector('#status')?.textContent,
         sheet: Boolean(document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg, img')),
       })).catch((e) => `unavailable: ${e.message}`);
+      const server = servers.get(url);
+      const serverState = server ? { alive: server.alive(), exit: server.exitInfo(), output: server.output().slice(-800) } : 'unknown';
       const note = `\n  diagnostics @${Date.now()}: pending=${JSON.stringify([...pending.values()])} failed=${JSON.stringify(failed)}` +
-        ` console=${JSON.stringify(lines)} page=${JSON.stringify(pageState)}`;
+        ` console=${JSON.stringify(lines)} page=${JSON.stringify(pageState)} server=${JSON.stringify(serverState)}`;
       error.message += note;
       error.stack = `${error.stack}${note}`; // the test report prints the stack
       throw error;

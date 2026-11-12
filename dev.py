@@ -145,6 +145,9 @@ class Watcher:
 
 class BenchServer(ThreadingHTTPServer):
     daemon_threads = True
+    # A page load opens ~15 connections at once. With Python's default queue of 5, Windows refuses
+    # the rest whenever the server is busy for a moment, and the page's scripts fail to load.
+    request_queue_size = 128
 
     def __init__(self, root: Path, port: int):
         self.root = root
