@@ -26,6 +26,7 @@
       <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
     </div>
     <button id="flip" class="tool" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
+    <button id="split" class="tool" type="button" aria-pressed="false">Side by side</button>
   </div>
   <div id="find-results"></div>
 </header>
@@ -37,6 +38,10 @@
     <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
     <p id="stage-message" hidden></p>
   </main>
+  <section id="stage2" aria-label="Second sheet" hidden>
+    <label class="stage2-pick">Second sheet <select id="stage2-sheet"></select></label>
+    <div id="stage2-view"><div id="sheet-host2"></div><p id="stage2-message" hidden></p></div>
+  </section>
   <aside id="panel" aria-label="Part and build checklist">
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>

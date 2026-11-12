@@ -4,8 +4,8 @@
 // so the drawing's CSS can't touch it, and it also contains anything the drawing positions as fixed.
 import { SCALE_LIMITS, fitView, panBy, scaleLimits, wheelFactor, zoomAt, zoomToRect } from './zoom.js';
 
-export function createViewer(stage) {
-  const host = stage.querySelector('#sheet-host');
+export function createViewer(stage, hostSelector = '#sheet-host') {
+  const host = stage.querySelector(hostSelector);
   const shadow = host.attachShadow({ mode: 'open' });
   // Bench's own rules inside the shadow root (the drawing's own <style> can't reach out, nor ours in):
   // ticked parts' labels turn green.

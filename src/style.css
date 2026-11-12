@@ -356,3 +356,17 @@ h1 {
 }
 .ask-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 #ask-done { color: var(--good); font-size: .85rem; }
+
+/* ---- side by side ---- */
+#stage2 { flex: 1; min-width: 0; display: flex; flex-direction: column; border-left: 2px solid var(--line); }
+#stage2[hidden] { display: none; }
+.stage2-pick { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--panel); color: var(--muted); }
+#stage2-sheet { min-height: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--ink); }
+#stage2-view {
+  position: relative; flex: 1; min-height: 0; overflow: hidden; contain: strict;
+  background: linear-gradient(var(--stage-top), var(--stage-bot)); touch-action: none; cursor: grab;
+}
+#sheet-host2 { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+#stage2-message { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--warn); }
+#stage2-message[hidden] { display: none; }
+#split[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }

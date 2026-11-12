@@ -223,6 +223,7 @@ async function goTo(label, query) {
   if (ref) {
     updatePartDots();
     renderPartCard();
+    ringInSplit();
   }
   return true;
 }
@@ -281,6 +282,7 @@ function selectPart(ref, labelEl) {
   viewer.ring(label);
   updatePartDots();
   renderPartCard();
+  ringInSplit();
 }
 
 function clearPart() {
@@ -289,6 +291,7 @@ function clearPart() {
   viewer.ring(null);
   updatePartDots();
   renderPartCard();
+  ringInSplit();
 }
 
 async function showPartOn(sheetId, ref) {
@@ -358,6 +361,93 @@ function openClaude(question) {
   const copying = copyForClaude(question);
   window.open('https://claude.ai/new', '_blank', 'noopener');
   return copying;
+}
+
+// ---- two sheets side by side (design §7.5) ----
+const viewer2 = createViewer($('#stage2-view'), '#sheet-host2');
+const SPLIT_MIN_WIDTH = 1000;
+const split = { on: false, sheetId: null, clones: new WeakMap() };
+
+/** The second view draws its own copy of a sheet: one element can't be on screen twice. */
+function cloneFor(entry) {
+  if (!split.clones.has(entry)) split.clones.set(entry, entry.root.cloneNode(true));
+  return split.clones.get(entry);
+}
+
+function ringInSplit() {
+  if (!split.on) return;
+  const root = viewer2.sheetRoot();
+  if (!root || !state.selected) {
+    viewer2.ring(null);
+    return;
+  }
+  const label = [...root.querySelectorAll('text')].find((t) => refOfLabel(labelText(t), isKnownRef) === state.selected);
+  viewer2.ring(label || null);
+}
+
+async function showInSplit(sheetId, keepView = false) {
+  split.sheetId = sheetId;
+  $('#stage2-sheet').value = sheetId;
+  const sheet = state.sheets.find((s) => s.id === sheetId);
+  if (!sheet) return;
+  const entry = await load(sheet);
+  if (split.sheetId !== sheetId) return;
+  const message = $('#stage2-message');
+  if (entry.kind === 'error') {
+    viewer2.clear();
+    message.textContent = entry.message;
+    message.hidden = false;
+    return;
+  }
+  message.hidden = true;
+  if (entry.kind === 'svg') {
+    viewer2.show({ kind: 'svg', root: cloneFor(entry) }, { keepView });
+  } else {
+    const img = entry.img.cloneNode();
+    await img.decode().catch(() => {});
+    viewer2.show({ kind: 'image', img }, { keepView });
+  }
+  ringInSplit();
+}
+
+function fillSplitChoices() {
+  const select = $('#stage2-sheet');
+  select.replaceChildren(...state.sheets.filter((s) => !s.missing).map((s) => {
+    const option = document.createElement('option');
+    option.value = s.id;
+    option.textContent = s.label;
+    return option;
+  }));
+  if (split.sheetId) select.value = split.sheetId;
+}
+
+/** Shows a layout next to a schematic, and a schematic next to anything else. */
+function defaultSplitSheet() {
+  const main = state.sheets.find((s) => s.id === state.current);
+  const wanted = main && main.kind === 'schematic' ? 'layout' : 'schematic';
+  const pick = state.sheets.find((s) => !s.missing && s.kind === wanted && s.id !== state.current) ||
+    state.sheets.find((s) => !s.missing && s.id !== state.current);
+  return pick ? pick.id : null;
+}
+
+function setSplit(on) {
+  split.on = on;
+  $('#stage2').hidden = !on;
+  $('#split').setAttribute('aria-pressed', String(on));
+  if (on) {
+    fillSplitChoices();
+    const sheetId = split.sheetId && state.sheets.some((s) => s.id === split.sheetId) ? split.sheetId : defaultSplitSheet();
+    if (sheetId) showInSplit(sheetId);
+  }
+}
+
+function updateSplitButton() {
+  const button = $('#split');
+  const wide = window.innerWidth >= SPLIT_MIN_WIDTH;
+  button.disabled = !wide;
+  if (wide) button.removeAttribute('title');
+  else button.title = 'Side by side needs a wider window (1000 px or more).';
+  if (!wide && split.on) setSplit(false);
 }
 
 viewer.onLabelClick((el) => {
@@ -455,6 +545,12 @@ function applyTickMarks() {
     if (entry.kind !== 'svg') continue;
     for (const label of entry.labels) {
       label.el.toggleAttribute('data-bench-done', state.ticked.has(refOfLabel(label.text, isKnownRef)));
+    }
+  }
+  const second = split.on ? viewer2.sheetRoot() : null;
+  if (second) {
+    for (const t of second.querySelectorAll('text')) {
+      t.toggleAttribute('data-bench-done', state.ticked.has(refOfLabel(labelText(t), isKnownRef)));
     }
   }
 }
@@ -611,6 +707,7 @@ async function refreshSheet(sheet, mtime) {
   state.loaded.set(current.id, entry);
   if (!state.project) updateParts(); // guessed parts follow the drawings
   applyTickMarks();
+  if (split.on && split.sheetId === current.id) showInSplit(current.id, true);
   if (state.current === current.id) {
     setStageMessage('');
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
@@ -722,6 +819,7 @@ function renderTabs() {
     return tab;
   }));
   updatePartDots();
+  if (split.on) fillSplitChoices();
 }
 
 function onKey(e) {
@@ -766,6 +864,10 @@ async function start() {
   $('#flip').addEventListener('click', toggleFlip);
   $('#undo').addEventListener('click', () => history.undo());
   $('#redo').addEventListener('click', () => history.redo());
+  $('#split').addEventListener('click', () => setSplit(!split.on));
+  $('#stage2-sheet').addEventListener('change', (e) => showInSplit(e.target.value));
+  window.addEventListener('resize', updateSplitButton);
+  updateSplitButton();
   $('#checklist').addEventListener('change', (e) => {
     const t = e.target;
     if (t instanceof HTMLInputElement && t.type === 'checkbox' && t.dataset.ref) toggleTick(t.dataset.ref);
