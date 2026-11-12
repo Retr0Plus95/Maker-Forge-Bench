@@ -1,6 +1,6 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
-import { ProjectError, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
+import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
 import { renderCard, renderHint } from './panel.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -279,7 +279,16 @@ function renderPartCard() {
     renderHint($('#part-card'));
     return;
   }
+  const board = state.project ? state.project.board : null;
+  const onBoard = board ? board.parts[part.ref] : null;
+  const build = state.project ? state.project.build : [];
+  const stepIndex = build.findIndex((s) => s.parts.includes(part.ref));
   renderCard($('#part-card'), part, {
+    connections: connectionsOf(board, part.ref),
+    where: onBoard ? { pins: Object.entries(onBoard.pins), body: onBoard.body, side: onBoard.side } : null,
+    offBoard: Boolean(board) && !onBoard,
+    step: stepIndex >= 0 ? { number: stepIndex + 1, total: build.length, title: build[stepIndex].title } : null,
+    onPart: (ref) => selectPart(ref),
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),

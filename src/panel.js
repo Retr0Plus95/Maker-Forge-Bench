@@ -21,7 +21,9 @@ export function renderHint(container) {
  * @param {object} part  a Part from project.js
  * @param {{ sheetsWithPart: object[], datasheetHref: string|null, ticked?: boolean,
  *           onSheet(id: string): void, onTick?(): void, onClose(): void,
- *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> } }} o
+ *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> },
+ *           step?: { number, total, title }, where?: { pins: [string, number[]][], body?: string, side: string },
+ *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
 export function renderCard(container, part, o) {
   const title = el('h2', {}, part.ref);
@@ -38,6 +40,37 @@ export function renderCard(container, part, o) {
   if (part.note) children.push(el('p', { className: 'part-note' }, part.note));
   if (part.guessed) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
+  }
+
+  if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
+  if (o.where) {
+    const pins = [...o.where.pins].sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }));
+    const at = ([pin, [c, r]]) => `pin ${pin} at ${c},${r}`;
+    const holes = pins.length > 6 ? `${pins.length} pins, ${at(pins[0])}` : pins.map(at).join(' · ');
+    const under = o.where.side === 'bottom' ? ' · Underneath the board' : '';
+    children.push(el('p', { className: 'part-where' }, `Where (sheet 4): ${holes}${under}`));
+    if (o.where.body) children.push(el('p', { className: 'part-standing' }, `Standing: body over pin ${o.where.body}`));
+  }
+  if (o.offBoard) children.push(el('p', { className: 'part-offboard' }, 'Not on the board (wired to it).'));
+  if (o.connections && o.connections.length) {
+    const list = el('ul', { className: 'part-connections' });
+    for (const c of o.connections) {
+      const line = el('li', {}, `pin ${c.pin} → ${c.label}`);
+      if (!c.others.length) {
+        line.append(' (nothing else)');
+      } else {
+        line.append(': ');
+        c.others.slice(0, 8).forEach(([ref, pin], i) => {
+          if (i) line.append(', ');
+          const button = el('button', { type: 'button', className: 'part-link' }, `${ref} ${pin}`);
+          button.addEventListener('click', () => o.onPart(ref));
+          line.append(button);
+        });
+        if (c.others.length > 8) line.append(` … and ${c.others.length - 8} more`);
+      }
+      list.append(line);
+    }
+    children.push(el('p', { className: 'part-sheets-label' }, 'Connects to:'), list);
   }
 
   const actions = el('div', { className: 'part-actions' });
