@@ -17,6 +17,7 @@ const parser = {
 const $ = (selector) => document.querySelector(selector);
 const viewer = createViewer($('#stage'));
 const state = { root: '', sheets: [], cache: new Map(), loaded: new Map(), views: new Map(), current: null };
+const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 const SERVER_DOWN = "Can't reach dev.py. Is it still running? Start it again with: python dev.py <project folder>";
 const fileName = (path) => path.split('/').pop();
@@ -91,6 +92,7 @@ async function selectSheet(id) {
     viewer.clear();
     setStageMessage(entry.message);
     setStatus(entry.message);
+    updateFlip();
     return false;
   }
   setStageMessage('');
@@ -98,7 +100,31 @@ async function selectSheet(id) {
   const saved = state.views.get(id);
   viewer.show(entry, { keepView: Boolean(saved) });
   if (saved) viewer.setView(saved);
+  updateFlip();
   return true;
+}
+
+function canFlip() {
+  const sheet = state.sheets.find((s) => s.id === state.current);
+  return Boolean(sheet && sheet.kind === 'layout' && viewer.sheetRoot());
+}
+
+function updateFlip() {
+  const button = $('#flip');
+  const allowed = canFlip();
+  const flipped = allowed && viewer.isFlipped();
+  button.disabled = !allowed;
+  if (allowed) button.removeAttribute('title');
+  else button.title = FLIP_DISABLED;
+  button.setAttribute('aria-pressed', String(flipped));
+  button.textContent = flipped ? 'Back to component side' : 'Flip to solder side';
+  $('#flip-banner').hidden = !flipped;
+}
+
+function toggleFlip() {
+  if (!canFlip()) return;
+  viewer.setFlipped(!viewer.isFlipped());
+  updateFlip();
 }
 
 /** Find part: show the label's sheet, zoom to the label and ring it. */
@@ -148,6 +174,7 @@ function onKey(e) {
     '/': () => find.focus(),
     n: () => find.next(),
     N: () => find.prev(),
+    f: () => toggleFlip(),
   };
   const action = actions[e.key];
   if (!action) return;
@@ -157,6 +184,7 @@ function onKey(e) {
 
 async function start() {
   document.addEventListener('keydown', onKey);
+  $('#flip').addEventListener('click', toggleFlip);
   let project;
   try {
     project = await listProject();

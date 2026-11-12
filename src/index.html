@@ -16,11 +16,13 @@
     <label for="find">Find part</label>
     <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
   </div>
+  <button id="flip" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
   <div id="find-results"></div>
 </header>
 <p id="status" aria-live="polite"></p>
 <main id="stage" aria-label="Drawing">
   <div id="sheet-host"></div>
+  <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
   <p id="stage-message" hidden></p>
 </main>
 </body>

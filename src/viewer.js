@@ -74,10 +74,54 @@ export function createViewer(stage) {
     return { x: box.x - vb.x, y: box.y - vb.y, w: box.w, h: box.h };
   }
 
+  // ---- flip to the solder side (design §7.6) ----
+  // Mirrors everything in a group, then turns each text back around its own centre so it still
+  // reads normally. Kept per drawing, so a sheet stays flipped when you come back to it.
+  const flips = new WeakMap(); // root → { group, originals: Map<text, transform | null> }
+
+  function isFlipped() {
+    return Boolean(content && content.kind === 'svg' && flips.has(content.root));
+  }
+
+  function setFlipped(on) {
+    if (!content || content.kind !== 'svg' || on === isFlipped()) return;
+    const root = content.root;
+    if (on) {
+      const vb = root.viewBox.baseVal;
+      const group = document.createElementNS(SVG_NS, 'g');
+      group.setAttribute('class', 'bench-flip');
+      group.setAttribute('transform', `translate(${2 * vb.x + vb.width} 0) scale(-1 1)`);
+      for (const child of Array.from(root.childNodes)) if (child !== ringLayer) group.append(child);
+      root.insertBefore(group, ringLayer && ringLayer.parentNode === root ? ringLayer : null);
+      const originals = new Map();
+      for (const text of Array.from(group.getElementsByTagNameNS(SVG_NS, 'text'))) {
+        const before = text.getAttribute('transform');
+        const b = text.getBBox();
+        originals.set(text, before);
+        text.setAttribute('transform', `${before ? before + ' ' : ''}translate(${2 * (b.x + b.width / 2)} 0) scale(-1 1)`);
+      }
+      flips.set(root, { group, originals });
+    } else {
+      const { group, originals } = flips.get(root);
+      for (const [text, before] of originals) {
+        if (before === null) text.removeAttribute('transform');
+        else text.setAttribute('transform', before);
+      }
+      while (group.firstChild) root.insertBefore(group.firstChild, group);
+      group.remove();
+      flips.delete(root);
+    }
+    if (ringTarget) ring(ringTarget);
+  }
+
+  let ringTarget = null;
+
   function ring(el) {
     if (ringLayer) ringLayer.remove();
     ringLayer = null;
+    ringTarget = null;
     if (!el || !content || content.kind !== 'svg' || !content.root.contains(el)) return;
+    ringTarget = el;
     const box = rootBox(el);
     const pad = 4;
     ringLayer = document.createElementNS(SVG_NS, 'g');
@@ -140,6 +184,8 @@ export function createViewer(stage) {
     },
     labelRect,
     ring,
+    setFlipped,
+    isFlipped,
     getView: () => ({ ...view }),
     setView,
     sheetRoot: () => (content && content.kind === 'svg' ? content.root : null),
