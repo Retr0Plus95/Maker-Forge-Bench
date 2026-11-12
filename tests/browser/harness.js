@@ -27,13 +27,16 @@ export async function startDevServer(folder) {
     proc.stderr.on('data', (d) => { out += d; });
     proc.on('exit', (code) => { clearTimeout(timer); reject(new Error(`dev.py exited (${code}): ${out}`)); });
   });
+  // A killed process has a signalCode and no exitCode, so track the exit ourselves: stop() may be
+  // called twice (a test stops the server, then the after hook does).
+  let exited = false;
+  const done = new Promise((resolve) => proc.once('exit', () => { exited = true; resolve(); }));
   return {
     url,
-    stop: () => new Promise((resolve) => {
-      if (proc.exitCode !== null) return resolve();
-      proc.once('exit', () => resolve());
-      proc.kill();
-    }),
+    stop: () => {
+      if (!exited) proc.kill();
+      return done;
+    },
   };
 }
 

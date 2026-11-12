@@ -8,9 +8,10 @@ import { search } from './search.js';
  * @param {() => object[]} o.entries  every sheet in tab order: { sheet, kind: 'svg'|'image'|'error'|'loading', labels? }
  * @param {(label: object) => Promise<boolean>} o.goTo  shows the label's sheet, zooms to it and rings it
  * @param {() => void} o.clearRing
+ * @param {(label: object) => void} o.ringIfShown  rings a label without moving the view, if its sheet is showing
  * @param {(text: string) => void} o.setStatus
  */
-export function createFindBar({ input, results, entries, goTo, clearRing, setStatus }) {
+export function createFindBar({ input, results, entries, goTo, clearRing, ringIfShown, setStatus }) {
   let query = '';
   let matches = [];
   let index = -1;
@@ -87,9 +88,20 @@ export function createFindBar({ input, results, entries, goTo, clearRing, setSta
   return {
     next,
     prev,
-    /** Search again, for example once every sheet has been read or a sheet changed. */
-    refresh() {
-      if (input.value.trim()) run();
+    /**
+     * Search again, for example once every sheet has been read or a sheet changed.
+     * keep: stay on the same match number, and ring it again if its sheet is showing.
+     */
+    refresh(keep = false) {
+      if (!input.value.trim()) return;
+      const previous = keep ? index : -1;
+      run();
+      if (previous >= 0 && previous < matches.length) {
+        index = previous;
+        const match = matches[index];
+        ringIfShown(match);
+        setStatus(`${query}: ${index + 1} of ${matches.length}, on ${sheetLabels.get(match.sheetId)}`);
+      }
     },
     focus() {
       input.focus();

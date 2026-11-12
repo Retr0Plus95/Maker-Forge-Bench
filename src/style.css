@@ -179,3 +179,7 @@ h1 {
 }
 
 #flip-banner[hidden] { display: none; }
+
+#live { font-size: 13px; color: #8fd18f; white-space: nowrap; }
+#live:empty { display: none; }
+#live.paused { color: #ff9b7a; }
