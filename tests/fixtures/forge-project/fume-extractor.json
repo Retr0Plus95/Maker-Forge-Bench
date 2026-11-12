@@ -1,0 +1,309 @@
+{
+  "format": "forge-project",
+  "version": 1,
+  "name": "Solder Fume Extractor",
+  "revision": "Rev D",
+  "repo": "https://github.com/Retr0Plus95/Solder-Fume-Extractor",
+  "sheets": [
+    {
+      "id": "SFE-01",
+      "title": "Main schematic",
+      "file": "docs/schematics/SFE-01_Schematic.svg",
+      "kind": "schematic"
+    },
+    {
+      "id": "SFE-02",
+      "title": "Reference",
+      "file": "docs/schematics/SFE-02_Reference.svg",
+      "kind": "detail"
+    },
+    {
+      "id": "SFE-03",
+      "title": "USB port",
+      "file": "docs/schematics/SFE-03_USB_Port.svg",
+      "kind": "schematic"
+    },
+    {
+      "id": "SFE-04",
+      "title": "Perfboard layout",
+      "file": "docs/layout/SFE-04_Perfboard_Layout.svg",
+      "kind": "layout",
+      "side": "component"
+    },
+    {
+      "id": "SFE-D1",
+      "title": "Pot detail",
+      "file": "docs/layout/SFE-D1_Pot_Detail.svg",
+      "kind": "detail"
+    },
+    {
+      "id": "SFE-parts",
+      "title": "Printed parts",
+      "file": "images/SFE-parts.jpg",
+      "kind": "photo"
+    }
+  ],
+  "parts": [
+    {
+      "ref": "J0",
+      "value": "2-pin header",
+      "type": "connector",
+      "role": "Power in from the DC jack, through F1 and SW1: pin 1 is +12 V, pin 2 is 0 V."
+    },
+    {
+      "ref": "D1",
+      "value": "1N5402G",
+      "type": "diode",
+      "package": "DO-201AD",
+      "polarized": true,
+      "orientation": "Band (cathode) toward the +12 V row, row 2. Stands upright.",
+      "role": "Reverse-polarity shunt: if the supply is connected backwards it conducts and blows F1, so nothing else is damaged. Normally it does nothing.",
+      "note": "Legs ~1.3 mm: open the holes up. A 1N4007 also works."
+    },
+    {
+      "ref": "C1A",
+      "value": "100 µF 50 V",
+      "type": "capacitor-electrolytic",
+      "polarized": true,
+      "orientation": "Stripe (−) toward the 0 V row, row 4. Stands upright.",
+      "role": "Bulk smoothing on the +12 V input. With C1B in parallel it makes 200 µF."
+    },
+    {
+      "ref": "C1B",
+      "value": "100 µF 50 V",
+      "type": "capacitor-electrolytic",
+      "polarized": true,
+      "orientation": "Stripe (−) toward the 0 V row, row 4. Stands upright.",
+      "role": "Bulk smoothing on the +12 V input, in parallel with C1A."
+    },
+    {
+      "ref": "U1",
+      "value": "MP1584EN buck module",
+      "type": "module",
+      "role": "Steps the 12 V supply down to the 5 V the chip, the LCD and the LEDs run on.",
+      "note": "Sits on double-sided foam tape with four short wires to the rails; keep its 22 × 17 mm outline clear. Read the module's own silkscreen for IN+, IN−, OUT+ and OUT−. An LM2596 module, or a 7805 with a heatsink, also works."
+    },
+    {
+      "ref": "C2",
+      "value": "100 µF 10 V",
+      "type": "capacitor-electrolytic",
+      "polarized": true,
+      "orientation": "Stripe (−) toward the 0 V row, row 4.",
+      "role": "Smoothing on U1's 5 V output."
+    },
+    {
+      "ref": "C3",
+      "value": "100 nF",
+      "type": "capacitor-ceramic",
+      "role": "Fast decoupling on +5 V right next to U1."
+    },
+    {
+      "ref": "C10",
+      "value": "10 µF",
+      "type": "capacitor-electrolytic",
+      "polarized": true,
+      "orientation": "Stripe (−) toward the 0 V row, row 4.",
+      "role": "Extra smoothing on the +5 V rail."
+    },
+    {
+      "ref": "J2",
+      "value": "4-pin fan header",
+      "type": "connector",
+      "polarized": true,
+      "orientation": "Pin 1 (0 V) at column 20, on the left.",
+      "role": "Fan A: pin 1 is 0 V, pin 2 +12 V, pin 3 the speed (tach) signal, pin 4 PWM."
+    },
+    {
+      "ref": "J3",
+      "value": "4-pin fan header",
+      "type": "connector",
+      "polarized": true,
+      "orientation": "Pin 1 (0 V) at column 26, on the left.",
+      "role": "Fan B: pin 1 is 0 V, pin 2 +12 V, pin 3 the speed (tach) signal, pin 4 PWM."
+    },
+    {
+      "ref": "R4",
+      "value": "10k",
+      "type": "resistor",
+      "role": "Pull-up on the chip's reset pin (U2 pin 1), so the chip runs instead of staying in reset."
+    },
+    {
+      "ref": "U2",
+      "value": "ATmega328P-PU",
+      "type": "ic",
+      "package": "DIP-28, in a socket",
+      "polarized": true,
+      "orientation": "Notch LEFT, in a socket.",
+      "role": "The controller: reads both fans' speed, drives the PWM, the two status LEDs and the LCD, and reads the speed knob.",
+      "datasheet": "https://www.microchip.com/en-us/product/ATmega328P",
+      "note": "Solder the socket, not the chip. Plug the chip in only after the power-up checks (Build Guide §7)."
+    },
+    {
+      "ref": "C5",
+      "value": "100 nF",
+      "type": "capacitor-ceramic",
+      "role": "Decoupling for the chip's supply, VCC and GND on pins 7 and 8.",
+      "note": "Mounted underneath, across socket pins 7–8, to keep its legs short."
+    },
+    {
+      "ref": "C8",
+      "value": "100 nF",
+      "type": "capacitor-ceramic",
+      "role": "Steadies AREF (pin 21), the reference the chip measures the speed knob against.",
+      "note": "Mounted underneath, across socket pins 21–22."
+    },
+    {
+      "ref": "C9",
+      "value": "100 nF",
+      "type": "capacitor-ceramic",
+      "role": "Decoupling for AVCC (pin 20), the supply of the chip's analogue part.",
+      "note": "Mounted underneath, from pin 20 to the 0 V spur hole directly above it."
+    },
+    {
+      "ref": "Y1",
+      "value": "16 MHz crystal",
+      "type": "crystal",
+      "package": "HC-49S",
+      "role": "The chip's 16 MHz clock, on pins 9 and 10.",
+      "note": "Mounted underneath, across pins 9–10, legs bent inward."
+    },
+    {
+      "ref": "C6",
+      "value": "22 pF",
+      "type": "capacitor-ceramic",
+      "role": "Load capacitor for the crystal, pin 9 to 0 V. Without it the clock may not start."
+    },
+    {
+      "ref": "C7",
+      "value": "22 pF",
+      "type": "capacitor-ceramic",
+      "role": "Load capacitor for the crystal, pin 10 to 0 V."
+    },
+    {
+      "ref": "R8",
+      "value": "10k",
+      "type": "resistor",
+      "role": "Pull-up on fan A's speed (tach) line to +5 V. The fan's tach output can only pull low."
+    },
+    {
+      "ref": "R12",
+      "value": "4.7k",
+      "type": "resistor",
+      "role": "Carries fan A's speed signal into the chip (pin 4), and protects the pin if a fan lead ever touches +12 V."
+    },
+    {
+      "ref": "R9",
+      "value": "10k",
+      "type": "resistor",
+      "role": "Pull-up on fan B's speed (tach) line to +5 V."
+    },
+    {
+      "ref": "R13",
+      "value": "4.7k",
+      "type": "resistor",
+      "role": "Carries fan B's speed signal into the chip (pin 5), and protects the pin if a fan lead ever touches +12 V."
+    },
+    {
+      "ref": "R7",
+      "value": "10k",
+      "type": "resistor",
+      "role": "Pull-up on the shared PWM line to +5 V. With Q1 off, the fans see 100 %."
+    },
+    {
+      "ref": "R5",
+      "value": "1k",
+      "type": "resistor",
+      "role": "Base resistor from the chip's PWM pin (pin 15, D9) to Q1, so the pin isn't overloaded."
+    },
+    {
+      "ref": "Q1",
+      "value": "2N2222A",
+      "type": "transistor",
+      "package": "TO-92",
+      "polarized": true,
+      "orientation": "Flat face toward row 16 (down). E, B, C left to right: check the pinout of your part (Build Guide §6).",
+      "role": "Switches both fans' PWM line low under the chip's control, so one pin drives both fans."
+    },
+    {
+      "ref": "R6",
+      "value": "10k",
+      "type": "resistor",
+      "role": "Holds Q1 off, so the fans run at 100 % if the controller is dead or in reset (fail-safe)."
+    },
+    {
+      "ref": "R2",
+      "value": "330R",
+      "type": "resistor",
+      "role": "Current limit for status LED D2 (fan A), from pin 11."
+    },
+    {
+      "ref": "R3",
+      "value": "330R",
+      "type": "resistor",
+      "role": "Current limit for status LED D3 (fan B), from pin 12."
+    },
+    {
+      "ref": "C4",
+      "value": "100 nF",
+      "type": "capacitor-ceramic",
+      "role": "Smooths the speed knob's voltage into pin 23 (A0), so the reading doesn't jitter."
+    },
+    {
+      "ref": "J5",
+      "value": "6-pin header",
+      "type": "connector",
+      "role": "To the front panel: pin 1 +5 V, 2 knob wiper, 3 0 V, 4 LED A, 5 LED B, 6 0 V."
+    },
+    {
+      "ref": "J4",
+      "value": "4-pin header",
+      "type": "connector",
+      "role": "To the LCD's I²C backpack: pin 1 0 V, 2 +5 V, 3 SDA, 4 SCL."
+    },
+    {
+      "ref": "J6",
+      "value": "2-pin header",
+      "type": "connector",
+      "role": "To push-button SW2: pin 1 to the chip's pin 6 (D4), pin 2 to 0 V."
+    },
+    {
+      "ref": "RV1",
+      "value": "10k linear",
+      "type": "potentiometer",
+      "role": "The fan-speed knob on the front panel, read on pin 23.",
+      "note": "Off the board, wired to J5. If the knob turns the wrong way, swap its two outer wires."
+    },
+    {
+      "ref": "D2",
+      "value": "5 mm green LED",
+      "type": "led",
+      "polarized": true,
+      "orientation": "Long leg (anode) to R2 through J5; short leg (cathode, flat side) to 0 V.",
+      "role": "Fan A status light.",
+      "note": "On the front panel."
+    },
+    {
+      "ref": "D3",
+      "value": "5 mm green LED",
+      "type": "led",
+      "polarized": true,
+      "orientation": "Long leg (anode) to R3 through J5; short leg (cathode, flat side) to 0 V.",
+      "role": "Fan B status light.",
+      "note": "On the front panel."
+    },
+    {
+      "ref": "F1",
+      "value": "1 A fitted for now; 2 A slow-blow with the USB port",
+      "type": "fuse",
+      "role": "Protects the wiring against a short, and is what D1 blows if the supply is connected backwards.",
+      "note": "In a panel holder, between the DC jack and SW1. 1 A is fine without the USB port (0.67 A steady); fit the 2 A slow-blow when you build sheet 3."
+    },
+    {
+      "ref": "SW1",
+      "value": "Illuminated rocker, 12 V lamp",
+      "type": "switch",
+      "role": "Main power switch.",
+      "note": "Panel cutout 19.2 × 13 mm. The lamp terminal goes to 0 V."
+    }
+  ]
+}
