@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,22 +10,64 @@
 </head>
 <body>
 <header id="top">
-  <h1><span class="app-name">Maker Forge Bench</span> <span id="project-name"></span></h1>
-  <span id="live" aria-live="polite"></span>
-  <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
-  <div id="findbar" role="search">
-    <label for="find">Find part</label>
-    <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
+  <div class="bar">
+    <h1><span class="app-name">Maker Forge Bench</span> <span id="project-name"></span></h1>
+    <span id="live" aria-live="polite"></span>
+    <span class="spacer"></span>
+    <span id="saved" aria-live="polite"></span>
+    <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span> Undo</button>
+    <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span> Redo</button>
+    <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
   </div>
-  <button id="flip" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
+  <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
+  <div class="bar">
+    <div id="findbar" role="search">
+      <label for="find">Find part</label>
+      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
+    </div>
+    <button id="flip" class="tool" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
+    <button id="split" class="tool" type="button" aria-pressed="false">Side by side</button>
+  </div>
   <div id="find-results"></div>
 </header>
 <p id="status" aria-live="polite"></p>
 <p id="sheet-note" aria-live="polite" hidden></p>
-<main id="stage" aria-label="Drawing">
-  <div id="sheet-host"></div>
-  <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
-  <p id="stage-message" hidden></p>
-</main>
+<div id="workspace">
+  <main id="stage" aria-label="Drawing">
+    <div id="sheet-host"></div>
+    <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
+    <p id="stage-message" hidden></p>
+  </main>
+  <section id="stage2" aria-label="Second sheet" hidden>
+    <label class="stage2-pick">Second sheet <select id="stage2-sheet"></select></label>
+    <div id="stage2-view"><div id="sheet-host2"></div><p id="stage2-message" hidden></p></div>
+  </section>
+  <aside id="panel" aria-label="Part and build checklist">
+    <section id="part-card" aria-live="polite">
+      <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
+    </section>
+    <section id="checklist" aria-label="Build checklist"></section>
+  </aside>
+</div>
+<dialog id="settings" aria-labelledby="settings-title">
+  <h2 id="settings-title">Easy reading</h2>
+  <fieldset>
+    <legend>Theme</legend>
+    <label><input type="radio" name="theme" value="dark"> Dark</label>
+    <label><input type="radio" name="theme" value="light"> Light</label>
+  </fieldset>
+  <label class="check"><input type="checkbox" name="contrast"> High contrast</label>
+  <label class="check"><input type="checkbox" name="clearFont"> Clear font (Atkinson Hyperlegible)</label>
+  <fieldset>
+    <legend>Text size</legend>
+    <label><input type="radio" name="textSize" value="100"> 100 %</label>
+    <label><input type="radio" name="textSize" value="125"> 125 %</label>
+    <label><input type="radio" name="textSize" value="150"> 150 %</label>
+    <label><input type="radio" name="textSize" value="175"> 175 %</label>
+  </fieldset>
+  <label class="check"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
+  <p class="hint">Every change here can be undone with Ctrl+Z.</p>
+  <button id="settings-done" class="primary" type="button">Done</button>
+</dialog>
 </body>
 </html>

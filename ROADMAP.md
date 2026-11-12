@@ -42,17 +42,26 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 - Flip a layout sheet to the solder side.
 - Tested on: the fume extractor's five sheets.
 
-### 0.2 Know your parts
+### 0.2 Know your parts — done 2026-11-12
 - The project file v1 (`forge-project.json`), plus guessing parts when there is no project file.
-- Part cards with polarity warnings.
+- Part cards with polarity warnings, and **★ New: a datasheet button** (the project's own PDF or the
+  maker's page).
 - The same part highlighted on every sheet, and two sheets side by side.
 - Build checklist, saved per project and revision, with export and import.
 - Ask Claude: in the Claude app (Claude reads your selection), Copy for Claude, open claude.ai.
+- **★ New: Maker Forge's family look** with Easy reading (themes, high contrast, clear font, text size,
+  less motion), and **undo and redo for every change**.
 - The fume extractor repo gets its `forge-project.json`.
 
-### 0.3 Everywhere
+The board-view design (`docs/design/2026-11-12-board-view-parts-ui-design.md` §10) puts two
+releases before "Everywhere": **0.3 Board view** (the 3D perfboard with the schematic behind, part
+cards with where and why, step-by-step building, and the parts library) and **0.4 Make it yours**
+(drag parts, suggested wire routes with options, live checks, named versions). "Everywhere" below
+becomes 0.5.
+
+### 0.5 Everywhere (was 0.3)
 - Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
-- Easy reading, light and dark themes, **★ New: Keep screen on** at the bench.
+- **★ New: Keep screen on** at the bench. (Easy reading and themes arrived in 0.2.)
 - Open a public GitHub repo by pasting its link.
 - **★ New: Links straight to a part.**
   `forge.retr0plus.se/bench/?repo=Retr0Plus95/Solder-Fume-Extractor&sheet=SFE-04&part=R6`

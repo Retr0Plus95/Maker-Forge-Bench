@@ -4,9 +4,13 @@
 // so the drawing's CSS can't touch it, and it also contains anything the drawing positions as fixed.
 import { SCALE_LIMITS, fitView, panBy, scaleLimits, wheelFactor, zoomAt, zoomToRect } from './zoom.js';
 
-export function createViewer(stage) {
-  const host = stage.querySelector('#sheet-host');
+export function createViewer(stage, hostSelector = '#sheet-host') {
+  const host = stage.querySelector(hostSelector);
   const shadow = host.attachShadow({ mode: 'open' });
+  // Bench's own rules inside the shadow root (the drawing's own <style> can't reach out, nor ours in):
+  // ticked parts' labels turn green.
+  const ownStyle = document.createElement('style');
+  ownStyle.textContent = 'text[data-bench-done]{fill:#3ddc84 !important}';
 
   let view = { scale: 1, x: 0, y: 0 };
   let content = null;
@@ -57,14 +61,14 @@ export function createViewer(stage) {
       next.img.height = size.h;
       next.img.style.display = 'block';
     }
-    shadow.replaceChildren(next.kind === 'svg' ? next.root : next.img);
+    shadow.replaceChildren(ownStyle, next.kind === 'svg' ? next.root : next.img);
     content = next;
     if (opts.keepView) apply(view);
     else fit();
   }
 
   function clear() {
-    shadow.replaceChildren();
+    shadow.replaceChildren(ownStyle);
     content = null;
     size = null;
   }
@@ -186,6 +190,22 @@ export function createViewer(stage) {
   stage.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
 
+  // A click (pointer down and up close together) on a label: tells onLabelClick listeners which
+  // <text> it was. composedPath()[0] reaches inside the shadow root; it's read at pointer-down
+  // because the drag's pointer capture makes pointer-up land on the stage.
+  const labelListeners = [];
+  let downAt = null;
+  stage.addEventListener('pointerdown', (e) => {
+    downAt = e.button === 0 ? { x: e.clientX, y: e.clientY, target: e.composedPath()[0] } : null;
+  }, true);
+  stage.addEventListener('pointerup', (e) => {
+    const start = downAt;
+    downAt = null;
+    if (!start || Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 4 || !(start.target instanceof Element)) return;
+    const label = start.target.closest('text');
+    if (label) for (const fn of labelListeners) fn(label);
+  });
+
   stage.addEventListener('dblclick', (e) => {
     if (!size) return;
     const [px, py] = stagePoint(e);
@@ -208,6 +228,7 @@ export function createViewer(stage) {
     },
     labelRect,
     ring,
+    onLabelClick: (fn) => labelListeners.push(fn),
     setFlipped,
     isFlipped,
     getView: () => ({ ...view }),

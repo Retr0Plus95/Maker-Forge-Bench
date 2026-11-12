@@ -56,6 +56,38 @@ class TestFunctions(DevServerTestCase):
         for bad in [None, "", "evil.example:8765", "127.0.0.1:9999", "127.0.0.1.evil.example:8765"]:
             self.assertFalse(dev.host_allowed(bad, 8765), bad)
 
+    def test_waiting_queue_holds_a_page_load(self):
+        # While the server is busy (sending a big drawing, watching the folder) new connections wait
+        # in its queue. Python's default queue holds 5, and Windows refuses the rest: a browser test
+        # caught module requests failing with ERR_CONNECTION_REFUSED. Simulate a busy moment by not
+        # accepting at all, and send a page-load-sized burst.
+        import select
+        import socket
+        server = dev.make_server(self.root, 0)
+        port = server.server_address[1]
+        socks = []
+        try:
+            for _ in range(30):
+                s = socket.socket()
+                s.setblocking(False)
+                s.connect_ex(("127.0.0.1", port))
+                socks.append(s)
+            refused = 0
+            pending = list(socks)
+            deadline = time.time() + 3
+            while pending and time.time() < deadline:
+                _, writable, errored = select.select([], pending, pending, 0.2)
+                for s in set(writable) | set(errored):
+                    if s.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR) != 0:
+                        refused += 1
+                    pending.remove(s)
+            self.assertEqual(refused, 0, f"{refused} of 30 waiting connections refused")
+            self.assertEqual(pending, [], "some connections never completed")
+        finally:
+            for s in socks:
+                s.close()
+            server.server_close()
+
     def test_diff_snapshots(self):
         self.assertEqual(dev.diff_snapshots({"a.svg": 1.0, "b.svg": 1.0}, {"a.svg": 2.0, "c.svg": 1.0}),
                          [("change", "a.svg"), ("remove", "b.svg"), ("change", "c.svg")])
@@ -105,6 +137,68 @@ class TestLiveServer(DevServerTestCase):
         self.assertEqual(resp.status, 200)
         self.assertEqual(resp.getheader("Content-Type"), "image/svg+xml")
         self.assertIn(b"<svg", body)
+
+    def test_many_requests_at_once_are_all_served(self):
+        # A page load opens ~15 connections at once. Python's default queue of 5 waiting
+        # connections made Windows refuse or delay some of them, so pages sometimes stalled.
+        results = []
+
+        def fetch():
+            try:
+                resp, _ = self.request("GET", "/api/files")
+                results.append(resp.status)
+            except OSError as error:
+                results.append(repr(error))
+
+        threads = [threading.Thread(target=fetch) for _ in range(60)]
+        start = time.time()
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(10)
+        self.assertEqual(results.count(200), 60, [r for r in results if r != 200][:3])
+        self.assertLess(time.time() - start, 5)
+
+    def test_a_burst_of_connections_is_not_refused(self):
+        # Caught in a browser test: a page's module requests got ERR_CONNECTION_REFUSED, so the app
+        # never started. Windows refuses connections once the server's waiting queue is full.
+        import select
+        import socket
+        socks = []
+        for _ in range(60):
+            s = socket.socket()
+            s.setblocking(False)
+            s.connect_ex(("127.0.0.1", self.port))
+            socks.append(s)
+        refused = 0
+        deadline = time.time() + 5
+        pending = list(socks)
+        while pending and time.time() < deadline:
+            # On Windows a refused connect shows up in the error list, not the writable one.
+            _, writable, errored = select.select([], pending, pending, 0.5)
+            for s in set(writable) | set(errored):
+                if s.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR) != 0:
+                    refused += 1
+                pending.remove(s)
+        for s in socks:
+            s.close()
+        self.assertEqual(refused, 0, f"{refused} of 60 connections refused")
+        self.assertEqual(pending, [], "some connections never completed")
+
+    def test_datasheet_pdf_served(self):
+        pdf = self.root / "docs" / "ds" / "x.pdf"
+        pdf.parent.mkdir(parents=True, exist_ok=True)
+        pdf.write_bytes(b"%PDF-1.4\n%%EOF\n")
+        resp, body = self.request("GET", "/project/docs/ds/x.pdf")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "application/pdf")
+        self.assertTrue(body.startswith(b"%PDF"))
+
+    def test_font_served(self):
+        resp, body = self.request("GET", "/atkinson-hyperlegible-latin-400-normal.woff2")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "font/woff2")
+        self.assertEqual(body[:4], b"wOF2")
 
     def test_project_file_outside_refused(self):
         resp, _ = self.request("GET", "/project/%2e%2e/secret.svg")

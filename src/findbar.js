@@ -64,7 +64,7 @@ export function createFindBar({ input, results, entries, goTo, clearRing, ringIf
     index = ((i % matches.length) + matches.length) % matches.length;
     const shownIndex = index;
     const match = matches[shownIndex];
-    if (await goTo(match) && index === shownIndex) {
+    if (await goTo(match, query) && index === shownIndex) {
       setStatus(`${query}: ${shownIndex + 1} of ${matches.length}, on ${sheetLabels.get(match.sheetId)}`);
     }
   }

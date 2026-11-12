@@ -25,7 +25,9 @@ HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 CSP = (HERE / "deploy" / "csp.txt").read_text(encoding="utf-8").strip()
 
-PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+# Drawings, plus datasheet PDFs a project keeps next to them (never shown as sheets).
+PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                 ".pdf": "application/pdf"}
 PROJECT_FILE = "forge-project.json"
 APP_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -34,6 +36,7 @@ APP_TYPES = {
     ".svg": "image/svg+xml",
     ".png": "image/png",
     ".json": "application/json",
+    ".woff2": "font/woff2",
 }
 APP_NAME = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9_.-]*$")
 WATCH_INTERVAL = 0.5
@@ -144,6 +147,9 @@ class Watcher:
 
 class BenchServer(ThreadingHTTPServer):
     daemon_threads = True
+    # A page load opens ~15 connections at once. With Python's default queue of 5, Windows refuses
+    # the rest whenever the server is busy for a moment, and the page's scripts fail to load.
+    request_queue_size = 128
 
     def __init__(self, root: Path, port: int):
         self.root = root

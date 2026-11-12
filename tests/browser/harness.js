@@ -9,6 +9,9 @@ import { chromium } from 'playwright';
 export const REPO = fileURLToPath(new URL('../../', import.meta.url));
 export const FIXTURES = path.join(REPO, 'tests', 'fixtures');
 
+/** Running dev.py servers by URL, so a timed-out wait can say whether its server is still alive. */
+const servers = new Map();
+
 /** An 8×8 orange PNG. */
 export const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP438OAFWEXHbQSANXCYsHiPhRjAAAAAElFTkSuQmCC', 'base64');
@@ -35,7 +38,12 @@ export async function startDevServer(folder, port = 0) {
   // A killed process has a signalCode and no exitCode, so track the exit ourselves: stop() may be
   // called twice (a test stops the server, then the after hook does).
   let exited = false;
-  const done = new Promise((resolve) => proc.once('exit', () => { exited = true; resolve(); }));
+  let exitInfo = null;
+  let output = '';
+  proc.stdout.on('data', (d) => { output = (output + d).slice(-2000); });
+  proc.stderr.on('data', (d) => { output = (output + d).slice(-2000); });
+  const done = new Promise((resolve) => proc.once('exit', (code, signal) => { exited = true; exitInfo = { code, signal }; resolve(); }));
+  servers.set(url, { alive: () => !exited, exitInfo: () => exitInfo, output: () => output });
   return {
     url,
     stop: () => {
@@ -77,6 +85,35 @@ export async function openPage(url, viewport) {
       console.error(`CSP violation: ${e.violatedDirective} ${e.blockedURI}`);
     });
   });
+  // When a wait times out, say what the page was doing: unfinished and failed requests, the last
+  // console lines and the page's own state. (Hunting an intermittent stall at first load.)
+  const pending = new Map();
+  const failed = [];
+  const lines = [];
+  page.on('request', (r) => pending.set(r, `${r.method()} ${r.url()} @${Date.now()}`));
+  page.on('requestfinished', (r) => pending.delete(r));
+  page.on('requestfailed', (r) => { pending.delete(r); failed.push(`${r.url()}: ${r.failure()?.errorText}`); });
+  page.on('console', (m) => { lines.push(`${m.type()}: ${m.text()}`); if (lines.length > 15) lines.shift(); });
+  const wait = page.waitForFunction.bind(page);
+  page.waitForFunction = async (...args) => {
+    try {
+      return await wait(...args);
+    } catch (error) {
+      const pageState = await page.evaluate(() => ({
+        ready: document.readyState,
+        tabs: document.querySelectorAll('[role=tab]').length,
+        status: document.querySelector('#status')?.textContent,
+        sheet: Boolean(document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg, img')),
+      })).catch((e) => `unavailable: ${e.message}`);
+      const server = servers.get(url);
+      const serverState = server ? { alive: server.alive(), exit: server.exitInfo(), output: server.output().slice(-800) } : 'unknown';
+      const note = `\n  diagnostics @${Date.now()}: pending=${JSON.stringify([...pending.values()])} failed=${JSON.stringify(failed)}` +
+        ` console=${JSON.stringify(lines)} page=${JSON.stringify(pageState)} server=${JSON.stringify(serverState)}`;
+      error.message += note;
+      error.stack = `${error.stack}${note}`; // the test report prints the stack
+      throw error;
+    }
+  };
   await page.goto(url);
   return { browser, page, problems };
 }
