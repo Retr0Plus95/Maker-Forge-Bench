@@ -105,3 +105,46 @@ h1 {
 }
 
 #stage-message[hidden] { display: none; }
+
+#findbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+#findbar label { color: #bbb; white-space: nowrap; }
+
+#find {
+  width: 13em;
+  max-width: 50vw;
+  padding: 6px 8px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: #0c0c0c;
+  color: #eee;
+  font: inherit;
+}
+
+#find-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  flex-basis: 100%;
+  min-width: 0;
+}
+
+#find-results:empty { display: none; }
+
+#find-results button {
+  padding: 3px 8px;
+  border: 1px solid #ff2bd6;
+  border-radius: 6px;
+  background: #2a1026;
+  color: #ffd6f6;
+  font: inherit;
+  cursor: pointer;
+}
+
+#find-results .note { color: #aaa; font-size: 13px; }

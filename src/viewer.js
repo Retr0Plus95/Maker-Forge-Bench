@@ -51,6 +51,46 @@ export function createViewer(stage) {
     size = null;
   }
 
+  // ---- labels: their box, and the ring around a found one ----
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  let ringLayer = null;
+
+  /** el's box in the root's own coordinates (the viewBox's), wherever it sits in groups and transforms. */
+  function rootBox(el) {
+    const root = content.root;
+    const m = root.getScreenCTM().inverse().multiply(el.getScreenCTM());
+    const b = el.getBBox();
+    const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]
+      .map(([x, y]) => new DOMPoint(x, y).matrixTransform(m));
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+  }
+
+  /** el's box in the SVG element's own pixels, the units zoomToRect works in. */
+  function labelRect(el) {
+    const box = rootBox(el);
+    const vb = content.root.viewBox.baseVal;
+    return { x: box.x - vb.x, y: box.y - vb.y, w: box.w, h: box.h };
+  }
+
+  function ring(el) {
+    if (ringLayer) ringLayer.remove();
+    ringLayer = null;
+    if (!el || !content || content.kind !== 'svg' || !content.root.contains(el)) return;
+    const box = rootBox(el);
+    const pad = 4;
+    ringLayer = document.createElementNS(SVG_NS, 'g');
+    ringLayer.setAttribute('class', 'bench-highlight');
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    for (const [k, v] of Object.entries({
+      x: box.x - pad, y: box.y - pad, width: box.w + 2 * pad, height: box.h + 2 * pad,
+      fill: 'none', stroke: '#ff2bd6', 'stroke-width': 3, 'vector-effect': 'non-scaling-stroke',
+    })) rect.setAttribute(k, String(v));
+    ringLayer.append(rect);
+    content.root.append(ringLayer);
+  }
+
   stage.addEventListener('wheel', (e) => {
     if (!size) return;
     e.preventDefault();
@@ -98,6 +138,8 @@ export function createViewer(stage) {
     zoomToRect(rect) {
       setView(zoomToRect(rect, stageSize()));
     },
+    labelRect,
+    ring,
     getView: () => ({ ...view }),
     setView,
     sheetRoot: () => (content && content.kind === 'svg' ? content.root : null),

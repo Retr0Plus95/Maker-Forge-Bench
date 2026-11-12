@@ -3,6 +3,8 @@ import { SheetError, prepareSvg } from './sanitize.js';
 import { sheetsFromFiles } from './project.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
+import { createFindBar } from './findbar.js';
+import { indexSheet } from './search.js';
 import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
@@ -14,7 +16,7 @@ const parser = {
 
 const $ = (selector) => document.querySelector(selector);
 const viewer = createViewer($('#stage'));
-const state = { root: '', sheets: [], cache: new Map(), views: new Map(), current: null };
+const state = { root: '', sheets: [], cache: new Map(), loaded: new Map(), views: new Map(), current: null };
 
 const SERVER_DOWN = "Can't reach dev.py. Is it still running? Start it again with: python dev.py <project folder>";
 const fileName = (path) => path.split('/').pop();
@@ -44,7 +46,7 @@ async function prepare(sheet) {
     root.setAttribute('width', String(box.w));
     root.setAttribute('height', String(box.h));
     root.style.display = 'block';
-    return { sheet, kind: 'svg', root, labels: [] };
+    return { sheet, kind: 'svg', root, labels: indexSheet(sheet.id, root) };
   }
   const img = new Image();
   img.alt = sheet.label;
@@ -67,30 +69,54 @@ function messageFor(error, sheet) {
 /** The prepared sheet, loaded once and kept. Errors are kept too, as { kind: 'error', message }. */
 function load(sheet) {
   if (!state.cache.has(sheet.id)) {
-    state.cache.set(sheet.id, prepare(sheet).catch((error) => ({ sheet, kind: 'error', message: messageFor(error, sheet) })));
+    state.cache.set(sheet.id, prepare(sheet)
+      .catch((error) => ({ sheet, kind: 'error', message: messageFor(error, sheet) }))
+      .then((entry) => {
+        state.loaded.set(sheet.id, entry);
+        return entry;
+      }));
   }
   return state.cache.get(sheet.id);
 }
 
+/** Shows a sheet. True if it's showing when this returns (another tab may have been picked meanwhile). */
 async function selectSheet(id) {
   if (state.current && state.current !== id && viewer.sheetRoot()) state.views.set(state.current, viewer.getView());
   state.current = id;
   for (const tab of $('#tabs').children) tab.setAttribute('aria-selected', String(tab.dataset.id === id));
   const sheet = state.sheets.find((s) => s.id === id);
   const entry = await load(sheet);
-  if (state.current !== id) return; // another tab was picked meanwhile
+  if (state.current !== id) return false; // another tab was picked meanwhile
   if (entry.kind === 'error') {
     viewer.clear();
     setStageMessage(entry.message);
     setStatus(entry.message);
-    return;
+    return false;
   }
   setStageMessage('');
   setStatus('');
   const saved = state.views.get(id);
   viewer.show(entry, { keepView: Boolean(saved) });
   if (saved) viewer.setView(saved);
+  return true;
 }
+
+/** Find part: show the label's sheet, zoom to the label and ring it. */
+async function goTo(label) {
+  if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
+  viewer.zoomToRect(viewer.labelRect(label.el));
+  viewer.ring(label.el);
+  return true;
+}
+
+const find = createFindBar({
+  input: $('#find'),
+  results: $('#find-results'),
+  entries: () => state.sheets.map((sheet) => state.loaded.get(sheet.id) || { sheet, kind: 'loading' }),
+  goTo,
+  clearRing: () => viewer.ring(null),
+  setStatus,
+});
 
 function renderTabs() {
   $('#tabs').replaceChildren(...state.sheets.map((sheet) => {
@@ -119,6 +145,9 @@ function onKey(e) {
     ArrowRight: () => viewer.panBy(-w * 0.1, 0),
     ArrowUp: () => viewer.panBy(0, h * 0.1),
     ArrowDown: () => viewer.panBy(0, -h * 0.1),
+    '/': () => find.focus(),
+    n: () => find.next(),
+    N: () => find.prev(),
   };
   const action = actions[e.key];
   if (!action) return;
@@ -145,6 +174,9 @@ async function start() {
     return;
   }
   await selectSheet(state.sheets[0].id);
+  // Read the other sheets in the background, so Find part can search all of them.
+  await Promise.all(state.sheets.map(load));
+  find.refresh();
 }
 
 start();
