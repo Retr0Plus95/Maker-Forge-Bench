@@ -1,7 +1,7 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderHint } from './panel.js';
+import { renderCard, renderHint, renderSteps } from './panel.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
@@ -36,6 +36,7 @@ const state = {
   checklistNotes: [], // "this sheet changed since you ticked" notes
   tickPrints: {}, // each sheet's fingerprint when its ticks were last confirmed (design §7.7)
   progressKey: null, // where the progress on screen is saved (per project and revision)
+  openStep: null, // the build step on screen (index), or null
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -179,6 +180,7 @@ async function selectSheet(id) {
     const label = firstLabelFor(id, state.selected);
     viewer.ring(label ? label.el : null);
   }
+  updateStepRings();
   return true;
 }
 
@@ -532,6 +534,64 @@ function updateParts() {
   renderPartCard();
   applyTickMarks();
   renderChecklist();
+  renderStepsPanel();
+}
+
+// ---- build steps (board-view design §5), one at a time ----
+const stepsOf = () => (state.project ? state.project.build : []);
+const stepKey = () => `${state.progressKey}:step`;
+
+function stepWhatText(step) {
+  const board = state.project ? state.project.board : null;
+  if (!board) return '';
+  const lines = [];
+  if (step.what.includes('buses') && board.buses.length) {
+    lines.push(`Buses: ${board.buses.map((b) => `row ${b.row} (${b.label})`).join(', ')}.`);
+  }
+  if (step.what.includes('links') && board.links.length) lines.push(`${board.links.length} insulated links: see the wire list on sheet 4.`);
+  if (step.what.includes('bridges') && board.bridges.length) {
+    lines.push(`Bridges at ${board.bridges.map((b) => `${b.holes[0].join(',')}–${b.holes[1].join(',')}`).join(' and ')}.`);
+  }
+  return lines.join(' ');
+}
+
+function updateStepRings() {
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  const els = step ? step.parts.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean) : [];
+  viewer.stepRings(els);
+}
+
+function renderStepsPanel() {
+  renderSteps($('#steps'), stepsOf(), {
+    current: state.openStep,
+    doneIn: (step) => step.parts.filter((r) => state.ticked.has(r)).length,
+    whatText: stepWhatText,
+    onOpen: openStep,
+    onPart: (ref) => selectPart(ref),
+    onTickAll: tickStep,
+  });
+}
+
+/** Opening a step is a view, not a change: it's remembered, but not in the undo history. */
+function openStep(i) {
+  const steps = stepsOf();
+  if (i < 0 || i >= steps.length) return;
+  state.openStep = i;
+  store.set(stepKey(), i);
+  renderStepsPanel();
+  updateStepRings();
+}
+
+function tickStep(i) {
+  const step = stepsOf()[i];
+  const before = [...state.ticked];
+  const after = [...new Set([...before, ...step.parts.filter((r) => isKnownRef(r))])];
+  history.do({ label: `Tick step ${i + 1}`, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
+}
+
+function loadOpenStep() {
+  const saved = store.get(stepKey(), null);
+  state.openStep = Number.isInteger(saved) && saved >= 0 && saved < stepsOf().length ? saved : null;
 }
 
 // ---- the build checklist (design §7.7): ticks, saved progress, progress files ----
@@ -578,6 +638,8 @@ function saveProgress() {
 function checkProgressKey() {
   if (projectKey(state.project, state.root) === state.progressKey) return;
   loadProgress();
+  loadOpenStep();
+  renderStepsPanel();
   history.clear(); // undo steps belong to the progress they were made on
   syncFlip();
   applyTickMarks();
@@ -633,6 +695,7 @@ function setProgress({ ticked, flipped, prints }) {
   applyTickMarks();
   saveProgress();
   renderChecklist();
+  renderStepsPanel();
   renderPartCard();
 }
 
@@ -786,6 +849,7 @@ async function refreshSheet(sheet, mtime) {
     viewer.show(entry, { keepView: Boolean(before && before.kind !== 'error') });
     if (state.flipped.has(current.id) && isLayout(current.id)) viewer.setFlipped(true);
     updateFlip();
+    updateStepRings();
   }
   find.refresh(true);
 }
@@ -912,6 +976,11 @@ function onKey(e) {
     return;
   }
   if (e.ctrlKey || e.metaKey || e.altKey || typing) return;
+  if (e.key === ' ' && state.openStep !== null) {
+    e.preventDefault();
+    openStep(state.openStep + (e.shiftKey ? -1 : 1));
+    return;
+  }
   const { w, h } = viewer.stageSize();
   const actions = {
     0: () => viewer.fit(),
@@ -969,6 +1038,7 @@ async function start() {
   setStatus('');
   state.sheets = sheetsFor(project.files);
   loadProgress();
+  loadOpenStep();
   renderTabs();
   connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });
   if (state.sheets.length === 0) {

@@ -113,8 +113,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       const group = document.createElementNS(SVG_NS, 'g');
       group.setAttribute('class', 'bench-flip');
       group.setAttribute('transform', `translate(${2 * vb.x + vb.width} 0) scale(-1 1)`);
-      for (const child of Array.from(root.childNodes)) if (child !== ringLayer) group.append(child);
-      root.insertBefore(group, ringLayer && ringLayer.parentNode === root ? ringLayer : null);
+      for (const child of Array.from(root.childNodes)) if (child !== ringLayer && child !== stepLayer) group.append(child);
+      root.insertBefore(group, root.firstChild); // the rings stay on top, unmirrored
       // Read every label's box first, then write: reading after a write makes the browser lay the
       // whole drawing out again, once per label (a minute on a big layout).
       const texts = Array.from(group.getElementsByTagNameNS(SVG_NS, 'text'));
@@ -140,9 +140,34 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       flips.delete(root);
     }
     if (ringTarget) ring(ringTarget);
+    if (stepTargets.length) stepRings(stepTargets);
   }
 
   let ringTarget = null;
+
+  // ---- the build step's parts: dashed rings in their own layer, beside the Find ring ----
+  let stepLayer = null;
+  let stepTargets = [];
+  function stepRings(elements) {
+    if (stepLayer) stepLayer.remove();
+    stepLayer = null;
+    stepTargets = [];
+    if (!content || content.kind !== 'svg') return;
+    stepTargets = elements.filter((el) => el && content.root.contains(el));
+    if (!stepTargets.length) return;
+    stepLayer = document.createElementNS(SVG_NS, 'g');
+    stepLayer.setAttribute('class', 'bench-step');
+    for (const el of stepTargets) {
+      const box = rootBox(el);
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      for (const [k, v] of Object.entries({
+        x: box.x - 3, y: box.y - 3, width: box.w + 6, height: box.h + 6, fill: 'none', stroke: '#28c4ff',
+        'stroke-width': 3, 'stroke-dasharray': '6 4', 'vector-effect': 'non-scaling-stroke',
+      })) rect.setAttribute(k, String(v));
+      stepLayer.append(rect);
+    }
+    content.root.append(stepLayer);
+  }
 
   function ring(el) {
     if (ringLayer) ringLayer.remove();
@@ -229,6 +254,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     labelRect,
     ring,
     onLabelClick: (fn) => labelListeners.push(fn),
+    stepRings,
     setFlipped,
     isFlipped,
     getView: () => ({ ...view }),

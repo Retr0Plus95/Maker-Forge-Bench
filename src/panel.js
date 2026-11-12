@@ -116,3 +116,58 @@ export function renderCard(container, part, o) {
   }
   container.replaceChildren(...children);
 }
+
+
+/**
+ * The build steps (board-view design §5): the list, and the open step with its why, its parts,
+ * Back / Next and "Tick all in this step".
+ */
+export function renderSteps(container, steps, o) {
+  if (!steps.length) {
+    container.replaceChildren();
+    return;
+  }
+  const list = el('ol', { className: 'steps-list' });
+  steps.forEach((step, i) => {
+    const open = el('button', { type: 'button', 'aria-current': String(i === o.current) }, step.title);
+    open.addEventListener('click', () => o.onOpen(i));
+    const item = el('li', {}, open);
+    if (step.parts.length) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${step.parts.length} soldered`));
+    list.append(item);
+  });
+  const children = [el('h2', {}, 'Build steps'), list];
+  const step = o.current !== null ? steps[o.current] : null;
+  if (step) {
+    const box = el('div', { className: 'step-open' },
+      el('p', { className: 'step-title' }, `Step ${o.current + 1} of ${steps.length}: ${step.title}`));
+    if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
+    const what = o.whatText(step);
+    if (what) box.append(el('p', { className: 'step-what' }, what));
+    const found = step.parts.filter((r) => !step.missing.includes(r));
+    if (found.length) {
+      const parts = el('div', { className: 'step-parts' });
+      for (const ref of found) {
+        const b = el('button', { type: 'button', className: 'part-link' }, ref);
+        b.addEventListener('click', () => o.onPart(ref));
+        parts.append(b);
+      }
+      box.append(parts);
+    }
+    if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
+    const back = el('button', { type: 'button', id: 'step-back' }, '← Back');
+    back.disabled = o.current === 0;
+    back.addEventListener('click', () => o.onOpen(o.current - 1));
+    const next = el('button', { type: 'button', id: 'step-next' }, 'Next →');
+    next.disabled = o.current === steps.length - 1;
+    next.addEventListener('click', () => o.onOpen(o.current + 1));
+    const nav = el('div', { className: 'step-nav' }, back, next);
+    if (found.length) {
+      const all = el('button', { type: 'button', id: 'step-tick-all' }, 'Tick all in this step');
+      all.addEventListener('click', () => o.onTickAll(o.current));
+      nav.append(all);
+    }
+    box.append(nav, el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
+    children.push(box);
+  }
+  container.replaceChildren(...children);
+}
