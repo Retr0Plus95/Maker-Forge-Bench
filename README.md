@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.2 works on a PC, from a local folder. Phone and tablet, GitHub links and the
+**Status:** release 0.3 works on a PC, from a local folder. Phone and tablet, GitHub links and the
 website come later (see the roadmap).
 
 ## Try it
@@ -27,7 +27,13 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
 - **Find part** (`/`): type a part, a net or a hole (`R6`, `PWMCTL`, `28,12`), then Enter or `n` / `N`
   to go from match to match. Finding a part opens its card.
 - **Part cards:** click a part's label on a drawing. The card says what it is, why it's there and
-  which way round it goes, opens its datasheet, and lists every sheet it's on.
+  which way round it goes, opens its datasheet, and lists every sheet it's on. With a board in the
+  project file it also says **what each pin connects to** (`pin 2 → TACHA_F: J2 3, R12 1`, each
+  part one click away), **which holes it goes in** on sheet 4, and **which build step** it's in.
+- **Build steps:** the build order, one step at a time, with why, what to do, and that step's parts
+  ringed on the drawing. Space / Shift+Space to move, and "Tick all in this step".
+- **3D board:** the perfboard in 3D over the dimmed schematic, every part labelled, the wiring
+  underneath. Click a part to open its card; the open step's parts glow blue.
 - **Build checklist:** tick parts as you solder them, and their labels turn green on every sheet.
   Progress saves itself, and **Save progress as file** moves it to another device.
 - **Ask Claude:** in the part card, Copy for Claude or Open claude.ai. In the Claude app, Claude reads
@@ -65,7 +71,10 @@ and each part's value, job and orientation. Only `format`, `version` and `name` 
 }
 ```
 
-The [Solder Fume Extractor](https://github.com/Retr0Plus95/Solder-Fume-Extractor) has a full example.
+The [Solder Fume Extractor](https://github.com/Retr0Plus95/Solder-Fume-Extractor) has a full example,
+including a `board` section (every part's holes, the buses, links, bridges and connections) and a
+`build` section (the steps and their reasons), both generated from its layout data by its
+`hardware/layout/export_board.py`.
 The design's §6 lists every field.
 
 ## Checks
@@ -78,4 +87,4 @@ The browser checks use Chrome or Edge; set `BENCH_BROWSER` to a browser's path t
 - Roadmap, including ideas for future suite apps: [`ROADMAP.md`](ROADMAP.md)
 
 MIT licence: see [`LICENSE`](LICENSE). The Atkinson Hyperlegible font is under the SIL Open Font
-Licence: see [`FONTS-LICENSE.md`](FONTS-LICENSE.md).
+Licence: see [`FONTS-LICENSE.md`](FONTS-LICENSE.md). three.js r128 is MIT: see [`THREE-LICENSE`](THREE-LICENSE).
