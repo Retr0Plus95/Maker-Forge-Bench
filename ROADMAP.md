@@ -119,16 +119,18 @@ accurate models, easier to use and much more functions" (design `docs/design/202
 - Save my board as a file, open a board file.
 - Design: `docs/design/2026-11-13-release-0.6-design.md`.
 
-### 0.7 Everywhere (was 0.3)
-- Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
-- **★ New: Keep screen on** at the bench. (Easy reading and themes arrived in 0.2.)
-- Open a public GitHub repo by pasting its link.
+### 0.7 Everywhere
+Open a project from anywhere and use Bench on a phone, ready for the website.
+Design: `docs/design/2026-11-13-release-0.7-design.md`.
+- Open a public GitHub repo by pasting its link, or a folder picked in the browser (no `dev.py`).
 - **★ New: Links straight to a part.**
   `forge.retr0plus.se/bench/?repo=Retr0Plus95/Solder-Fume-Extractor&sheet=SFE-04&part=R6`
   opens right at R6. Good for sending a friend "look here", and for buttons on your website.
 - **★ New: Built-in examples**, like Shape's *Start from*: the fume extractor, plus the RGB Lamp
   Controller once it has drawings.
+- Phone and tablet layouts: a folding header, a bottom-sheet panel, no sideways scrolling.
 - Your own Claude key (or Ollama), the same way Shape does it.
+- (Keep screen on arrived in 0.4.1; pinch and two-finger pan in 0.5.)
 
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
