@@ -130,6 +130,13 @@ accurate models, easier to use and much more functions" (design `docs/design/202
   Controller once it has drawings.
 - Your own Claude key (or Ollama), the same way Shape does it.
 
+### 0.8 True to life
+3D parts drawn to their datasheets (a new lathe shape, the real PDIP leg, TO-220, header strips),
+**Looks like** on each card to match what you fitted (including another part in its place, like
+an L7805 for the MP1584), and an easier screen: the panel in tabs, a one-step-at-a-time guide
+whose steps you can adjust, and a compact header. Design:
+`docs/design/2026-11-13-release-0.8-design.md`.
+
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
   manual inside the app.
