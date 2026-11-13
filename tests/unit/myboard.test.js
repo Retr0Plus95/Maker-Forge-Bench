@@ -63,15 +63,15 @@ test('saved board data is checked: anything odd is dropped', () => {
   assert.deepEqual(Object.keys(clean.photos), ['top']);
   assert.equal(clean.photos.top.bright, true);
   assert.deepEqual(clean.placed, { R8: { 1: [13, 8], 2: [13, 9] } });
-  assert.deepEqual(cleanMyBoard('junk', isRef), { anchor: null, photos: {}, placed: {} });
+  assert.deepEqual(cleanMyBoard('junk', isRef), { anchor: null, photos: {}, placed: {}, routes: {} });
 });
 
 test('progress files carry your board, and older files read as empty', () => {
   const myBoard = { anchor: 'U2', photos: { top: { side: 'top', a: { pin: '1', x: 1, y: 2 }, b: { pin: '14', x: 1, y: 300 } } }, placed: { R8: { 1: [13, 8], 2: [13, 9] } } };
   const text = exportProgress({ project: 'x', revision: null, ticked: [], sheetPrints: {}, flipped: [], myBoard });
-  assert.deepEqual(importProgress(text).myBoard, { ...myBoard, photos: { top: { ...myBoard.photos.top, bright: false } } });
+  assert.deepEqual(importProgress(text).myBoard, { ...myBoard, photos: { top: { ...myBoard.photos.top, bright: false } }, routes: {} });
   const old = JSON.stringify({ format: 'bench-progress', version: 1, ticked: [], sheetPrints: {}, flipped: [] });
-  assert.deepEqual(importProgress(old).myBoard, { anchor: null, photos: {}, placed: {} });
+  assert.deepEqual(importProgress(old).myBoard, { anchor: null, photos: {}, placed: {}, routes: {} });
 });
 
 test('your placements become a board the 3D view can draw, shifted to start at hole 2', async () => {

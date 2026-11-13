@@ -544,3 +544,14 @@ h1 {
 #step-note { width: 100%; box-sizing: border-box; font: inherit; }
 body.print-step #top, body.print-step #status, body.print-step #stage, body.print-step #stage2, body.print-step #panel > section:not(#steps) { display: none !important; }
 @media print { body.print-step #steps .steps-list, body.print-step #steps .step-nav, body.print-step #steps .step-extras { display: none !important; } }
+
+/* ---- your board: check, wires, marks (0.5) ---- */
+#myboard h3 { margin: 10px 0 4px; font-size: .95rem; }
+#myboard-check { margin: 4px 0; padding-left: 0; list-style: none; }
+#myboard-check li { margin: 4px 0; padding-left: 8px; border-left: 4px solid var(--line); }
+#myboard-check .finding-problem { border-left-color: var(--danger); font-weight: 700; }
+#myboard-check .finding-warning { border-left-color: var(--warn); }
+#myboard-check .finding-todo { border-left-color: var(--muted); color: var(--muted); }
+#myboard-routes { padding-left: 0; list-style: none; }
+#myboard-routes > li { margin: 6px 0; }
+#myboard-routes ul { margin: 2px 0 0 12px; padding: 0; font-size: .85rem; color: var(--muted); }

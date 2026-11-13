@@ -83,6 +83,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       next.img.width = next.img.naturalWidth;
       next.img.height = next.img.naturalHeight;
       next.img.style.display = 'block';
+      next.img.draggable = false; // the browser's own image drag would cancel panning and moving parts
       stack = document.createElement('div');
       stack.style.cssText = `position:absolute;left:0;top:0;transform-origin:0 0;width:${next.img.naturalWidth}px;height:${next.img.naturalHeight}px`;
       stack.append(next.img);
@@ -274,21 +275,37 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     setView(zoomAt(view, wheelFactor(e.deltaY, e.deltaMode), px, py, limits()));
   }, { passive: false });
 
+  let dragHandler = null;
+  const photoAt = (e) => {
+    const [sx, sy] = stagePoint(e);
+    return photoPixel((sx - view.x) / view.scale, (sy - view.y) / view.scale);
+  };
   stage.addEventListener('pointerdown', (e) => {
     // a button on the stage (the zoom badge) gets its own click: capturing the pointer would steal it
     if (e.button !== 0 || !size || (e.target instanceof Element && e.target.closest('button'))) return;
+    if (content && content.kind === 'image' && dragHandler && dragHandler('down', ...photoAt(e))) {
+      drag = { id: e.pointerId, custom: true };
+      stage.setPointerCapture(e.pointerId);
+      return;
+    }
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
     stage.setPointerCapture(e.pointerId);
     stage.classList.add('dragging');
   });
+  stage.addEventListener('dragstart', (e) => e.preventDefault());
   stage.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
+    if (drag.custom) {
+      dragHandler('move', ...photoAt(e));
+      return;
+    }
     setView(panBy(view, e.clientX - drag.x, e.clientY - drag.y));
     drag.x = e.clientX;
     drag.y = e.clientY;
   });
   const endDrag = (e) => {
     if (!drag || e.pointerId !== drag.id) return;
+    if (drag.custom) dragHandler(e.type === 'pointercancel' ? 'cancel' : 'up', ...photoAt(e));
     drag = null;
     stage.classList.remove('dragging');
   };
@@ -345,6 +362,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     /** A tap (a click that isn't a drag) on a photo, in the photo's own pixels. */
     onPointClick: (fn) => pointListeners.push(fn),
     setOverlay,
+    /** fn(phase: 'down' | 'move' | 'up' | 'cancel', x, y) in photo pixels; true on 'down' takes the drag instead of panning. */
+    setDragHandler: (fn) => { dragHandler = fn; },
     image: () => (content && content.kind === 'image' ? content.img : null),
     imageSize: () => (content && content.kind === 'image' ? { w: content.img.naturalWidth, h: content.img.naturalHeight } : null),
     setTurn,

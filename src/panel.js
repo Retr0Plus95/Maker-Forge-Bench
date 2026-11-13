@@ -359,15 +359,63 @@ export function renderMyBoard(container, o) {
   bright.addEventListener('change', () => o.onBright(bright.checked));
   actions.append(el('label', { className: 'check' }, bright, ' Brighter'));
   const status = el('p', { id: 'myboard-status', className: o.busy ? 'busy' : '', 'aria-live': 'polite' }, o.status);
-  keepFocus(container, () => container.replaceChildren(
+  const children = [
     el('h2', {}, 'Your board'),
     el('p', { className: 'hint' }, `This photo: ${o.photoLabel}`),
     el('div', { className: 'myboard-sides', role: 'group', 'aria-label': 'This photo shows' }, el('span', {}, 'It shows:'),
       sideButton('myboard-top', 'top', 'Top'), sideButton('myboard-under', 'bottom', 'Underneath')),
     actions,
     status,
-    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card.`),
-  ), '#myboard-line');
+    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card, or drag a selected part to move it.`),
+  ];
+  if (o.lined) {
+    const x = o.more;
+    const check = (id, label, on, fn) => {
+      const box = el('input', { type: 'checkbox', id, 'data-focus': id });
+      box.checked = on;
+      box.addEventListener('change', () => fn(box.checked));
+      return el('label', { className: 'check' }, box, ` ${label}`);
+    };
+    const size = el('select', { id: 'myboard-size', 'data-focus': 'size', 'aria-label': 'Mark size' });
+    for (const [value, text] of [['small', 'Small marks'], ['medium', 'Medium marks'], ['large', 'Large marks']]) {
+      const opt = el('option', { value }, text);
+      opt.selected = value === x.size;
+      size.append(opt);
+    }
+    size.addEventListener('change', () => x.onSize(size.value));
+    const next = el('button', { id: 'myboard-next', type: 'button', 'data-focus': 'next' }, 'Next part to place');
+    next.addEventListener('click', x.onNext);
+    const clear = el('button', { id: 'myboard-clear', type: 'button', 'data-focus': 'clear' }, x.clearArmed ? 'Click again to clear' : 'Clear my board');
+    clear.addEventListener('click', x.onClear);
+    children.push(
+      el('div', { className: 'myboard-actions' }, check('myboard-marks', 'Marks', x.marks, x.onMarks), size,
+        check('myboard-linelabels', 'Line labels', x.lineLabels, x.onLineLabels), check('myboard-wires', 'Suggested wires', x.wires, x.onWires)),
+      el('div', { className: 'myboard-actions' }, next, clear));
+    if (x.stepTodo) children.push(el('p', { id: 'myboard-step-todo', className: 'hint' }, x.stepTodo));
+    if (x.wires && x.routes.length) {
+      const list = el('ul', { id: 'myboard-routes' });
+      for (const g of x.routes) {
+        const shape = el('select', { 'aria-label': `Wire shape for ${g.label}`, 'data-focus': `route-${g.net}` });
+        for (const [value, text] of [['cols', 'along, then down'], ['rows', 'down, then along'], ['straight', 'straight']]) {
+          const opt = el('option', { value }, text);
+          opt.selected = value === g.shape;
+          shape.append(opt);
+        }
+        shape.addEventListener('change', () => x.onRoute(g.net, shape.value, g.label));
+        list.append(el('li', { 'data-net': g.net }, el('strong', {}, g.label), ' ', shape,
+          el('ul', {}, ...g.texts.map((t) => el('li', {}, t)))));
+      }
+      children.push(el('h3', {}, 'Suggested wires underneath'), list);
+    }
+    const findings = el('ul', { id: 'myboard-check' });
+    for (const f of x.findings) {
+      const show = el('button', { type: 'button', className: 'part-link' }, `Show ${f.refs[0]}`);
+      show.addEventListener('click', () => x.onShow(f.refs[0]));
+      findings.append(el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show));
+    }
+    children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
+  }
+  keepFocus(container, () => container.replaceChildren(...children), '#myboard-line');
 }
 
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */

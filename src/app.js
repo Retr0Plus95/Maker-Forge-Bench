@@ -7,6 +7,8 @@ import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
+import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
+import { libraryFor as libraryForPart } from './library.js';
 import { findLines, findValues, nextInStep } from './lookup.js';
 import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
 import { capacitorCode, resistorBands } from './markings.js';
@@ -68,6 +70,8 @@ const state = {
   startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
   continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
   contSkipped: new Set(), // tests skipped for now (not saved)
+  dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
+  clearAt: 0, // when Clear my board was first clicked
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -762,7 +766,10 @@ let board3dSource = 'sheet4'; // which board the 3D view shows: 'sheet4' or 'min
 /** Your own placement as a board, when a photo is lined up. */
 function myBoardFor3D() {
   const board = state.project ? state.project.board : null;
-  return board && Object.keys(state.myBoard.photos).length ? boardFromPlacement(board, state.myBoard.placed, anchorRef()) : null;
+  if (!board || !Object.keys(state.myBoard.photos).length) return null;
+  const wires = store.get('showWires', false) === true
+    ? suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => w.path)) : [];
+  return boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
 }
 
 /** The board the 3D view draws now. */
@@ -896,6 +903,16 @@ function pinState(ref, pin) {
 }
 
 /** The marks on the photo on screen: the anchor's pins, placed parts, and the taps of a part being placed. */
+/** Your placements, with a part being dragged shown where it would land. */
+function placedNow() {
+  const placed = state.myBoard.placed;
+  const d = state.dragPreview;
+  if (!d || !placed[d.ref] || (!d.dc && !d.dr)) return placed;
+  return { ...placed, [d.ref]: Object.fromEntries(Object.entries(placed[d.ref]).map(([pin, [c, r]]) => [pin, [c + d.dc, r + d.dr]])) };
+}
+
+const MARK_SCALE = { small: 0.7, medium: 1, large: 1.45 };
+
 function drawMyBoardMarks() {
   const img = viewer.image();
   const t = img ? transformFor(state.current) : null;
@@ -905,23 +922,144 @@ function drawMyBoardMarks() {
   }
   const board = boardOf();
   const anchor = anchorRef();
+  const placed = placedNow();
   const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
   const inStep = new Set(step ? step.parts : []);
-  const cls = (ref) => (ref === state.selected ? 'myboard-selected' : inStep.has(ref) ? 'myboard-step' : '');
+  const cls = (ref) => [ref === state.selected ? 'myboard-selected' : inStep.has(ref) ? 'myboard-step' : '', state.ticked.has(ref) ? 'myboard-soldered' : ''].filter(Boolean).join(' ');
   const pins = [];
   const tags = [];
-  for (const [pin, hole] of Object.entries(board.parts[anchor].pins)) pins.push({ ref: anchor, pin, at: t.toPixel(hole), state: pinState(anchor, pin), cls: cls(anchor) });
-  tags.push({ ref: anchor, at: t.toPixel(board.parts[anchor].pins[anchorPins(board.parts[anchor]).a]), cls: cls(anchor) });
-  for (const [ref, placed] of Object.entries(state.myBoard.placed)) {
-    if (ref === anchor || (state.mode && state.mode.kind === 'place' && state.mode.ref === ref)) continue;
-    const entries = Object.entries(placed);
-    for (const [pin, hole] of entries) pins.push({ ref, pin, at: t.toPixel(hole), state: pinState(ref, pin), cls: cls(ref) });
-    if (entries.length) tags.push({ ref, at: t.toPixel(entries[0][1]), cls: cls(ref) });
+  const texts = [];
+  const marks = store.get('marksHidden', false) !== true;
+  const scale = MARK_SCALE[store.get('markSize', 'medium')] || 1;
+  if (marks) {
+    for (const [pin, hole] of Object.entries(board.parts[anchor].pins)) pins.push({ ref: anchor, pin, at: t.toPixel(hole), state: pinState(anchor, pin), cls: cls(anchor) });
+    tags.push({ ref: anchor, at: t.toPixel(board.parts[anchor].pins[anchorPins(board.parts[anchor]).a]), cls: cls(anchor) });
+    for (const [ref, holes] of Object.entries(placed)) {
+      if (ref === anchor || (state.mode && state.mode.kind === 'place' && state.mode.ref === ref)) continue;
+      const entries = Object.entries(holes);
+      for (const [pin, hole] of entries) pins.push({ ref, pin, at: t.toPixel(hole), state: pinState(ref, pin), cls: cls(ref) });
+      if (entries.length) tags.push({ ref, at: t.toPixel(entries[0][1]), cls: cls(ref) });
+    }
+    if (state.mode && state.mode.kind === 'place') {
+      for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+    }
+    // line labels beside the chip's pins, out from the chip's middle
+    if (store.get('lineLabels', false) === true) {
+      const chip = Object.values(board.parts[anchor].pins).map((h) => t.toPixel(h));
+      const mid = [chip.reduce((s, p) => s + p[0], 0) / chip.length, chip.reduce((s, p) => s + p[1], 0) / chip.length];
+      for (const c of connectionsOf(board, anchor)) {
+        const at = t.toPixel(board.parts[anchor].pins[c.pin]);
+        const len = Math.hypot(at[0] - mid[0], at[1] - mid[1]) || 1;
+        texts.push({ at: [at[0] + ((at[0] - mid[0]) / len) * t.pitch * 1.4, at[1] + ((at[1] - mid[1]) / len) * t.pitch * 1.4], text: c.label, cls: 'line-label' });
+      }
+    }
+    // the selected part's pin names
+    const sel = state.selected;
+    const selHoles = sel === anchor ? board.parts[anchor].pins : sel ? placed[sel] : null;
+    if (selHoles) {
+      const lib = libraryForPart(state.partsByRef.get(sel));
+      for (const [pin, hole] of Object.entries(selHoles)) {
+        const at = t.toPixel(hole);
+        const name = lib && lib.pins && lib.pins[pin] ? lib.pins[pin].split(' ')[0] : pinText(pin);
+        texts.push({ at: [at[0], at[1] - t.pitch * 0.62], text: name, cls: 'pin-name' });
+      }
+    }
   }
-  if (state.mode && state.mode.kind === 'place') {
-    for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+  const wires = store.get('showWires', false) === true
+    ? suggestAll(board, placed, anchor, state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => ({ net: g.net, kind: g.kind, points: w.path.map((h) => t.toPixel(h)) })))
+    : [];
+  viewer.setOverlay(buildOverlay(viewer.imageSize(), t.pitch, pins, tags, { wires, texts, scale }));
+}
+
+/** Dragging a selected, placed part on a lined-up photo moves it on whole holes (0.5 big improvement B1). */
+function onPhotoDrag(phase, x, y) {
+  const t = transformFor(state.current);
+  if (!t) return false;
+  const [c, r] = snap(t.toBoard([x, y]));
+  if (phase === 'down') {
+    const ref = state.selected;
+    const holes = ref && ref !== anchorRef() ? state.myBoard.placed[ref] : null;
+    if (state.mode || !holes) return false;
+    const [fc, fr] = t.toBoard([x, y]);
+    const near = Object.values(holes).some(([hc, hr]) => Math.hypot(hc - fc, hr - fr) <= 0.7);
+    if (!near) return false;
+    state.dragPreview = { ref, from: [c, r], dc: 0, dr: 0 };
+    return true;
   }
-  viewer.setOverlay(buildOverlay(viewer.imageSize(), t.pitch, pins, tags));
+  const d = state.dragPreview;
+  if (!d) return false;
+  if (phase === 'move') {
+    const dc = c - d.from[0];
+    const dr = r - d.from[1];
+    if (dc !== d.dc || dr !== d.dr) {
+      state.dragPreview = { ...d, dc, dr };
+      drawMyBoardMarks();
+    }
+    return true;
+  }
+  state.dragPreview = null;
+  if (phase === 'up' && (c !== d.from[0] || r !== d.from[1])) {
+    const dc = c - d.from[0];
+    const dr = r - d.from[1];
+    changeMyBoard(`Move ${d.ref}`, (b) => {
+      b.placed[d.ref] = Object.fromEntries(Object.entries(b.placed[d.ref]).map(([pin, [pc, pr]]) => [pin, [pc + dc, pr + dr]]));
+    });
+  } else {
+    drawMyBoardMarks();
+  }
+  return true;
+}
+
+/** The order to place parts in: the build steps', then any others. */
+function placingOrder() {
+  const board = boardOf();
+  const fromSteps = stepsOf().flatMap((s) => s.parts);
+  return [...new Set([...fromSteps, ...Object.keys(board.parts)])].filter((ref) => board.parts[ref] && ref !== anchorRef());
+}
+
+function myBoardMore() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  const unplacedInStep = step ? step.parts.filter((ref) => board.parts[ref] && ref !== anchor && !state.myBoard.placed[ref]) : [];
+  const routes = store.get('showWires', false) === true ? suggestAll(board, state.myBoard.placed, anchor, state.myBoard.routes || {})
+    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map(wireText) })) : [];
+  return {
+    marks: store.get('marksHidden', false) !== true,
+    size: store.get('markSize', 'medium'),
+    lineLabels: store.get('lineLabels', false) === true,
+    wires: store.get('showWires', false) === true,
+    routes,
+    findings: checkPlacement(board, state.myBoard.placed, anchor),
+    stepTodo: step && unplacedInStep.length ? `Step ${state.openStep + 1}, not placed yet: ${unplacedInStep.join(', ')}` : '',
+    clearArmed: Date.now() - state.clearAt < 5000,
+    onMarks: (on) => { store.set('marksHidden', !on); updateMyBoard(); },
+    onSize: (size) => { store.set('markSize', size); updateMyBoard(); },
+    onLineLabels: (on) => { store.set('lineLabels', on); updateMyBoard(); },
+    onWires: (on) => { store.set('showWires', on); updateMyBoard(); resetBoard3D(); },
+    onRoute: (net, shape, label) => changeMyBoard(`Wires for ${label}: ${shape}`, (b) => { b.routes = { ...(b.routes || {}), [net]: shape }; }),
+    onShow: (ref) => selectPart(ref),
+    onNext: () => {
+      const ref = placingOrder().find((r) => !state.myBoard.placed[r]);
+      if (ref) {
+        selectPart(ref);
+        placeOnBoard(ref);
+      } else {
+        say('Every part is placed.');
+      }
+    },
+    onClear: () => {
+      if (Date.now() - state.clearAt >= 5000) {
+        state.clearAt = Date.now();
+        renderMyBoardPanel();
+        setTimeout(renderMyBoardPanel, 5100);
+        return;
+      }
+      state.clearAt = 0;
+      changeMyBoard('Clear my board', (b) => { b.placed = {}; });
+      say('Your board is cleared. Ctrl+Z brings the parts back.');
+    },
+  };
 }
 
 function myBoardIdleStatus() {
@@ -955,6 +1093,7 @@ function renderMyBoardPanel() {
     onLine: startLining,
     onStop: stopTapping,
     onBright: setBright,
+    more: transformFor(state.current) ? myBoardMore() : null,
   });
 }
 
@@ -1321,6 +1460,7 @@ function updateStepRings() {
   viewer.stepRings(els);
   syncStep3D();
   drawMyBoardMarks();
+  renderMyBoardPanel(); // its "not placed yet" follows the open step
 }
 
 /** A step is done when all its parts are soldered, or, with nothing to tick, when you marked it done. */
@@ -1951,6 +2091,7 @@ async function start() {
     renderMyBoardPanel();
   });
   viewer.onPointClick(onPhotoTap);
+  viewer.setDragHandler(onPhotoDrag);
   viewer.onView((v) => { $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`; });
   $('#zoom-level').addEventListener('click', () => viewer.fit());
   $('#help-done').addEventListener('click', () => $('#help').close());
