@@ -111,6 +111,23 @@ export function renderCard(container, part, o) {
     }
   }
 
+  if (o.myBoard) {
+    const m = o.myBoard;
+    const line = el('p', { className: 'part-myboard' }, m.anchor ? 'Your board: this part lines up your photos.' : m.placed ? 'Placed on your board.' : "Not on your board's photos yet.");
+    const buttons = el('div', { className: 'part-actions' });
+    if (m.placed || m.anchor) {
+      const show = el('button', { id: 'part-show-photo', type: 'button', 'data-focus': 'show-photo' }, 'Show on photo');
+      show.addEventListener('click', m.onShow);
+      buttons.append(show);
+    }
+    if (!m.anchor) {
+      const place = el('button', { id: 'part-place', type: 'button', 'data-focus': 'place' }, m.placed ? 'Place again' : 'Place on my board');
+      place.addEventListener('click', m.onPlace);
+      buttons.append(place);
+    }
+    children.push(line, buttons);
+  }
+
   const actions = el('div', { className: 'part-actions' });
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
@@ -211,6 +228,40 @@ export function renderSteps(container, steps, o) {
   // the panel is rebuilt on every change: the keyboard focus goes back where it was
   keepFocus(container, () => container.replaceChildren(...children),
     '#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"], button');
+}
+
+/**
+ * Your board (0.4 design F3): which side the photo shows, lining it up, and what's happening now.
+ * o: { photoLabel, side, lined, status, busy, bright, placedCount, partCount, onSide(side), onLine(), onStop(), onBright(on) }
+ */
+export function renderMyBoard(container, o) {
+  const sideButton = (id, value, text) => {
+    const b = el('button', { id, type: 'button', 'aria-pressed': String(o.side === value), 'data-focus': id }, text);
+    b.addEventListener('click', () => o.onSide(value));
+    return b;
+  };
+  const line = el('button', { id: 'myboard-line', type: 'button', 'data-focus': 'line' }, o.lined ? 'Line up again' : 'Line it up');
+  line.addEventListener('click', o.onLine);
+  const actions = el('div', { className: 'myboard-actions' }, line);
+  if (o.busy) {
+    const stop = el('button', { id: 'myboard-stop', type: 'button', 'data-focus': 'stop' }, 'Stop');
+    stop.addEventListener('click', o.onStop);
+    actions.append(stop);
+  }
+  const bright = el('input', { type: 'checkbox', id: 'myboard-bright', 'data-focus': 'bright' });
+  bright.checked = o.bright;
+  bright.addEventListener('change', () => o.onBright(bright.checked));
+  actions.append(el('label', { className: 'check' }, bright, ' Brighter'));
+  const status = el('p', { id: 'myboard-status', className: o.busy ? 'busy' : '', 'aria-live': 'polite' }, o.status);
+  keepFocus(container, () => container.replaceChildren(
+    el('h2', {}, 'Your board'),
+    el('p', { className: 'hint' }, `This photo: ${o.photoLabel}`),
+    el('div', { className: 'myboard-sides', role: 'group', 'aria-label': 'This photo shows' }, el('span', {}, 'It shows:'),
+      sideButton('myboard-top', 'top', 'Top'), sideButton('myboard-under', 'bottom', 'Underneath')),
+    actions,
+    status,
+    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card.`),
+  ), '#myboard-line');
 }
 
 // ---- the pin view (0.4 design F2) ----

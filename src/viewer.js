@@ -62,6 +62,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       next.img.style.display = 'block';
     }
     shadow.replaceChildren(ownStyle, next.kind === 'svg' ? next.root : next.img);
+    overlay = null;
     content = next;
     if (opts.keepView) apply(view);
     else fit();
@@ -69,8 +70,19 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
 
   function clear() {
     shadow.replaceChildren(ownStyle);
+    overlay = null;
     content = null;
     size = null;
+  }
+
+  // ---- photos: a layer of marks over the picture (0.4 design F3) ----
+  let overlay = null;
+  function setOverlay(layer) {
+    if (overlay) overlay.remove();
+    overlay = null;
+    if (!layer || !content || content.kind !== 'image') return;
+    overlay = layer;
+    shadow.append(layer);
   }
 
   // ---- labels: their box, and the ring around a found one ----
@@ -254,7 +266,14 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     if (!start || Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 4 || !(start.target instanceof Element)) return;
     const label = start.target.closest('text');
     if (label) for (const fn of labelListeners) fn(label);
+    if (content && content.kind === 'image' && pointListeners.length) {
+      const [sx, sy] = stagePoint(e);
+      const x = (sx - view.x) / view.scale;
+      const y = (sy - view.y) / view.scale;
+      for (const fn of pointListeners) fn(x, y);
+    }
   });
+  const pointListeners = [];
 
   stage.addEventListener('dblclick', (e) => {
     if (!size) return;
@@ -279,6 +298,11 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     labelRect,
     ring,
     onLabelClick: (fn) => labelListeners.push(fn),
+    /** A tap (a click that isn't a drag) on a photo, in the photo's own pixels. */
+    onPointClick: (fn) => pointListeners.push(fn),
+    setOverlay,
+    image: () => (content && content.kind === 'image' ? content.img : null),
+    imageSize: () => (content && content.kind === 'image' ? { ...size } : null),
     stepRings,
     netRings,
     setFlipped,

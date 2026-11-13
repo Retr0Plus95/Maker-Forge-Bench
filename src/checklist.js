@@ -1,5 +1,6 @@
 // The build checklist's data: progress files and "this sheet changed" notes (design §7.7).
 // No page code. A progress file is untrusted: it's checked before anything is used.
+import { cleanMyBoard } from './myboard.js';
 
 export class ProgressError extends Error {
   constructor() {
@@ -18,8 +19,8 @@ export function sheetPrint(sheet) {
   return `${sheet.size}:${sheet.mtime}`;
 }
 
-export function exportProgress({ project, revision, ticked, sheetPrints, flipped, wired = [] }) {
-  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped, wired }, null, 2);
+export function exportProgress({ project, revision, ticked, sheetPrints, flipped, wired = [], myBoard = null }) {
+  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped, wired, myBoard }, null, 2);
 }
 
 // Fields added after 0.3 are optional: a file without them, or with bad entries, still opens.
@@ -51,6 +52,7 @@ export function importProgress(text) {
     sheetPrints: { ...prints },
     flipped: [...data.flipped],
     wired: wiredList(data.wired),
+    myBoard: cleanMyBoard(data.myBoard, (r) => REF.test(r)),
   };
 }
 

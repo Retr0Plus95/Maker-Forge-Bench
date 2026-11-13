@@ -452,3 +452,11 @@ h1 {
 .pin-hit { fill: transparent; pointer-events: all; }
 .pin:hover .pin-hit, .pin-selected .pin-hit { fill: var(--accent-soft); }
 .part-connections input[type=checkbox] { margin: 0 6px 0 0; vertical-align: middle; }
+
+/* ---- your board, from your photos (0.4) ---- */
+#myboard[hidden] { display: none; }
+#myboard-toggle[aria-pressed="true"], .myboard-sides button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.myboard-sides, .myboard-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+#myboard-status { margin: 6px 0; padding: 6px 8px; border-left: 4px solid var(--accent); background: var(--accent-soft); }
+#myboard-status.busy { border-left-color: #ff2bd6; font-weight: 700; }
+.part-myboard { margin: 8px 0 4px; }

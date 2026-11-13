@@ -1,9 +1,12 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderHint, renderSteps, renderWiring } from './panel.js';
+import { renderCard, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
 import { wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
+import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
+import { buildOverlay } from './myboard-view.js';
+import { pinText } from './wiring.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
@@ -46,6 +49,12 @@ const state = {
   shownNet: null, // the line whose parts are ringed on the drawing
   pinsOpen: false, // the part card's pin view is open (0.4 design F2)
   pinSelected: null, // the pin picked in the pin view
+  myBoard: { anchor: null, photos: {}, placed: {} }, // your board's photos and placements (0.4 design F3)
+  myBoardOpen: false, // the Your board section is open
+  mode: null, // tapping on a photo: { kind: 'line', taps } or { kind: 'place', ref, pins, taps }
+  photoSides: {}, // the side picked for photos not lined up yet
+  brightUnlined: new Set(), // "Brighter" on photos not lined up yet
+  myBoardStatus: '', // what the Your board section says
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -172,6 +181,7 @@ async function selectSheet(id) {
   if (state.current !== id) return false; // another tab was picked meanwhile
   if (entry.kind === 'error') {
     viewer.clear();
+    updateMyBoard();
     setStageMessage(entry.message);
     setStatus(entry.message);
     updateFlip();
@@ -191,6 +201,7 @@ async function selectSheet(id) {
   }
   updateStepRings();
   updateNetRings();
+  updateMyBoard();
   return true;
 }
 
@@ -287,6 +298,7 @@ function updatePartDots() {
 
 function renderPartCard() {
   if (board3d && board3dOn) board3d.select(state.selected);
+  drawMyBoardMarks();
   const part = state.selected ? state.partsByRef.get(state.selected) : null;
   if (!part) {
     renderHint($('#part-card'));
@@ -305,6 +317,7 @@ function renderPartCard() {
     wired: board ? state.wired : null,
     onWire: setWired,
     pins: pinOptions(onBoard),
+    myBoard: myBoardCardOptions(part.ref, onBoard),
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
@@ -639,6 +652,262 @@ async function resetBoard3D() {
   if (board3dOn) setBoard3D(true);
 }
 
+// ---- your board, from your photos (0.4 design F3) ----
+const boardOf = () => (state.project ? state.project.board : null);
+const isPhotoSheet = (id) => state.sheets.some((s) => s.id === id && (s.type === 'png' || s.type === 'jpg'));
+const hasPhotos = () => state.sheets.some((s) => !s.missing && (s.type === 'png' || s.type === 'jpg'));
+const sheetLabel = (id) => (state.sheets.find((s) => s.id === id) || { label: id }).label;
+
+function anchorRef() {
+  const board = boardOf();
+  if (!board) return null;
+  return state.myBoard.anchor && board.parts[state.myBoard.anchor] ? state.myBoard.anchor : anchorFor(board);
+}
+
+/** The photo's transform, if it's lined up and the anchor still has those pins. */
+function transformFor(id) {
+  const photo = state.myBoard.photos[id];
+  const board = boardOf();
+  const anchor = anchorRef();
+  if (!photo || !board || !anchor) return null;
+  const pins = board.parts[anchor].pins;
+  if (!pins[photo.a.pin] || !pins[photo.b.pin]) return null;
+  return photoTransform(pins[photo.a.pin], pins[photo.b.pin], [photo.a.x, photo.a.y], [photo.b.x, photo.b.y], photo.side);
+}
+
+const photoSide = (id) => (state.myBoard.photos[id] ? state.myBoard.photos[id].side : state.photoSides[id] || 'top');
+const photoBright = (id) => (state.myBoard.photos[id] ? state.myBoard.photos[id].bright : state.brightUnlined.has(id));
+
+/** An undoable change to your board: the before and after are whole copies. */
+function changeMyBoard(label, change) {
+  const before = state.myBoard;
+  const after = structuredClone(before);
+  change(after);
+  history.do({ label, apply: () => setProgress({ myBoard: after }), revert: () => setProgress({ myBoard: before }) });
+}
+
+function pinState(ref, pin) {
+  const board = boardOf();
+  const conn = board ? connectionsOf(board, ref).find((c) => c.pin === pin) : null;
+  if (!conn || !conn.others.length) return 'none';
+  return state.wired.has(`${ref}:${pin}`) ? 'wired' : 'open';
+}
+
+/** The marks on the photo on screen: the anchor's pins, placed parts, and the taps of a part being placed. */
+function drawMyBoardMarks() {
+  const img = viewer.image();
+  const t = img ? transformFor(state.current) : null;
+  if (!t) {
+    viewer.setOverlay(null);
+    return;
+  }
+  const board = boardOf();
+  const anchor = anchorRef();
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  const inStep = new Set(step ? step.parts : []);
+  const cls = (ref) => (ref === state.selected ? 'myboard-selected' : inStep.has(ref) ? 'myboard-step' : '');
+  const pins = [];
+  const tags = [];
+  for (const [pin, hole] of Object.entries(board.parts[anchor].pins)) pins.push({ ref: anchor, pin, at: t.toPixel(hole), state: pinState(anchor, pin), cls: cls(anchor) });
+  tags.push({ ref: anchor, at: t.toPixel(board.parts[anchor].pins[anchorPins(board.parts[anchor]).a]), cls: cls(anchor) });
+  for (const [ref, placed] of Object.entries(state.myBoard.placed)) {
+    if (ref === anchor || (state.mode && state.mode.kind === 'place' && state.mode.ref === ref)) continue;
+    const entries = Object.entries(placed);
+    for (const [pin, hole] of entries) pins.push({ ref, pin, at: t.toPixel(hole), state: pinState(ref, pin), cls: cls(ref) });
+    if (entries.length) tags.push({ ref, at: t.toPixel(entries[0][1]), cls: cls(ref) });
+  }
+  if (state.mode && state.mode.kind === 'place') {
+    for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+  }
+  viewer.setOverlay(buildOverlay(viewer.imageSize(), t.pitch, pins, tags));
+}
+
+function myBoardIdleStatus() {
+  if (!boardOf()) return 'This project has no board data, so there is nothing to line up.';
+  const anchor = anchorRef();
+  if (!transformFor(state.current)) {
+    const { a, b } = anchorPins(boardOf().parts[anchor]);
+    return `Not lined up yet. Press "Line it up", then tap ${anchor} ${pinText(a)} and ${anchor} ${pinText(b)} on the photo.`;
+  }
+  return `Lined up: ${anchor}'s pins are marked (green wired, orange not yet). Tap a marked part to open its card.`;
+}
+
+function renderMyBoardPanel() {
+  const section = $('#myboard');
+  const photo = isPhotoSheet(state.current) && boardOf();
+  section.hidden = !(state.myBoardOpen && photo);
+  $('#myboard-toggle').hidden = !photo;
+  $('#myboard-toggle').setAttribute('aria-pressed', String(state.myBoardOpen && Boolean(photo)));
+  if (section.hidden) return;
+  const board = boardOf();
+  renderMyBoard(section, {
+    photoLabel: sheetLabel(state.current),
+    side: photoSide(state.current),
+    lined: Boolean(transformFor(state.current)),
+    status: state.mode ? state.myBoardStatus : state.myBoardStatus || myBoardIdleStatus(),
+    busy: Boolean(state.mode),
+    bright: photoBright(state.current),
+    placedCount: Object.keys(state.myBoard.placed).filter((r) => board.parts[r]).length + (transformFor(state.current) ? 1 : 0),
+    partCount: Object.keys(board.parts).length,
+    onSide: setPhotoSide,
+    onLine: startLining,
+    onStop: stopTapping,
+    onBright: setBright,
+  });
+}
+
+/** Everything that shows your board: the marks, the section, the photo's brightness. */
+function updateMyBoard() {
+  const img = viewer.image();
+  if (img) img.style.filter = photoBright(state.current) ? 'brightness(1.6) contrast(1.15)' : '';
+  if (state.mode && state.mode.sheet !== state.current) stopTapping('');
+  drawMyBoardMarks();
+  renderMyBoardPanel();
+}
+
+function say(text) {
+  state.myBoardStatus = text;
+  renderMyBoardPanel();
+}
+
+function setPhotoSide(side) {
+  const id = state.current;
+  if (state.myBoard.photos[id]) {
+    if (state.myBoard.photos[id].side === side) return;
+    changeMyBoard(`${sheetLabel(id)}: ${side === 'bottom' ? 'underneath' : 'top'}`, (b) => { b.photos[id].side = side; });
+  } else {
+    state.photoSides[id] = side;
+    updateMyBoard();
+  }
+}
+
+function setBright(on) {
+  const id = state.current;
+  if (state.myBoard.photos[id]) {
+    changeMyBoard(`${sheetLabel(id)}: ${on ? 'brighter' : 'normal'}`, (b) => { b.photos[id].bright = on; });
+  } else {
+    if (on) state.brightUnlined.add(id);
+    else state.brightUnlined.delete(id);
+    updateMyBoard();
+  }
+}
+
+function startLining() {
+  const anchor = anchorRef();
+  if (!anchor) return;
+  state.mode = { kind: 'line', sheet: state.current, taps: [] };
+  const { a } = anchorPins(boardOf().parts[anchor]);
+  say(`Tap ${anchor} ${pinText(a)} on the photo (the pin by the notch). Esc stops.`);
+}
+
+function stopTapping(text = 'Stopped.') {
+  state.mode = null;
+  state.myBoardStatus = text;
+  drawMyBoardMarks();
+  renderMyBoardPanel();
+}
+
+/** A tap on a photo: the next step of lining up or placing, or else opening the part tapped. */
+function onPhotoTap(x, y) {
+  const mode = state.mode;
+  const anchor = anchorRef();
+  if (mode && mode.kind === 'line' && anchor) {
+    mode.taps.push([x, y]);
+    const { a, b } = anchorPins(boardOf().parts[anchor]);
+    if (mode.taps.length === 1) {
+      say(`Now tap ${anchor} ${pinText(b)}: the last pin on the same side.`);
+      return;
+    }
+    const [pa, pb] = mode.taps;
+    if (Math.hypot(pb[0] - pa[0], pb[1] - pa[1]) < 4) {
+      mode.taps.pop();
+      say(`That's the same spot. Tap ${anchor} ${pinText(b)}.`);
+      return;
+    }
+    const id = state.current;
+    const side = photoSide(id);
+    const bright = photoBright(id);
+    state.mode = null;
+    state.myBoardStatus = '';
+    changeMyBoard(`Line up ${sheetLabel(id)}`, (board) => {
+      board.anchor = anchor;
+      board.photos[id] = { side, a: { pin: a, x: pa[0], y: pa[1] }, b: { pin: b, x: pb[0], y: pb[1] }, bright };
+    });
+    say(`Lined up: ${anchor}'s pins are marked. Check they sit on the right holes; if not, line it up again.`);
+    return;
+  }
+  const t = transformFor(state.current);
+  if (!t) return;
+  if (mode && mode.kind === 'place') {
+    const pin = mode.pins[Object.keys(mode.taps).length];
+    mode.taps[pin] = snap(t.toBoard([x, y]));
+    const next = mode.pins[Object.keys(mode.taps).length];
+    if (next) {
+      say(`Placing ${mode.ref}: tap the ${pinText(next)} hole (${Object.keys(mode.taps).length + 1} of ${mode.pins.length}). Esc stops.`);
+      drawMyBoardMarks();
+      return;
+    }
+    const { ref, taps } = mode;
+    state.mode = null;
+    state.myBoardStatus = '';
+    changeMyBoard(`Place ${ref}`, (b) => { b.placed[ref] = taps; });
+    say(`${ref} placed. Undo (Ctrl+Z) takes it off again.`);
+    return;
+  }
+  // no tapping going on: open the card of the marked part nearest the tap
+  const [c, r] = t.toBoard([x, y]);
+  let best = null;
+  const consider = (ref, hole) => {
+    const d = Math.hypot(hole[0] - c, hole[1] - r);
+    if (d <= 0.6 && (!best || d < best.d)) best = { ref, d };
+  };
+  for (const [ref, placed] of Object.entries(state.myBoard.placed)) for (const hole of Object.values(placed)) consider(ref, hole);
+  if (anchor) for (const hole of Object.values(boardOf().parts[anchor].pins)) consider(anchor, hole);
+  if (best) selectPart(best.ref);
+}
+
+/** The first lined-up photo: the one on screen if it is, else the first in the tabs. */
+function linedPhoto() {
+  if (transformFor(state.current)) return state.current;
+  const found = state.sheets.find((s) => !s.missing && transformFor(s.id));
+  return found ? found.id : null;
+}
+
+async function placeOnBoard(ref) {
+  const id = linedPhoto();
+  if (!id) {
+    const photo = state.sheets.find((s) => !s.missing && (s.type === 'png' || s.type === 'jpg'));
+    if (photo && photo.id !== state.current) await selectSheet(photo.id);
+    state.myBoardOpen = true;
+    say('Line up this photo first: press "Line it up" and tap the two pins it asks for.');
+    return;
+  }
+  if (id !== state.current) await selectSheet(id);
+  state.myBoardOpen = true;
+  const names = Object.keys(boardOf().parts[ref].pins);
+  const pins = names.every((n) => /^\d+$/.test(n)) ? [...names].sort((a, b) => Number(a) - Number(b)) : names;
+  state.mode = { kind: 'place', sheet: state.current, ref, pins, taps: {} };
+  say(`Placing ${ref}: tap the ${pinText(pins[0])} hole (1 of ${pins.length}). Esc stops.`);
+  drawMyBoardMarks();
+}
+
+async function showOnPhoto(ref) {
+  const id = linedPhoto();
+  if (!id) return;
+  if (id !== state.current) await selectSheet(id);
+  selectPart(ref);
+}
+
+function myBoardCardOptions(ref, onBoard) {
+  if (!onBoard || !hasPhotos()) return null;
+  return {
+    anchor: ref === anchorRef() && Boolean(linedPhoto()),
+    placed: Boolean(state.myBoard.placed[ref]) && Boolean(linedPhoto()),
+    onPlace: () => placeOnBoard(ref),
+    onShow: () => showOnPhoto(ref),
+  };
+}
+
 // ---- what to wire (0.4 design F1) ----
 function setWired(key, on) {
   const before = [...state.wired];
@@ -708,6 +977,7 @@ function updateStepRings() {
   const els = step ? step.parts.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean) : [];
   viewer.stepRings(els);
   syncStep3D();
+  drawMyBoardMarks();
 }
 
 function renderStepsPanel() {
@@ -777,6 +1047,7 @@ function loadProgress() {
   state.flipped = new Set((data ? data.flipped : []).filter(isLayout));
   state.tickPrints = data ? { ...data.sheetPrints } : currentPrints();
   state.wired = new Set(data ? data.wired : []);
+  state.myBoard = data ? data.myBoard : { anchor: null, photos: {}, placed: {} };
   refreshNotes();
 }
 
@@ -791,7 +1062,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired] });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard });
   if (saved) flashSaved();
 }
 
@@ -807,6 +1078,7 @@ function checkProgressKey() {
   renderChecklist();
   renderWiringPanel();
   renderPartCard();
+  updateMyBoard();
 }
 
 /** "Mark them checked": the changed sheets have been looked at, so their notes go. */
@@ -839,7 +1111,7 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard }) {
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -852,6 +1124,7 @@ function setProgress({ ticked, flipped, prints, wired }) {
     }
   }
   if (wired) state.wired = new Set(wired);
+  if (myBoard) state.myBoard = myBoard;
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -863,6 +1136,7 @@ function setProgress({ ticked, flipped, prints, wired }) {
   renderStepsPanel();
   renderWiringPanel();
   renderPartCard();
+  updateMyBoard();
 }
 
 function toggleTick(ref) {
@@ -909,7 +1183,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -934,8 +1208,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired] };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -1166,7 +1440,7 @@ function onKey(e) {
     n: () => find.next(),
     N: () => find.prev(),
     f: () => toggleFlip(),
-    Escape: () => clearPart(),
+    Escape: () => (state.mode ? stopTapping() : clearPart()),
   };
   const action = actions[e.key];
   if (!action) return;
@@ -1181,6 +1455,12 @@ async function start() {
   $('#redo').addEventListener('click', () => history.redo());
   $('#split').addEventListener('click', () => setSplit(!split.on));
   $('#board3d-toggle').addEventListener('click', () => setBoard3D(!board3dOn));
+  $('#myboard-toggle').addEventListener('click', () => {
+    state.myBoardOpen = !state.myBoardOpen;
+    if (!state.myBoardOpen && state.mode) stopTapping('');
+    renderMyBoardPanel();
+  });
+  viewer.onPointClick(onPhotoTap);
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
