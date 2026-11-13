@@ -2386,8 +2386,10 @@ function renderTabs() {
 
 /** Each tab says how many of the parts on its sheet are soldered (0.5 improvement 6). */
 function updateTabCounts() {
+  // which sheets each part is on, worked out once per update (not once per tab)
+  const onSheets = new Map(state.parts.map((p) => [p.ref, new Set(sheetsWithPart(p.ref).map((s) => s.id))]));
   for (const tab of $('#tabs').children) {
-    const on = state.parts.filter((p) => sheetsWithPart(p.ref).some((s) => s.id === tab.dataset.id));
+    const on = state.parts.filter((p) => onSheets.get(p.ref).has(tab.dataset.id));
     if (on.length) tab.setAttribute('data-count', `${on.filter((p) => state.ticked.has(p.ref)).length}/${on.length}`);
     else tab.removeAttribute('data-count');
   }
