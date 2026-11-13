@@ -253,10 +253,23 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
       if (prim.angle) mesh.rotation.y = -prim.angle;
     } else if (prim.kind === 'hcyl') {
       mesh = segment(v3(prim.x1, prim.y1, prim.z), v3(prim.x2, prim.y2, prim.z), prim.radius, mat, 28);
+    } else if (prim.kind === 'lathe') {
+      // the profile spun round three's y; a lying one is turned onto the line between its ends
+      const geo = new THREE.LatheGeometry(prim.profile.map(([r, t]) => new THREE.Vector2(r, t)), 40);
+      mesh = new THREE.Mesh(geo, mat);
+      if (prim.z0 !== undefined) {
+        mesh.position.copy(v3(prim.x, prim.y, prim.z0));
+      } else {
+        const a = v3(prim.x1, prim.y1, prim.z);
+        const dir = v3(prim.x2, prim.y2, prim.z).sub(a);
+        if (dir.length() < 1e-6) return null;
+        mesh.quaternion.setFromUnitVectors(UP, dir.normalize());
+        mesh.position.copy(a);
+      }
     } else if (prim.kind === 'extrude') {
       // the outline's y is flipped so that, stood up, it lands on the board's y
       const shape = new THREE.Shape(prim.outline.map(([x, y]) => new THREE.Vector2(x, -y)));
-      const geo = new THREE.ExtrudeGeometry(shape, { depth: prim.h, bevelEnabled: true, bevelThickness: 0.15, bevelSize: 0.12, bevelSegments: 2, curveSegments: 16 });
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: prim.h, bevelEnabled: prim.bevel !== false, bevelThickness: 0.15, bevelSize: 0.12, bevelSegments: 2, curveSegments: 16 });
       geo.rotateX(-Math.PI / 2);
       mesh = new THREE.Mesh(geo, mat);
       mesh.position.copy(v3(prim.x, prim.y, prim.z0));
@@ -331,7 +344,8 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
       const z0 = prim.z0 ?? prim.z ?? 0;
       if (prim.kind !== 'print' && prim.kind !== 'wire') {
         top = Math.max(top, z0 + (prim.h || prim.radius || 0));
-        bottom = Math.min(bottom, z0 - (prim.kind === 'hcyl' ? prim.radius : 0));
+        const lying = prim.kind === 'hcyl' || (prim.kind === 'lathe' && prim.z0 === undefined);
+        bottom = Math.min(bottom, z0 - (lying ? prim.radius : 0));
       }
     }
     const tag = label(ref, part.side === 'bottom' ? '#ffd27a' : '#ffffff');
@@ -410,7 +424,7 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
     if (!group) return;
     outline = new THREE.Group();
     for (const mesh of group.children) {
-      if (!mesh.isMesh || !['body', 'socket', 'wall', 'top', 'flange', 'foam'].includes(mesh.userData.role)) continue;
+      if (!mesh.isMesh || !['body', 'socket', 'wall', 'top', 'flange', 'foam', 'tab', 'mould'].includes(mesh.userData.role)) continue;
       const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 30), outlineMat);
       edges.position.copy(mesh.position);
       edges.quaternion.copy(mesh.quaternion);

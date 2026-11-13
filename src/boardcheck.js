@@ -1,7 +1,7 @@
 // Check my board (0.5 big improvement B2) and suggested wires (B3), for a board you laid out yourself.
 // Everything works in the anchor's frame (the project's own hole numbers, see myboard.js).
 // No page code: unit-tested in Node.
-import { partGeometry } from './board3d-geometry.js';
+import { boxCorners, partGeometry } from './board3d-geometry.js';
 import { pinText, wiringGroups } from './wiring.js';
 
 /** Every placed leg: { key, ref, pin, hole }, the anchor's from the project, the rest from your taps. */
@@ -25,13 +25,17 @@ export function footprint(part, pitch, ref) {
     box = box ? [Math.min(box[0], x1), Math.min(box[1], y1), Math.max(box[2], x2), Math.max(box[3], y2)] : [x1, y1, x2, y2];
   };
   for (const p of partGeometry(part, pitch, ref)) {
-    if (!['body', 'socket', 'foam', 'wall'].includes(p.role)) continue;
-    if (p.kind === 'box') grow(p.x - p.w / 2, p.y - p.d / 2, p.x + p.w / 2, p.y + p.d / 2);
-    else if (p.kind === 'cyl' || p.kind === 'dome') grow(p.x - p.radius, p.y - p.radius, p.x + p.radius, p.y + p.radius);
-    else if (p.kind === 'hcyl') grow(Math.min(p.x1, p.x2) - p.radius, Math.min(p.y1, p.y2) - p.radius, Math.max(p.x1, p.x2) + p.radius, Math.max(p.y1, p.y2) + p.radius);
+    if (!['body', 'socket', 'foam', 'wall', 'tab', 'mould'].includes(p.role)) continue;
+    const lying = p.kind === 'hcyl' || (p.kind === 'lathe' && p.z0 === undefined);
+    if (p.kind === 'box') {
+      const c = boxCorners(p);
+      grow(Math.min(...c.map((q) => q[0])), Math.min(...c.map((q) => q[1])), Math.max(...c.map((q) => q[0])), Math.max(...c.map((q) => q[1])));
+    } else if (lying) grow(Math.min(p.x1, p.x2) - p.radius, Math.min(p.y1, p.y2) - p.radius, Math.max(p.x1, p.x2) + p.radius, Math.max(p.y1, p.y2) + p.radius);
+    else if (p.kind === 'cyl' || p.kind === 'dome' || p.kind === 'lathe') grow(p.x - p.radius, p.y - p.radius, p.x + p.radius, p.y + p.radius);
     else if (p.kind === 'extrude') {
-      const xs = p.outline.map(([x]) => x);
-      const ys = p.outline.map(([, y]) => y);
+      const [c, s] = [Math.cos(p.angle || 0), Math.sin(p.angle || 0)];
+      const xs = p.outline.map(([x, y]) => x * c - y * s);
+      const ys = p.outline.map(([x, y]) => x * s + y * c);
       grow(p.x + Math.min(...xs), p.y + Math.min(...ys), p.x + Math.max(...xs), p.y + Math.max(...ys));
     }
   }
