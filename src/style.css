@@ -508,3 +508,15 @@ h1 {
 #shopping th, #shopping td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 #shopping td:first-child { font-weight: 700; white-space: nowrap; }
 .dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+/* ---- part card helpers (0.5) ---- */
+#part-bands { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.bands-text { font-weight: 700; }
+.part-code { font-weight: 700; }
+#part-polarity-picture { margin: 6px 0; }
+#part-polarity-picture .pol-text { fill: var(--ink); font-size: 11px; }
+.part-library-polarity { border-left: 4px solid var(--warn); padding-left: 8px; }
+#part-howto { margin: 8px 0; }
+#part-howto summary { cursor: pointer; font-weight: 700; }
+.part-nav { display: flex; gap: 6px; margin-top: 8px; }
+.pin-name { fill: #ffd27a; font-size: 10px; }

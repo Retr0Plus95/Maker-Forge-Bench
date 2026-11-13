@@ -8,6 +8,9 @@ import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
 import { findLines, findValues, nextInStep } from './lookup.js';
 import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
+import { capacitorCode, resistorBands } from './markings.js';
+import { libraryFor } from './library.js';
+import { stillToWire } from './wiring.js';
 import { pinText } from './wiring.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -327,6 +330,7 @@ function renderPartCard() {
     onWire: setWired,
     pins: pinOptions(onBoard),
     myBoard: myBoardCardOptions(part.ref, onBoard),
+    extras: cardExtras(part, board),
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
@@ -342,7 +346,9 @@ function pinOptions(onBoard) {
   const side = store.get('pinSide', 'top') === 'bottom' ? 'bottom' : 'top';
   const layout = onBoard ? pinLayout(onBoard, side) : null;
   if (!layout) return null;
+  const lib = libraryFor(state.partsByRef.get(state.selected));
   return {
+    names: lib && lib.pins ? Object.fromEntries(layout.pins.filter((p) => lib.pins[p.pin]).map((p) => [p.pin, lib.pins[p.pin]])) : {},
     layout,
     side,
     open: state.pinsOpen,
@@ -350,6 +356,62 @@ function pinOptions(onBoard) {
     onToggle: () => { state.pinsOpen = !state.pinsOpen; renderPartCard(); },
     onSide: (value) => { store.set('pinSide', value); renderPartCard(); },
     onPin: (pin) => { state.pinSelected = pin; renderPartCard(); },
+  };
+}
+
+const POLARITY_PICTURES = { electrolytic: 'electrolytic', rectifier: 'diode', led: 'led' };
+
+async function copyText(text, done) {
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus(done);
+  } catch {
+    setStatus("Couldn't copy: allow the clipboard for this page.");
+  }
+}
+
+/** Ticks several parts in one undo step. */
+function tickParts(refs, label) {
+  const before = [...state.ticked];
+  const after = [...new Set([...before, ...refs.filter((r) => isKnownRef(r))])];
+  if (after.length === before.length) return;
+  history.do({ label, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
+}
+
+/** Marks several legs wired in one undo step. */
+function wireMany(keys, label) {
+  const before = [...state.wired];
+  const after = [...new Set([...before, ...keys])];
+  if (after.length === before.length) return;
+  history.do({ label, apply: () => setProgress({ wired: after }), revert: () => setProgress({ wired: before }) });
+}
+
+/** The previous or next part in the checklist's order. */
+function stepPart(delta) {
+  if (!state.parts.length) return;
+  const i = state.parts.findIndex((p) => p.ref === state.selected);
+  const next = state.parts[((i < 0 ? (delta > 0 ? -1 : 0) : i) + delta + state.parts.length) % state.parts.length];
+  selectPart(next.ref);
+}
+
+/** The card's helpers (0.5 improvements 9-17 and the library): markings, pictures, buttons. */
+function cardExtras(part, board) {
+  const lib = libraryFor(part);
+  const same = part.value && !part.guessed
+    ? state.parts.filter((p) => p.value === part.value && p.type === part.type).map((p) => p.ref) : [];
+  const conns = board ? connectionsOf(board, part.ref) : [];
+  const left = board ? stillToWire(part.ref, conns, state.wired) : [];
+  return {
+    bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
+    code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
+    polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
+    library: lib,
+    onCopy: () => copyText(`${part.ref}${part.value ? ` ${part.value}` : ''}`, `Copied ${part.ref}.`),
+    sameValue: same.length >= 2 ? { count: same.length, value: part.value, onTick: () => tickParts(same, `Tick all ${part.value}`) } : null,
+    onWireAll: left.length ? () => wireMany(left.map((pin) => `${part.ref}:${pin}`), `Wired all of ${part.ref}`) : null,
+    onPrev: () => stepPart(-1),
+    onNext: () => stepPart(1),
+    searchHref: part.value ? `https://duckduckgo.com/?q=${encodeURIComponent(`${part.value} datasheet`)}` : null,
   };
 }
 
@@ -1692,6 +1754,8 @@ function onKey(e) {
     Escape: () => (state.mode ? stopTapping() : clearPart()),
     b: () => setBoard3D(!board3dOn),
     s: () => state.selected && state.partsByRef.has(state.selected) && toggleTick(state.selected),
+    ',': () => stepPart(-1),
+    '.': () => stepPart(1),
     p: () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')),
     r: () => turnPhoto(),
     '?': () => $('#help').showModal(),

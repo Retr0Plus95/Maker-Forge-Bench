@@ -2,6 +2,7 @@
 // what to wire (0.4 design F1).
 // Everything is built with createElement and textContent: a project file's text is untrusted.
 import { isGroundLabel, isPowerLabel, pinText, stillToWire, wireKey } from './wiring.js';
+import { BAND_HEX } from './markings.js';
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -69,6 +70,17 @@ export function renderCard(container, part, o) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
   }
 
+  const x = o.extras || {};
+  if (x.bands) children.push(bandsPicture(x.bands));
+  if (x.code) children.push(el('p', { className: 'part-code' }, `Printed on it: ${x.code} (${part.value})`));
+  if (x.polarity) children.push(polarityPicture(x.polarity));
+  if (x.library && x.library.polarity) children.push(el('p', { className: 'part-library-polarity' }, x.library.polarity));
+  if (x.library) {
+    children.push(el('details', { id: 'part-howto' },
+      el('summary', {}, `How to use it: ${x.library.name}`),
+      el('p', {}, x.library.howTo),
+      el('p', { className: 'hint' }, `From the Bench library. Source: ${x.library.source}.`)));
+  }
   if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
   if (o.step && o.step.onNext) {
     const next = el('button', { id: 'part-next-in-step', type: 'button', 'data-focus': 'next-in-step' }, `Next part in this step: ${o.step.next}`);
@@ -124,6 +136,11 @@ export function renderCard(container, part, o) {
       children.push(el('p', { className: 'part-unwired' }, left.length
         ? `Still to wire: ${left.length === 1 ? 'pin' : 'pins'} ${left.join(', ')}`
         : 'All its pins are wired.'));
+      if (left.length && x.onWireAll) {
+        const all = el('button', { id: 'part-wire-all', type: 'button', 'data-focus': 'wire-all' }, 'Mark all its pins wired');
+        all.addEventListener('click', x.onWireAll);
+        children.push(all);
+      }
     }
   }
 
@@ -162,6 +179,27 @@ export function renderCard(container, part, o) {
   }
 
   const actions = el('div', { className: 'part-actions' });
+  if (x.sameValue) {
+    const same = el('button', { id: 'part-tick-value', type: 'button', 'data-focus': 'tick-value' }, `Tick all ${x.sameValue.count} × ${x.sameValue.value}`);
+    same.addEventListener('click', x.sameValue.onTick);
+    actions.append(same);
+  }
+  if (x.onCopy) {
+    const copy = el('button', { id: 'part-copy', type: 'button', 'data-focus': 'copy', title: 'Copy the part and its value' }, 'Copy');
+    copy.addEventListener('click', x.onCopy);
+    actions.append(copy);
+  }
+  if (x.searchHref) {
+    actions.append(el('a', { id: 'part-search', className: 'button-link', href: x.searchHref, target: '_blank', rel: 'noopener noreferrer',
+      title: 'Opens a web search for this part in a new tab' }, 'Search the web'));
+  }
+  if (x.onPrev || x.onNext) {
+    const prev = el('button', { id: 'part-prev', type: 'button', 'data-focus': 'prev', title: 'Previous part (,)' }, '← Previous part');
+    prev.addEventListener('click', x.onPrev);
+    const next = el('button', { id: 'part-next', type: 'button', 'data-focus': 'next', title: 'Next part (.)' }, 'Next part →');
+    next.addEventListener('click', x.onNext);
+    children.push(el('div', { className: 'part-nav' }, prev, next));
+  }
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
   }
@@ -346,13 +384,14 @@ const shorten = (s, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 /** A chip or header drawn pin by pin, seen from the top or underneath; clicking a pin shows its line. */
 function renderPinView(ref, connections, o) {
-  const { layout, side, selected, onSide, onPin } = o.pins;
+  const { layout, side, selected, onSide, onPin, names = {} } = o.pins;
+  const hasNames = Object.keys(names).length > 0;
   const byPin = new Map(connections.map((c) => [c.pin, c]));
   const ROW = 22;
   const top = 26;
   const dip = layout.kind === 'dip';
   const bodyX = dip ? 120 : 70;
-  const bodyW = dip ? 70 : 26;
+  const bodyW = dip ? (hasNames ? 104 : 70) : 26;
   const height = top + layout.rows * ROW + 8;
   const drawing = svg('svg', { viewBox: `0 0 310 ${height}`, width: '100%', role: 'group', 'aria-label': `${ref} pins` });
   drawing.append(svg('rect', { class: 'pin-body', x: bodyX, y: top - 10, width: bodyW, height: layout.rows * ROW + 4, rx: 4 }));
@@ -377,6 +416,9 @@ function renderPinView(ref, connections, o) {
     g.append(svg('line', { class: 'pin-leg', x1: x, y1: y, x2: x + outward * 14, y2: y }));
     if (conn && o.wired) g.append(svg('circle', { class: 'pin-dot', cx: x + outward * 14, cy: y, r: 4, 'data-filled': String(wired) }));
     g.append(svg('text', { class: 'pin-number', x: x - outward * 4, y: y + 4, 'text-anchor': outward < 0 ? 'start' : 'end' }, p.pin));
+    if (names[p.pin]) {
+      g.append(svg('text', { class: 'pin-name', x: x - outward * 20, y: y + 4, 'text-anchor': outward < 0 ? 'start' : 'end' }, names[p.pin].split(' ')[0]));
+    }
     if (label) g.append(svg('text', { class: 'pin-label', x: x + outward * 22, y: y + 4, 'text-anchor': outward < 0 ? 'end' : 'start' }, shorten(label)));
     const pick = () => onPin(p.pin);
     g.addEventListener('click', pick);
@@ -416,8 +458,51 @@ function renderPinView(ref, connections, o) {
       info.append(`pin ${selected}: not connected to anything.`);
     }
     box.append(info);
+    if (names[selected]) box.append(el('p', { id: 'pin-name', className: 'hint' }, `Pin ${selected} is ${names[selected]} (from the Bench library).`));
   }
   return box;
+}
+
+/** The colour bands of a resistor, drawn. */
+function bandsPicture(bands) {
+  const pic = svg('svg', { viewBox: '0 0 160 30', width: '160', height: '30', role: 'img', 'aria-label': `Colour bands: ${bands.join(' ')}` });
+  pic.append(svg('line', { x1: 0, y1: 15, x2: 160, y2: 15, stroke: '#b9bec4', 'stroke-width': 3 }));
+  pic.append(svg('rect', { x: 40, y: 5, width: 80, height: 20, rx: 9, fill: '#d9c39a', stroke: '#8b7a5a' }));
+  [52, 64, 76, 104].forEach((bx, i) => pic.append(svg('rect', { class: 'band', x: bx, y: 5, width: 7, height: 20, fill: BAND_HEX[bands[i]] })));
+  return el('div', { id: 'part-bands' }, pic, el('span', { className: 'bands-text' }, bands.join(' ')));
+}
+
+/** Which way round, drawn: an electrolytic's stripe, a diode's band, an LED's long leg and flat side. */
+function polarityPicture(kind) {
+  const pic = svg('svg', { viewBox: '0 0 200 60', width: '200', height: '60', role: 'img' });
+  const text = (x, y, t, anchor = 'middle') => pic.append(svg('text', { x, y, 'text-anchor': anchor, class: 'pol-text' }, t));
+  if (kind === 'electrolytic') {
+    pic.setAttribute('aria-label', 'Electrolytic: the stripe side is minus, the long leg is plus');
+    pic.append(svg('rect', { x: 60, y: 4, width: 80, height: 34, rx: 6, fill: '#1d3557' }));
+    pic.append(svg('rect', { x: 118, y: 4, width: 16, height: 34, fill: '#cfd6dd' }));
+    text(126, 26, '−');
+    pic.append(svg('line', { x1: 80, y1: 38, x2: 80, y2: 58, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('line', { x1: 120, y1: 38, x2: 120, y2: 50, stroke: '#b9bec4', 'stroke-width': 3 }));
+    text(70, 56, '+ long', 'end');
+    text(130, 50, '− short', 'start');
+  } else if (kind === 'diode') {
+    pic.setAttribute('aria-label', 'Diode: the band is the cathode, K');
+    pic.append(svg('line', { x1: 0, y1: 26, x2: 200, y2: 26, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('rect', { x: 60, y: 12, width: 80, height: 28, rx: 4, fill: '#232323' }));
+    pic.append(svg('rect', { x: 118, y: 12, width: 12, height: 28, fill: '#cfd6dd' }));
+    text(40, 54, 'A (anode)');
+    text(165, 54, 'K (band)');
+  } else {
+    pic.setAttribute('aria-label', 'LED: the long leg is plus, the flat side is minus');
+    pic.append(svg('path', { d: 'M80 34 V18 a20 20 0 0 1 40 0 V34 Z', fill: '#3ddc84', opacity: 0.85 }));
+    pic.append(svg('rect', { x: 76, y: 34, width: 48, height: 5, fill: '#2a9d4b' }));
+    pic.append(svg('line', { x1: 124, y1: 34, x2: 124, y2: 39, stroke: '#111', 'stroke-width': 2 }));
+    pic.append(svg('line', { x1: 90, y1: 39, x2: 90, y2: 60, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('line', { x1: 110, y1: 39, x2: 110, y2: 52, stroke: '#b9bec4', 'stroke-width': 3 }));
+    text(84, 58, '+ long', 'end');
+    text(116, 52, '− flat side', 'start');
+  }
+  return el('div', { id: 'part-polarity-picture', 'data-kind': kind }, pic);
 }
 
 /**
