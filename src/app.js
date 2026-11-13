@@ -29,7 +29,7 @@ import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
-import { ProgressError, changedSince, exportProgress, importProgress, sheetPrint } from './checklist.js';
+import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
@@ -1336,11 +1336,49 @@ function renderMyBoardPanel() {
     placedCount: Object.keys(state.myBoard.placed).filter((r) => board.parts[r]).length + (transformFor(state.current) ? 1 : 0),
     partCount: Object.keys(board.parts).length,
     onSide: setPhotoSide,
+    onSaveFile: saveBoardFile,
+    onOpenFile: openBoardFile,
     onLine: startLining,
     onStop: stopTapping,
     onBright: setBright,
     more: transformFor(state.current) ? myBoardMore() : null,
   });
+}
+
+/** Save my board as a file (0.6 design §3): line-ups, placements, wire shapes, hole names. */
+function saveBoardFile() {
+  if (!Object.keys(state.myBoard.photos).length) {
+    say('Nothing to save yet: line up a photo first.');
+    return;
+  }
+  const text = exportBoard({ project: projectName(), revision: state.project ? state.project.revision : null, myBoard: state.myBoard });
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  download(url, `${fileSafe(projectName())}-my-board.json`);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  say('Saved your board as a file. The photos stay in your my-board folder.');
+}
+
+async function openBoardFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  let data;
+  try {
+    data = importBoard(await file.text());
+  } catch (error) {
+    say(error instanceof BoardFileError ? error.message : new BoardFileError().message);
+    return;
+  }
+  if (data.project && data.project !== projectName()) {
+    say(`That board file is for ${data.project}, not ${projectName()}.`);
+    return;
+  }
+  const before = state.myBoard;
+  const after = data.myBoard;
+  history.do({ label: 'Open a board file', apply: () => setProgress({ myBoard: after }), revert: () => setProgress({ myBoard: before }) });
+  const missing = Object.keys(after.photos).filter((id) => !state.sheets.some((s) => s.id === id && !s.missing));
+  const placed = Object.keys(after.placed).length;
+  say(`Opened: ${placed} ${placed === 1 ? 'part' : 'parts'} placed.${missing.length ? ` Not in this folder: ${missing.join(', ')}.` : ''} Ctrl+Z goes back.`);
 }
 
 /** Everything that shows your board: the marks, the section, the photo's brightness. */
@@ -2002,7 +2040,19 @@ function setCheck(id, on, label) {
 }
 
 // ---- the guided continuity test (0.5 big improvement B6) ----
-const currentTests = () => continuityTests(state.project ? state.project.board : null);
+function currentTests() {
+  const tests = continuityTests(state.project ? state.project.board : null);
+  const map = holeMap();
+  if (!map || !tests.length) return tests;
+  // with hole names on, each leg that's on your board says where (0.6)
+  const holes = new Map(placedLegs(boardOf(), state.myBoard.placed, anchorRef()).map((l) => [l.key, l.hole]));
+  const named = (leg) => {
+    const hole = holes.get(`${leg.ref}:${leg.pin}`);
+    const name = hole ? holeName(map, hole) : null;
+    return name ? { ...leg, text: `${leg.text} (${name})` } : leg;
+  };
+  return tests.map((t) => ({ ...t, a: named(t.a), b: named(t.b) }));
+}
 
 function setContinuity(next, label) {
   const before = state.continuity;

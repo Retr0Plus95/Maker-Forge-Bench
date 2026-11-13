@@ -75,3 +75,34 @@ export function changedSince(sheetPrints, sheets, tickedCount) {
     .filter((s) => sheetPrints[s.id] !== undefined && sheetPrints[s.id] !== sheetPrint(s))
     .map((s) => `Sheet ${s.label} changed since you ticked ${tickedCount} ${parts}: check them.`);
 }
+
+// ---- a board file (0.6 design §3): your board alone, to keep or move to another computer ----
+export class BoardFileError extends Error {
+  constructor() {
+    super("That file isn't a Bench board file.");
+    this.name = 'BoardFileError';
+  }
+}
+
+/** Your photos' line-ups, placements, wire shapes and hole names. The photos stay in your folder. */
+export function exportBoard({ project, revision, myBoard }) {
+  return JSON.stringify({ format: 'bench-board', version: 1, project, revision, myBoard }, null, 2);
+}
+
+/** A board file, or a progress file's board, checked: { project, myBoard }. */
+export function importBoard(text) {
+  if (typeof text !== 'string' || text.length > MAX_BYTES) throw new BoardFileError();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new BoardFileError();
+  }
+  const known = data && typeof data === 'object' && !Array.isArray(data) && data.version === 1
+    && (data.format === 'bench-board' || data.format === 'bench-progress');
+  if (!known || !data.myBoard || typeof data.myBoard !== 'object') throw new BoardFileError();
+  return {
+    project: typeof data.project === 'string' && data.project.length <= 2000 ? data.project : null,
+    myBoard: cleanMyBoard(data.myBoard, (r) => REF.test(r)),
+  };
+}

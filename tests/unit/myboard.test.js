@@ -100,3 +100,20 @@ test('hole names are kept with your board, checked', () => {
   assert.equal(cleanMyBoard({ labels: 'L21' }, isRef).labels, undefined);
   assert.equal('labels' in cleanMyBoard({}, isRef), false, 'no names, no key');
 });
+
+test('a board file carries your board alone, checked on the way in', async () => {
+  const { BoardFileError, exportBoard, importBoard } = await import('../../src/checklist.js');
+  const myBoard = {
+    anchor: 'U2', photos: { top: { side: 'top', a: { pin: '1', x: 1, y: 2 }, b: { pin: '14', x: 1, y: 300 }, bright: false } },
+    placed: { R8: { 1: [13, 8], 2: [13, 9] } }, routes: { P5V: 'rows' },
+    labels: { a: { pin: '1', text: 'L21' }, b: { pin: '14', text: 'L8' }, c: { pin: '28', text: 'O21' }, skip: '' },
+  };
+  const text = exportBoard({ project: 'Fume', revision: 'D', myBoard });
+  assert.equal(JSON.parse(text).format, 'bench-board');
+  assert.deepEqual(importBoard(text), { project: 'Fume', myBoard });
+  const progress = exportProgress({ project: 'Fume', revision: null, ticked: [], sheetPrints: {}, flipped: [], myBoard });
+  assert.deepEqual(importBoard(progress).myBoard, myBoard, "a progress file's board opens too");
+  for (const bad of ['nope', '{}', JSON.stringify({ format: 'bench-board', version: 2, myBoard }), JSON.stringify({ format: 'bench-board', version: 1 })]) {
+    assert.throws(() => importBoard(bad), BoardFileError);
+  }
+});

@@ -112,6 +112,36 @@ describe('suggest a spot', () => {
     await page.keyboard.press('Escape');
   });
 
+  test('save my board as a file, clear it, and open the file again (one undo step)', async () => {
+    await openCard(page, 'C5');
+    await page.locator('#part-suggest').click();
+    await page.locator('#suggest-use').click();
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#myboard-save').click()]);
+    assert.equal(download.suggestedFilename(), 'Solder Fume Extractor-my-board.json');
+    const saved = JSON.parse(await readFile(await download.path(), 'utf8'));
+    assert.equal(saved.format, 'bench-board');
+    assert.deepEqual(Object.keys(saved.myBoard.placed), ['C5']);
+    assert.equal(saved.myBoard.labels.a.text, 'L21');
+    await page.locator('#myboard-clear').click();
+    await page.locator('#myboard-clear').click();
+    await page.locator('#hn-off').click();
+    assert.equal((await marks(page, 'C5')).length, 0);
+    await page.locator('#myboard-open').setInputFiles({ name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
+    await page.waitForFunction(() => /^Opened/.test(document.querySelector('#myboard-status').textContent));
+    assert.match(await page.locator('#myboard-status').textContent(), /^Opened: 1 part placed\./);
+    assert.equal((await marks(page, 'C5')).length, 2);
+    assert.match(await page.locator('#hn-summary').textContent(), /L21/);
+    await page.locator('#stage').click({ position: { x: 1000, y: 10 } });
+    await page.keyboard.press('Control+z');
+    assert.equal((await marks(page, 'C5')).length, 0, 'undo goes back to before the file');
+    await page.keyboard.press('Control+y');
+    const other = { ...saved, project: 'Other' };
+    await page.locator('#myboard-open').setInputFiles({ name: 'o.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(other)) });
+    await page.waitForFunction(() => /for Other/.test(document.querySelector('#myboard-status').textContent));
+    await page.locator('#myboard-open').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') });
+    await page.waitForFunction(() => /isn't a Bench board file/.test(document.querySelector('#myboard-status').textContent));
+  });
+
   test('no page errors', () => {
     assert.deepEqual(problems, []);
   });

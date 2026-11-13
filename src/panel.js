@@ -453,6 +453,13 @@ export function renderMyBoard(container, o) {
     children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
     if (x.labels) children.push(...holeNamesBlock(container, x.labels));
   }
+  if (o.onSaveFile) {
+    const save = el('button', { id: 'myboard-save', type: 'button', 'data-focus': 'myboard-save', title: 'Line-ups, placements, wire shapes and hole names. The photos stay in your folder.' }, 'Save my board as file');
+    save.addEventListener('click', o.onSaveFile);
+    const input = el('input', { id: 'myboard-open', type: 'file', accept: '.json,application/json', className: 'visually-hidden' });
+    input.addEventListener('change', () => o.onOpenFile(input));
+    children.push(el('div', { className: 'myboard-actions myboard-file' }, save, el('label', { className: 'button-like' }, 'Open a board file', input)));
+  }
   keepFocus(container, () => container.replaceChildren(...children), '#myboard-line');
 }
 

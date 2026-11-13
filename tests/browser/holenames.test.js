@@ -121,6 +121,11 @@ describe('hole names like your board', () => {
     assert.match(await page.locator('#hn-summary').textContent(), /U2 pin 1 is at L21/);
   });
 
+  test("the continuity test says where the chip's legs are", async () => {
+    for (let k = 0; k < 60 && !/U2/.test(await page.locator('#continuity-now .cont-pair').textContent()); k++) await page.locator('#cont-skip').click();
+    assert.match(await page.locator('#continuity-now .cont-pair').textContent(), /U2 pin \d+ \([A-Z]\d+\)/);
+  });
+
   test('the 3D view of your board has the names along its edges', async () => {
     await page.locator('#board3d-toggle').click();
     await page.waitForFunction(() => window.makerForge.board3d.view() !== null, null, { timeout: 20000 });
