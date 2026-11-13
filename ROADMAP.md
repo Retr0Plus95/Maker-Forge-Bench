@@ -111,7 +111,12 @@ accurate models, easier to use and much more functions" (design `docs/design/202
 - Still to come: naming holes by a board's printed labels, a JS port of pcb.py's full checks, and
   verified sizes for every library part.
 
-### 0.6 Everywhere (was 0.3)
+### 0.6 Where it goes
+Your board's own hole names (calibrated from what's printed by three chip pins), "Suggest a
+spot" for parts not placed yet, underside parts no longer called clashes, and your board as a
+file. Design: `docs/design/2026-11-13-release-0.6-design.md`.
+
+### 0.7 Everywhere (was 0.3)
 - Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
 - **★ New: Keep screen on** at the bench. (Easy reading and themes arrived in 0.2.)
 - Open a public GitHub repo by pasting its link.
