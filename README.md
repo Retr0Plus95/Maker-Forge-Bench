@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.5 works on a PC, from a local folder. Phone and tablet, GitHub links and the
+**Status:** release 0.6 works on a PC, from a local folder. Phone and tablet, GitHub links and the
 website come later (see the roadmap).
 
 ## Try it
@@ -83,6 +83,16 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
   - **Check my board** finds two legs in one hole, parts on top of each other, and risky
     neighbours;
   - **suggested wires** underneath, three shapes per line.
+- **Where it goes (0.6):**
+  - **Hole names like your board's:** type what's printed by three chip pins (like L21, L8, O21)
+    and every hole gets its name: on part cards ("On your board: + at L15, − at L14"), in Check my
+    board, the suggested wires, the continuity test, a hover tip on the photo, and along the edges
+    of your board in 3D. Boards that skip letters, and columns after Z, work too.
+  - **Suggest a spot:** for any part, Bench tries its shape four ways round near what it connects
+    to and shows the best three, dashed on the photo, with the reason ("on U2 pin 7 and pin 8").
+    Use this spot places it in one undo step.
+  - **Save my board as file / Open a board file:** line-ups, placements, wire shapes and hole
+    names in one file. The photos stay in your folder.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).

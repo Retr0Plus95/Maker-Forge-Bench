@@ -72,60 +72,9 @@ export function suggestSpots(projectBoard, placed, anchor, ref, { count = 3, nam
   }
   const first = part.pins[pinNames[0]];
   const offsets = pinNames.map((pin) => [part.pins[pin][0] - first[0], part.pins[pin][1] - first[1]]);
-  const tried = new Set();
-  const found = [];
-  TURNS.forEach((turn, t) => {
-    const offs = offsets.map(turn);
-    const shapeKey = offs.map(key).join('|');
-    if (tried.has(shapeKey)) return; // a two-leg part turned half way round is the same holes
-    tried.add(shapeKey);
-    // the body for this turn with its first leg at hole 0,0, moved to each spot below
-    const box0 = footprint({ ...bare, pins: Object.fromEntries(pinNames.map((pin, i) => [pin, offs[i]])) }, projectBoard.pitch, ref);
-    const starts = new Set();
-    for (let radius = 4; radius <= 10 && !starts.size; radius += 6) {
-      offs.forEach((o, i) => {
-        for (const l of targets[i]) {
-          for (let dc = -radius; dc <= radius; dc++) for (let dr = -radius; dr <= radius; dr++) starts.add(key([l.hole[0] + dc - o[0], l.hole[1] + dr - o[1]]));
-        }
-      });
-    }
-    for (const s of starts) {
-      const [sc, sr] = s.split(',').map(Number);
-      const holes = offs.map((o) => [sc + o[0], sr + o[1]]);
-      let ok = true;
-      let score = 0;
-      const near = [];
-      holes.forEach((h, i) => {
-        if (!ok) return;
-        const there = byHole.get(key(h)) || [];
-        if (there.length && !(bottom && lineOf(pinNames[i]) && there.every((l) => nets.get(l.key) === lineOf(pinNames[i])))) {
-          ok = false;
-          return;
-        }
-        let best = null;
-        for (const l of targets[i]) {
-          const d = manhattan(h, l.hole);
-          if (!best || d < best.d) best = { d, leg: l };
-        }
-        near.push(best);
-        if (best) score += best.d;
-        if (!there.length) {
-          for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-            for (const l of byHole.get(key([h[0] + dc, h[1] + dr])) || []) if (nets.get(l.key) !== lineOf(pinNames[i])) score += 0.5;
-          }
-        }
-      });
-      if (!ok) continue;
-      if (box0) {
-        const p = projectBoard.pitch;
-        const box = [box0[0] + sc * p, box0[1] + sr * p, box0[2] + sc * p, box0[3] + sr * p];
-        if (bodies.some((b) => overlaps(box, b))) continue;
-      }
-      // ties go to the drawing's own spot, then the drawing's own turn
-      const fromDrawing = holes.reduce((sum, h, i) => sum + manhattan(h, part.pins[pinNames[i]]), 0);
-      found.push({ pins: Object.fromEntries(pinNames.map((pin, i) => [pin, holes[i]])), score, fromDrawing, turn: t, near });
-    }
-  });
+  // close by first (4 holes round each leg it connects to); farther only if nothing close fits
+  let found = search(4);
+  if (!found.length) found = search(10);
   found.sort((a, b) => a.score - b.score || a.fromDrawing - b.fromDrawing || a.turn - b.turn);
   const spots = [];
   const seen = new Set();
@@ -137,4 +86,60 @@ export function suggestSpots(projectBoard, placed, anchor, ref, { count = 3, nam
     if (spots.length >= count) break;
   }
   return { spots, why: spots.length ? '' : `No free spot near the parts ${ref} connects to.` };
+
+  function search(radius) {
+    const tried = new Set();
+    const found = [];
+    TURNS.forEach((turn, t) => {
+      const offs = offsets.map(turn);
+      const shapeKey = offs.map(key).join('|');
+      if (tried.has(shapeKey)) return; // a two-leg part turned half way round is the same holes
+      tried.add(shapeKey);
+      // the body for this turn with its first leg at hole 0,0, moved to each spot below
+      const box0 = footprint({ ...bare, pins: Object.fromEntries(pinNames.map((pin, i) => [pin, offs[i]])) }, projectBoard.pitch, ref);
+      const starts = new Set();
+      offs.forEach((o, i) => {
+        for (const l of targets[i]) {
+          for (let dc = -radius; dc <= radius; dc++) for (let dr = -radius; dr <= radius; dr++) starts.add(key([l.hole[0] + dc - o[0], l.hole[1] + dr - o[1]]));
+        }
+      });
+      for (const s of starts) {
+        const [sc, sr] = s.split(',').map(Number);
+        const holes = offs.map((o) => [sc + o[0], sr + o[1]]);
+        let ok = true;
+        let score = 0;
+        const near = [];
+        holes.forEach((h, i) => {
+          if (!ok) return;
+          const there = byHole.get(key(h)) || [];
+          if (there.length && !(bottom && lineOf(pinNames[i]) && there.every((l) => nets.get(l.key) === lineOf(pinNames[i])))) {
+            ok = false;
+            return;
+          }
+          let best = null;
+          for (const l of targets[i]) {
+            const d = manhattan(h, l.hole);
+            if (!best || d < best.d) best = { d, leg: l };
+          }
+          near.push(best);
+          if (best) score += best.d;
+          if (!there.length) {
+            for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+              for (const l of byHole.get(key([h[0] + dc, h[1] + dr])) || []) if (nets.get(l.key) !== lineOf(pinNames[i])) score += 0.5;
+            }
+          }
+        });
+        if (!ok) continue;
+        if (box0) {
+          const p = projectBoard.pitch;
+          const box = [box0[0] + sc * p, box0[1] + sr * p, box0[2] + sc * p, box0[3] + sr * p];
+          if (bodies.some((b) => overlaps(box, b))) continue;
+        }
+        // ties go to the drawing's own spot, then the drawing's own turn
+        const fromDrawing = holes.reduce((sum, h, i) => sum + manhattan(h, part.pins[pinNames[i]]), 0);
+        found.push({ pins: Object.fromEntries(pinNames.map((pin, i) => [pin, holes[i]])), score, fromDrawing, turn: t, near });
+      }
+    });
+    return found;
+  }
 }

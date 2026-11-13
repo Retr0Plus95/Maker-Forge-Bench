@@ -88,7 +88,7 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.5.0';
+const APP_VERSION = '0.6.0';
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----

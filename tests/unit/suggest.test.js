@@ -64,3 +64,22 @@ test('with hole names, the reason says where', () => {
   const { spots } = suggestSpots(board, {}, 'U2', 'C5', { name: (h) => holeName(map, h) });
   assert.equal(spots[0].reason, 'on U2 pin 7 (L15) and pin 8 (L14)');
 });
+
+test('when nothing close fits, it looks farther', () => {
+  // a crowd of 0 V legs fills every hole within 5 of R3's line, so the nearest free spot is farther out
+  const crowd = {};
+  const nets = { A: [['R1', '1'], ['R3', '1']], G: [] };
+  for (let c = -5; c <= 7; c++) {
+    for (let r = -5; r <= 7; r++) {
+      if (c === 1 && r === 1) continue;
+      const ref = `X${c + 5}_${r + 5}`;
+      crowd[ref] = { type: 'underside', side: 'bottom', pins: { 1: [c, r] } };
+      nets.G.push([ref, '1']);
+    }
+  }
+  const tiny = { pitch: 2.54, netLabels: {}, nets, parts: { R1: { type: 'underside', side: 'top', pins: { 1: [1, 1] } }, R3: { type: 'res', side: 'top', pins: { 1: [20, 20], 2: [20, 23] } }, ...crowd } };
+  const placed = Object.fromEntries(Object.entries(crowd).map(([ref, p]) => [ref, p.pins]));
+  const { spots } = suggestSpots(tiny, placed, 'R1', 'R3');
+  assert.ok(spots.length, 'found one farther out');
+  assert.ok(spots[0].score > 4);
+});

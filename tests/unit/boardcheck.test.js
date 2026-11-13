@@ -84,3 +84,9 @@ test('an underside part soldered onto legs of its own line is not two legs in on
   const wrong = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['9'] } }, 'U2'); // pin 9 is the crystal, not 0 V
   assert.match(wrong.find((x) => x.kind === 'clash').text, /U2 pin 9 and C5 pin 2/);
 });
+
+test("an underside part on the chip's legs brings no new neighbour warnings", () => {
+  const U2 = board.parts.U2.pins;
+  const f = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['8'] } }, 'U2');
+  assert.equal(f.filter((x) => x.kind === 'neighbours' && x.refs.includes('C5')).length, 0, JSON.stringify(f.filter((x) => x.kind === 'neighbours')));
+});

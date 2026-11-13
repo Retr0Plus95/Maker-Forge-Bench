@@ -65,6 +65,11 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
   // underside parts soldered onto a leg of their own line (C5 across the chip's pins 7 and 8) are meant
   const soldered = (group) => group.filter((l) => projectBoard.parts[l.ref].side !== 'bottom').length <= 1
     && lineOf.get(group[0].key) && group.every((l) => lineOf.get(l.key) === lineOf.get(group[0].key));
+  // an underside leg soldered onto another part's leg: its neighbours are that leg's, already checked
+  const riding = (l) => {
+    const group = byHole.get(`${l.hole[0]},${l.hole[1]}`);
+    return projectBoard.parts[l.ref].side === 'bottom' && group.length > 1 && soldered(group);
+  };
   for (const group of byHole.values()) {
     if (group.length < 2 || soldered(group)) continue;
     findings.push({ kind: 'clash', level: 'problem', refs: [...new Set(group.map((l) => l.ref))],
@@ -99,7 +104,7 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
     for (const [dc, dr] of [[1, 0], [0, 1]]) {
       const others = byHole.get(`${l.hole[0] + dc},${l.hole[1] + dr}`) || [];
       for (const o of others) {
-        if (o.ref === l.ref) continue;
+        if (o.ref === l.ref || riding(l) || riding(o)) continue;
         const n1 = netOf.get(l.key);
         const n2 = netOf.get(o.key);
         if (!n1 || !n2 || n1 === n2) continue;
