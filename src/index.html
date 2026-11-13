@@ -44,6 +44,11 @@
     <div id="board3d" hidden>
       <div id="board3d-view"></div>
       <div class="board3d-bar">
+        <div class="bar-group" role="group" aria-label="Which board">
+          <button id="board3d-sheet4" class="tool" type="button" aria-pressed="true" title="The layout on sheet 4">Sheet 4</button>
+          <button id="board3d-mine" class="tool" type="button" aria-pressed="false" hidden title="Your own placement, from your photos">My board</button>
+          <span id="board3d-mine-note" class="hint" hidden></span>
+        </div>
         <div class="bar-group" role="group" aria-label="Views">
           <button id="board3d-top" class="tool" type="button" title="From the top (T)">Top</button>
           <button id="board3d-under" class="tool" type="button" title="From underneath, mirrored like the solder side (U)">Underside</button>

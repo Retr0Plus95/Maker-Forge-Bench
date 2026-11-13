@@ -852,6 +852,7 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
         cube: { x: rect.left + r.left, y: rect.top + r.top, size: r.size },
         links: board.links.length,
         linkMeshes,
+        parts: groups.size,
       };
     },
     setStep(now, later, opts = {}) {

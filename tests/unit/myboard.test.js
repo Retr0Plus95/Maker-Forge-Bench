@@ -73,3 +73,21 @@ test('progress files carry your board, and older files read as empty', () => {
   const old = JSON.stringify({ format: 'bench-progress', version: 1, ticked: [], sheetPrints: {}, flipped: [] });
   assert.deepEqual(importProgress(old).myBoard, { anchor: null, photos: {}, placed: {} });
 });
+
+test('your placements become a board the 3D view can draw, shifted to start at hole 2', async () => {
+  const { boardFromPlacement } = await import('../../src/myboard.js');
+  const placed = { R8: { 1: [13, 8], 2: [13, 10] }, C10: { p: [-3, 4], n: [-3, 6] } };
+  const b = boardFromPlacement(board, placed, 'U2');
+  assert.deepEqual(Object.keys(b.parts).sort(), ['C10', 'R8', 'U2']);
+  const allHoles = Object.values(b.parts).flatMap((p) => Object.values(p.pins));
+  assert.equal(Math.min(...allHoles.map((h) => h[0])), 2);
+  assert.equal(Math.min(...allHoles.map((h) => h[1])), 2);
+  assert.ok(b.cols >= Math.max(...allHoles.map((h) => h[0])) + 1 && b.rows >= Math.max(...allHoles.map((h) => h[1])) + 1);
+  const shift = [2 - (-3), 2 - Math.min(4, 8, 10, 13)];
+  assert.deepEqual(b.parts.R8.pins['1'], [13 + shift[0], 8 + shift[1]]);
+  assert.equal(b.parts.R8.type, 'res');
+  assert.equal(b.parts.C10.D, board.parts.C10.D, 'sizes come from the project');
+  assert.deepEqual([b.buses, b.links, b.bridges], [[], [], []], 'your wiring is not known yet');
+  assert.equal(b.placedCount, 2);
+  assert.equal(boardFromPlacement(board, {}, null), null);
+});

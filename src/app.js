@@ -4,7 +4,7 @@ import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, proje
 import { renderCard, renderChecks, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
-import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
+import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
 import { findLines, findValues, nextInStep } from './lookup.js';
 import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
@@ -753,6 +753,40 @@ function playSteps() {
   openStep(0);
 }
 
+let board3dSource = 'sheet4'; // which board the 3D view shows: 'sheet4' or 'mine' (0.5 big improvement B4)
+
+/** Your own placement as a board, when a photo is lined up. */
+function myBoardFor3D() {
+  const board = state.project ? state.project.board : null;
+  return board && Object.keys(state.myBoard.photos).length ? boardFromPlacement(board, state.myBoard.placed, anchorRef()) : null;
+}
+
+/** The board the 3D view draws now. */
+function board3dData() {
+  const mine = board3dSource === 'mine' ? myBoardFor3D() : null;
+  return mine || (state.project ? state.project.board : null);
+}
+
+function updateBoard3DSource() {
+  const mine = myBoardFor3D();
+  if (!mine && board3dSource === 'mine') board3dSource = 'sheet4';
+  $('#board3d-mine').hidden = !mine;
+  $('#board3d-sheet4').setAttribute('aria-pressed', String(board3dSource === 'sheet4'));
+  $('#board3d-mine').setAttribute('aria-pressed', String(board3dSource === 'mine'));
+  const note = $('#board3d-mine-note');
+  note.hidden = board3dSource !== 'mine' || !mine;
+  if (mine) {
+    const total = Object.keys(state.project.board.parts).length;
+    note.textContent = `${mine.placedCount + 1} of ${total} parts placed`;
+  }
+}
+
+function setBoard3DSource(source) {
+  board3dSource = source;
+  updateBoard3DSource();
+  resetBoard3D();
+}
+
 let board3dBuilding = null; // the build in progress, so two quick toggles build one view
 let board3dBoard = '';       // the board the view was built from, to rebuild only when it changes
 
@@ -770,8 +804,8 @@ async function setBoard3D(on) {
   if (!board3d) {
     if (!board3dBuilding) {
       message.hidden = true;
-      const board = state.project.board;
-      const cameraKey = `camera:${projectName()}`;
+      const board = board3dData();
+      const cameraKey = `camera:${projectName()}:${board3dSource}`;
       board3dBuilding = createBoard3D($('#board3d-view'), board, {
         onPick: (ref) => selectPart(ref),
         camera: store.get(cameraKey, null),
@@ -807,7 +841,8 @@ async function setBoard3D(on) {
 async function resetBoard3D() {
   updateBoard3DButton();
   if (board3dBuilding) await board3dBuilding;
-  const board = state.project ? state.project.board : null;
+  updateBoard3DSource();
+  const board = board3dData();
   if (board3d && board && JSON.stringify(board) === board3dBoard) return;
   if (board3d) board3d.dispose();
   board3d = null;
@@ -936,6 +971,7 @@ function updateRotateButton() {
 
 function updateMyBoard() {
   updateRotateButton();
+  if (board3dSource === 'mine' || !$('#board3d-mine').hidden !== Boolean(myBoardFor3D())) resetBoard3D();
   if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
   if (img) img.style.filter = photoBright(state.current) ? 'brightness(1.6) contrast(1.15)' : '';
@@ -1878,6 +1914,8 @@ async function start() {
     $(id).addEventListener('click', () => board3d && board3d.view(name));
   }
   $('#board3d-fit').addEventListener('click', () => board3d && board3d.fit());
+  $('#board3d-sheet4').addEventListener('click', () => setBoard3DSource('sheet4'));
+  $('#board3d-mine').addEventListener('click', () => setBoard3DSource('mine'));
   $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
   $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
   $('#board3d-upto').addEventListener('change', syncStep3D);
