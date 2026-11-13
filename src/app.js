@@ -11,6 +11,7 @@ import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
 import { libraryFor as libraryForPart } from './library.js';
 import { findLines, findValues, nextInStep } from './lookup.js';
 import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
+import { addVersion, buildReport, clock, cleanVersions, day, duration, logAdd, logText, solderedAt, timeSpent } from './buildlog.js';
 import { capacitorCode, resistorBands } from './markings.js';
 import { libraryFor } from './library.js';
 import { stillToWire } from './wiring.js';
@@ -72,11 +73,42 @@ const state = {
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
   clearAt: 0, // when Clear my board was first clicked
+  log: [], // the build log: [{ t, text }] (0.5 big improvement B10)
+  versionDeleteAt: { name: null, t: 0 }, // a version's Delete asks twice
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
 const history = createHistory();
+// The build log (0.5 big improvement B10): every change you make, and its undo and redo, with the time.
+// Easy reading changes aren't building, so they stay out of it.
+const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact)/;
+let lastHistory = { undoLabel: null, redoLabel: null };
+history.subscribe((h) => { lastHistory = h; });
+const historyDo = history.do.bind(history);
+const historyUndo = history.undo.bind(history);
+const historyRedo = history.redo.bind(history);
+history.do = (action) => {
+  historyDo(action);
+  addLog(action.label);
+};
+history.undo = () => {
+  const label = lastHistory.undoLabel;
+  const done = historyUndo();
+  if (done) addLog(`Undo ${label}`);
+  return done;
+};
+history.redo = () => {
+  const label = lastHistory.redoLabel;
+  const done = historyRedo();
+  if (done) addLog(`Redo ${label}`);
+  return done;
+};
+function addLog(text) {
+  if (!text || NOT_BUILDING.test(text) || typeof state === 'undefined' || !state.progressKey) return;
+  state.log = logAdd(state.log, text);
+  saveProgress();
+}
 
 /** localStorage, or a stand-in that forgets on reload if the browser won't give us one. */
 function browserStorage() {
@@ -408,7 +440,9 @@ function cardExtras(part, board) {
     ? state.parts.filter((p) => p.value === part.value && p.type === part.type).map((p) => p.ref) : [];
   const conns = board ? connectionsOf(board, part.ref) : [];
   const left = board ? stillToWire(part.ref, conns, state.wired) : [];
+  const when = state.ticked.has(part.ref) ? solderedAt(state.log, part.ref) : null;
   return {
+    solderedAt: when ? `Soldered at ${clock(when)}${day(when) !== day(Date.now()) ? ` on ${day(when)}` : ''}` : null,
     bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
     code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
@@ -1371,6 +1405,98 @@ function saveShoppingCsv() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// ---- history: the build log, named versions, the build report (0.5 B10, improvement 47) ----
+function renderLog() {
+  const filter = $('#log-filter').value.trim().toLowerCase();
+  const entries = [...state.log].reverse().filter((e) => !filter || e.text.toLowerCase().includes(filter)).slice(0, 400);
+  $('#log-list').replaceChildren(...entries.map((e) => el('li', {}, el('time', {}, clock(e.t)), ' ', e.text)));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  $('#log-time').textContent = `Time spent today: ${duration(timeSpent(state.log, today.getTime()))} · in all: ${duration(timeSpent(state.log))}`;
+}
+
+function openLog() {
+  renderLog();
+  $('#log').showModal();
+}
+
+const versionsKey = () => `versions:${projectName()}`;
+const snapshot = () => JSON.parse(exportProgress({
+  project: projectName(), revision: state.project ? state.project.revision : null,
+  ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
+  myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
+}));
+
+function renderVersions() {
+  const versions = cleanVersions(store.get(versionsKey(), []));
+  $('#versions-list').replaceChildren(...versions.map((v) => {
+    const restore = el('button', { type: 'button', className: 'version-restore' }, 'Restore');
+    restore.addEventListener('click', () => restoreVersion(v));
+    const armed = state.versionDeleteAt.name === v.name && Date.now() - state.versionDeleteAt.t < 5000;
+    const del = el('button', { type: 'button', className: 'version-delete' }, armed ? 'Click again to delete' : 'Delete');
+    del.addEventListener('click', () => {
+      if (!(state.versionDeleteAt.name === v.name && Date.now() - state.versionDeleteAt.t < 5000)) {
+        state.versionDeleteAt = { name: v.name, t: Date.now() };
+        renderVersions();
+        return;
+      }
+      state.versionDeleteAt = { name: null, t: 0 };
+      store.set(versionsKey(), cleanVersions(store.get(versionsKey(), [])).filter((x) => x.name !== v.name));
+      renderVersions();
+    });
+    return el('li', {}, el('strong', {}, v.name), el('span', { className: 'version-when' }, ` ${day(v.at)} ${clock(v.at)}`), restore, del);
+  }));
+}
+
+function openVersions() {
+  renderVersions();
+  $('#versions').showModal();
+}
+
+function saveVersion() {
+  const name = $('#version-name').value.trim() || `Version ${cleanVersions(store.get(versionsKey(), [])).length + 1}`;
+  store.set(versionsKey(), addVersion(cleanVersions(store.get(versionsKey(), [])), name, snapshot()));
+  $('#version-name').value = '';
+  addLog(`Saved version "${name}"`);
+  renderVersions();
+}
+
+function restoreVersion(v) {
+  let data;
+  try {
+    data = importProgress(JSON.stringify({ ...v.data, format: 'bench-progress', version: 1 }));
+  } catch {
+    setStatus(`Version "${v.name}" couldn't be read.`);
+    return;
+  }
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
+  history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
+  setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
+}
+
+function saveReport() {
+  const board = state.project ? state.project.board : null;
+  const groups = currentGroups();
+  const steps = stepsOf();
+  const checks = powerChecks(board);
+  const tests = currentTests();
+  const summary = continuitySummary(tests, state.continuity);
+  const text = buildReport({
+    project: projectName(), revision: state.project ? state.project.revision : null, now: Date.now(),
+    soldered: state.parts.filter((p) => state.ticked.has(p.ref)).length, parts: state.parts.length,
+    wired: groups.reduce((n, g) => n + g.members.filter((m) => state.wired.has(m.key)).length, 0), legs: groups.reduce((n, g) => n + g.members.length, 0),
+    stepsDone: steps.filter(stepDone).length, steps: steps.length,
+    checksDone: checks.filter((c) => state.checks.has(c.id)).length, checks: checks.length,
+    continuityDone: summary.done, continuity: summary.total, faults: summary.faults.map(faultText),
+    placed: Object.keys(state.myBoard.placed).length + (Object.keys(state.myBoard.photos).length ? 1 : 0), boardParts: board ? Object.keys(board.parts).length : 0,
+    time: timeSpent(state.log), unsoldered: state.parts.filter((p) => !state.ticked.has(p.ref)).map((p) => p.ref), notes: state.notes,
+  });
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
+  download(url, `${fileSafe(projectName())}-build-report.md`);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /** Start over: the first click asks, a second within 5 s clears the ticks. Undo brings them back. */
 function startOver() {
   if (Date.now() - state.startOverAt >= 5000) {
@@ -1629,6 +1755,7 @@ function loadProgress() {
   state.notes = data ? data.notes : {};
   state.checks = new Set(data ? data.checks : []);
   state.continuity = data ? data.continuity : {};
+  state.log = data ? data.log : [];
   refreshNotes();
 }
 
@@ -1643,7 +1770,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log });
   if (saved) flashSaved();
 }
 
@@ -1773,6 +1900,9 @@ function renderChecklist() {
     notes,
     el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open,
       el('button', { id: 'shopping-open', type: 'button' }, 'Shopping list'),
+      el('button', { id: 'log-open', type: 'button' }, 'Build log'),
+      el('button', { id: 'versions-open', type: 'button' }, 'Versions'),
+      el('button', { id: 'report-save', type: 'button', title: 'A summary of where the build stands, as a Markdown file' }, 'Build report'),
       el('button', { id: 'start-over', type: 'button', title: 'Clear the soldered, wired and done ticks (undo brings them back)' },
         Date.now() - state.startOverAt < 5000 ? 'Click again to start over' : 'Start over')),
     el('label', { className: 'check' }, openOnly, ' Only not soldered'),
@@ -1783,7 +1913,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -2021,7 +2151,7 @@ function renderTabs() {
 }
 
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
@@ -2127,6 +2257,12 @@ async function start() {
   if ('wakeLock' in navigator && store.get('keepScreenOn', false) === true) setWake(true);
   darkScheme.addEventListener('change', () => applySettings(document.documentElement, settings, darkScheme.matches));
   $('#shopping-copy').addEventListener('click', copyShopping);
+  $('#log-filter').addEventListener('input', renderLog);
+  $('#log-copy').addEventListener('click', () => copyText(logText(state.log), 'Build log copied.'));
+  $('#log-done').addEventListener('click', () => $('#log').close());
+  $('#version-save').addEventListener('click', saveVersion);
+  $('#version-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') saveVersion(); });
+  $('#versions-done').addEventListener('click', () => $('#versions').close());
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
@@ -2176,6 +2312,9 @@ async function start() {
     if (e.target instanceof HTMLElement && e.target.id === 'notes-checked') acknowledgeNotes();
     if (e.target instanceof HTMLElement && e.target.dataset.open) selectPart(e.target.dataset.open);
     if (e.target instanceof HTMLElement && e.target.id === 'shopping-open') openShopping();
+    if (e.target instanceof HTMLElement && e.target.id === 'log-open') openLog();
+    if (e.target instanceof HTMLElement && e.target.id === 'versions-open') openVersions();
+    if (e.target instanceof HTMLElement && e.target.id === 'report-save') saveReport();
     if (e.target instanceof HTMLElement && e.target.id === 'start-over') startOver();
   });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {

@@ -114,6 +114,26 @@
   </dl>
   <button id="help-done" class="primary" type="button">Done</button>
 </dialog>
+<dialog id="log" aria-labelledby="log-title">
+  <h2 id="log-title">Build log</h2>
+  <p id="log-time" class="hint"></p>
+  <input id="log-filter" type="search" placeholder="Filter, for example R8 or Wired" aria-label="Filter the log">
+  <ol id="log-list"></ol>
+  <div class="dialog-actions">
+    <button id="log-copy" type="button">Copy as text</button>
+    <button id="log-done" class="primary" type="button">Done</button>
+  </div>
+</dialog>
+<dialog id="versions" aria-labelledby="versions-title">
+  <h2 id="versions-title">Versions of your progress</h2>
+  <p class="hint">Save everything you've done (ticks, wiring, your board, notes, checks) under a name, and go back to it later. Restoring can be undone.</p>
+  <div class="dialog-actions" style="justify-content:flex-start">
+    <input id="version-name" type="text" maxlength="80" placeholder="For example: before power-up" aria-label="Version name">
+    <button id="version-save" type="button" class="primary">Save this version</button>
+  </div>
+  <ul id="versions-list"></ul>
+  <div class="dialog-actions"><button id="versions-done" type="button">Done</button></div>
+</dialog>
 <dialog id="shopping" aria-labelledby="shopping-title">
   <h2 id="shopping-title">Shopping list</h2>
   <p class="hint">Every part in the project, grouped by what you buy.</p>

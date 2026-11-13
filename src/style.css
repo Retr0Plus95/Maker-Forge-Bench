@@ -555,3 +555,15 @@ body.print-step #top, body.print-step #status, body.print-step #stage, body.prin
 #myboard-routes { padding-left: 0; list-style: none; }
 #myboard-routes > li { margin: 6px 0; }
 #myboard-routes ul { margin: 2px 0 0 12px; padding: 0; font-size: .85rem; color: var(--muted); }
+
+/* ---- history (0.5) ---- */
+#log, #versions { width: min(640px, 92vw); }
+#log-filter, #version-name { font: inherit; padding: 4px 8px; }
+#log-filter { width: 100%; box-sizing: border-box; }
+#log-list { max-height: 50vh; overflow: auto; padding-left: 0; list-style: none; }
+#log-list li { padding: 3px 0; border-bottom: 1px solid var(--line); }
+#log-list time { font-family: ui-monospace, Consolas, monospace; color: var(--muted); margin-right: 8px; }
+#versions-list { padding-left: 0; list-style: none; }
+#versions-list li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+#versions-list .version-when { color: var(--muted); font-size: .85rem; margin-right: auto; }
+.part-soldered-at { color: var(--good); font-weight: 700; }
