@@ -83,6 +83,11 @@ describe('3D board extras', () => {
     await page.locator('#board3d-toggle').click();
     await page.waitForFunction(() => window.makerForge.board3d.view() !== null, null, { timeout: 15000 });
     assert.ok(near((await info(page)).target, target), `kept: ${(await info(page)).target} vs ${target}`);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[type=checkbox]').length > 0);
+    await page.locator('#board3d-toggle').click();
+    await page.waitForFunction(() => window.makerForge.board3d.view() !== null, null, { timeout: 15000 });
+    assert.ok(near((await info(page)).target, target), 'still kept after a second reload');
     await page.locator('#stage').click({ position: { x: 5, y: 5 } });
     await page.keyboard.press('b');
     assert.equal(await page.locator('#board3d').isVisible(), false);

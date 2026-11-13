@@ -89,6 +89,13 @@ describe('parts, checklist and Find extras', () => {
     assert.equal(await page.evaluate(() => window.makerForge.context().ownNote), 'used a 4.7k here', 'Claude sees your note');
   });
 
+  test('a note being typed is not lost when the card redraws', async () => {
+    await openCard(page, 'R7');
+    await page.locator('#part-own-note').fill('half typed');
+    await page.locator('#part-own-note').evaluate(() => document.querySelector('#part-tick').click());
+    assert.equal(await page.locator('#part-own-note').inputValue(), 'half typed');
+  });
+
   test('"Next part in this step" moves to the next part not soldered yet', async () => {
     await openCard(page, 'R8');
     await page.locator('#part-next-in-step').click();

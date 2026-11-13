@@ -334,6 +334,7 @@ export async function createBoard3D(host, board, { onPick, camera: savedCamera =
     controls.target.fromArray(savedCamera.target);
     controls.update();
     render();
+    onCamera(cameraNow()); // view() above saved the default: save the restored camera over it
   }
 
   return {

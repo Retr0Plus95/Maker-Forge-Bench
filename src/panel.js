@@ -42,6 +42,16 @@ export function renderHint(container) {
  *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
 export function renderCard(container, part, o) {
+  // text you're typing (your note before you leave it, a question for Claude) survives a redraw of the same card
+  // (your note only while you're in it: an undo must show the note it brings back)
+  const drafts = {};
+  if (container.dataset.ref === part.ref) {
+    const note = container.querySelector('#part-own-note');
+    if (note && document.activeElement === note) drafts['part-own-note'] = note.value;
+    const question = container.querySelector('#ask-question');
+    if (question) drafts['ask-question'] = question.value;
+  }
+  container.dataset.ref = part.ref;
   const title = el('h2', {}, part.ref);
   if (part.value) title.append(' ', el('span', { className: 'part-value' }, part.value));
   if (part.polarized) title.append(' ', el('span', { className: 'badge-polarity' }, 'Way round matters'));
@@ -117,7 +127,12 @@ export function renderCard(container, part, o) {
     }
   }
 
-  if (o.myBoard) {
+  if (o.myBoard && o.myBoard.lineUp) {
+    const lineUp = el('button', { id: 'part-line-up', type: 'button', 'data-focus': 'line-up' }, 'Line up a photo');
+    lineUp.addEventListener('click', o.myBoard.lineUp);
+    children.push(el('p', { className: 'part-myboard' }, 'Your board: this part lines up your photos. Open a photo of your board and tap its pins 1 and 14.'),
+      el('div', { className: 'part-actions' }, lineUp));
+  } else if (o.myBoard) {
     const m = o.myBoard;
     const line = el('p', { className: 'part-myboard' }, m.anchor ? 'Your board: this part lines up your photos.' : m.placed ? 'Placed on your board.' : "Not on your board's photos yet.");
     const buttons = el('div', { className: 'part-actions' });
@@ -136,7 +151,7 @@ export function renderCard(container, part, o) {
 
   if (o.ownNote) {
     const note = el('textarea', { id: 'part-own-note', rows: '2', placeholder: 'For example: used a 4.7k here', 'data-focus': 'own-note' });
-    note.value = o.ownNote.text;
+    note.value = drafts['part-own-note'] ?? o.ownNote.text;
     note.addEventListener('change', () => o.ownNote.onSave(note.value));
     children.push(el('label', { for: 'part-own-note', className: 'part-own-note-label' }, 'Your note'), note);
   }
@@ -154,6 +169,7 @@ export function renderCard(container, part, o) {
   let askBox = null;
   if (o.ask) {
     const question = el('textarea', { id: 'ask-question', rows: '2', placeholder: o.ask.placeholder });
+    question.value = drafts['ask-question'] ?? '';
     const done = el('span', { id: 'ask-done', 'aria-live': 'polite' });
     const say = (ok) => { done.textContent = ok ? 'Copied' : "Couldn't copy: allow the clipboard, or select the text and copy it."; };
     const copy = el('button', { id: 'ask-copy', type: 'button' }, 'Copy for Claude');

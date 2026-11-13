@@ -96,6 +96,7 @@ describe('your board, from your photos', () => {
 
   test('the underside photo, lined up the same way, shows the part mirrored where it really is', async () => {
     await showTab(page, 'board-under');
+    assert.match(await page.locator('#myboard-status').textContent(), /not lined up yet/i, "another photo's status");
     await page.locator('#myboard-under').click();
     await page.locator('#myboard-line').click();
     await tapAt(page, 300, 100);
@@ -136,4 +137,28 @@ describe('your board, from your photos', () => {
   });
 
   test('no errors', () => assert.deepEqual(problems, []));
+});
+
+describe('your board: the chip before any photo is lined up', () => {
+  test("the chip's card offers to line up a photo, and that starts the taps", async () => {
+    const dir = await copyFixture('fume-extractor');
+    await writeFile(path.join(dir, 'forge-project.json'), await readFile(PROJECT));
+    await mkdir(path.join(dir, 'my-board'));
+    await writeFile(path.join(dir, 'my-board', 'board-top.png'), solidPng(600, 500));
+    const server = await startDevServer(dir);
+    const { browser, page, problems } = await openPage(server.url, { width: 1280, height: 900 });
+    try {
+      await page.waitForFunction(() => document.querySelectorAll('#checklist input[type=checkbox]').length > 0);
+      await openCard(page, 'U2');
+      assert.match(await page.locator('#part-card .part-myboard').textContent(), /lines up your photos/);
+      assert.equal(await page.locator('#part-place').count(), 0, 'the chip is not placed by tapping 28 holes');
+      await page.locator('#part-line-up').click();
+      await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent === 'board-top');
+      assert.match(await page.locator('#myboard-status').textContent(), /tap U2 pin 1/i);
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
 });

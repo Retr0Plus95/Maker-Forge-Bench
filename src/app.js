@@ -809,6 +809,7 @@ function renderMyBoardPanel() {
 
 /** Everything that shows your board: the marks, the section, the photo's brightness. */
 function updateMyBoard() {
+  if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
   if (img) img.style.filter = photoBright(state.current) ? 'brightness(1.6) contrast(1.15)' : '';
   if (state.mode && state.mode.sheet !== state.current) stopTapping('');
@@ -818,6 +819,7 @@ function updateMyBoard() {
 
 function say(text) {
   state.myBoardStatus = text;
+  state.myBoardStatusSheet = state.current;
   renderMyBoardPanel();
 }
 
@@ -949,10 +951,20 @@ async function showOnPhoto(ref) {
   selectPart(ref);
 }
 
+/** The chip's card, before any photo is lined up: go to the first photo and start the two taps. */
+async function lineUpFromCard() {
+  const photo = state.sheets.find((s) => !s.missing && (s.type === 'png' || s.type === 'jpg'));
+  if (!photo) return;
+  if (photo.id !== state.current) await selectSheet(photo.id);
+  state.myBoardOpen = true;
+  startLining();
+}
+
 function myBoardCardOptions(ref, onBoard) {
   if (!onBoard || !hasPhotos()) return null;
+  if (ref === anchorRef() && !linedPhoto()) return { lineUp: lineUpFromCard };
   return {
-    anchor: ref === anchorRef() && Boolean(linedPhoto()),
+    anchor: ref === anchorRef(),
     placed: Boolean(state.myBoard.placed[ref]) && Boolean(linedPhoto()),
     onPlace: () => placeOnBoard(ref),
     onShow: () => showOnPhoto(ref),
