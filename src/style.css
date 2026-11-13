@@ -532,3 +532,15 @@ h1 {
 .board3d-tip[hidden] { display: none; }
 #board3d-measure { position: absolute; left: 8px; top: 8px; padding: 4px 10px; border-radius: 6px; background: #ff2bd6; color: #fff; font-weight: 700; z-index: 3; }
 #board3d-measure[hidden] { display: none; }
+
+/* ---- continuity test and step extras (0.5) ---- */
+#continuity progress { width: 100%; height: 10px; accent-color: var(--good); }
+#continuity-now { margin: 8px 0; padding: 10px; border-radius: var(--r); border: 2px solid var(--accent); background: var(--accent-soft); }
+#continuity-now[data-kind="nobeep"] { border-color: var(--warn); }
+.cont-pair { font-size: 1.1rem; margin: 0 0 4px; }
+.cont-expect { margin: 0 0 8px; font-weight: 700; }
+.cont-actions, .step-extras { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+#continuity-faults li { margin: 6px 0; padding-left: 8px; border-left: 4px solid var(--danger); }
+#step-note { width: 100%; box-sizing: border-box; font: inherit; }
+body.print-step #top, body.print-step #status, body.print-step #stage, body.print-step #stage2, body.print-step #panel > section:not(#steps) { display: none !important; }
+@media print { body.print-step #steps .steps-list, body.print-step #steps .step-nav, body.print-step #steps .step-extras { display: none !important; } }

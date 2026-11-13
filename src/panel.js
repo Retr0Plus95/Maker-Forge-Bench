@@ -250,6 +250,9 @@ export function renderCard(container, part, o) {
  * Back / Next and "Tick all in this step".
  */
 export function renderSteps(container, steps, o) {
+  // a step note being typed survives a redraw (only while you're in it, so undo shows what it brings back)
+  const typing = container.querySelector('#step-note');
+  const stepDraft = typing && document.activeElement === typing ? typing.value : null;
   if (!steps.length) {
     container.replaceChildren();
     return;
@@ -310,7 +313,22 @@ export function renderSteps(container, steps, o) {
       all.addEventListener('click', () => o.onTickAll(o.current));
       nav.append(all);
     }
-    box.append(nav, el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
+    box.append(nav);
+    if (o.extras) {
+      const x = o.extras;
+      if (x.joints) box.append(el('p', { className: 'step-joints hint' }, `About ${x.joints} solder joints in this step.`));
+      const note = el('textarea', { id: 'step-note', rows: '2', placeholder: 'Your note on this step', 'data-focus': 'step-note' });
+      note.value = stepDraft ?? (x.note || '');
+      note.addEventListener('change', () => x.onNote(note.value));
+      const print = el('button', { type: 'button', id: 'step-print', 'data-focus': 'step-print' }, 'Print this step');
+      print.addEventListener('click', x.onPrint);
+      const auto = el('input', { type: 'checkbox', id: 'steps-auto', 'data-focus': 'steps-auto' });
+      auto.checked = x.auto;
+      auto.addEventListener('change', () => x.onAuto(auto.checked));
+      box.append(el('label', { for: 'step-note', className: 'part-own-note-label' }, 'Your note'), note,
+        el('div', { className: 'step-extras' }, print, el('label', { className: 'check' }, auto, ' Next step by itself when this one is done')));
+    }
+    box.append(el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
     children.push(box);
   }
   // the panel is rebuilt on every change: the keyboard focus goes back where it was
@@ -370,6 +388,58 @@ export function renderChecks(container, o) {
     el('p', { className: 'hint' }, 'Do these with a multimeter before the chip goes in its socket.'),
     list,
   ));
+}
+
+/**
+ * The guided continuity test (0.5 big improvement B6).
+ * o: { summary, results, onAnswer(test, beeped), onSkip(), onShow(ref), onRetry(id), onReset(), faultText(test) }
+ */
+export function renderContinuity(container, o) {
+  const { summary } = o;
+  if (!summary.total) {
+    container.replaceChildren();
+    return;
+  }
+  const bar = el('progress', { max: String(summary.total) });
+  bar.value = summary.done;
+  const children = [
+    el('h2', {}, 'Continuity test'),
+    el('p', { className: 'progress-text' }, `${summary.done} of ${summary.total} done · ${summary.faults.length} ${summary.faults.length === 1 ? 'fault' : 'faults'}`),
+    bar,
+    el('p', { className: 'hint' }, 'Power off, meter on beep. Put one probe on each leg it names, then say what the meter did.'),
+  ];
+  const t = summary.next;
+  if (t) {
+    const beeped = el('button', { id: 'cont-beeped', type: 'button', className: 'primary', 'data-focus': 'beeped' }, 'Beeped');
+    beeped.addEventListener('click', () => o.onAnswer(t, true));
+    const silent = el('button', { id: 'cont-silent', type: 'button', 'data-focus': 'silent' }, 'No beep');
+    silent.addEventListener('click', () => o.onAnswer(t, false));
+    const skip = el('button', { id: 'cont-skip', type: 'button', 'data-focus': 'skip' }, 'Skip');
+    skip.addEventListener('click', o.onSkip);
+    const show = el('button', { id: 'cont-show', type: 'button', 'data-focus': 'show' }, `Show ${t.a.ref}`);
+    show.addEventListener('click', () => o.onShow(t.a.ref));
+    children.push(el('div', { id: 'continuity-now', 'data-kind': t.kind },
+      el('p', { className: 'cont-pair' }, el('strong', {}, t.a.text), ' and ', el('strong', {}, t.b.text)),
+      el('p', { className: 'cont-expect' }, t.kind === 'beep' ? `It should beep: both are on ${t.line}.` : 'It must not beep: neighbouring pins on different lines.'),
+      el('div', { className: 'cont-actions' }, beeped, silent, skip, show)));
+  } else {
+    children.push(el('p', { id: 'continuity-done' }, summary.faults.length ? 'Every pair tested. Fix the faults below, then test them again.' : 'Every pair tested, no faults.'));
+  }
+  if (summary.faults.length) {
+    const list = el('ul', { id: 'continuity-faults' });
+    for (const f of summary.faults) {
+      const show = el('button', { type: 'button', className: 'part-link' }, `Show ${f.a.ref}`);
+      show.addEventListener('click', () => o.onShow(f.a.ref));
+      const again = el('button', { type: 'button', className: 'cont-retry' }, 'Test again');
+      again.addEventListener('click', () => o.onRetry(f.id));
+      list.append(el('li', {}, o.faultText(f), ' ', show, ' ', again));
+    }
+    children.push(el('h3', {}, 'Faults'), list);
+  }
+  const reset = el('button', { id: 'cont-reset', type: 'button' }, 'Start the test again');
+  reset.addEventListener('click', o.onReset);
+  children.push(reset);
+  keepFocus(container, () => container.replaceChildren(...children), '#cont-beeped, #cont-reset');
 }
 
 // ---- the pin view (0.4 design F2) ----

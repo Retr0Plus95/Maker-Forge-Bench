@@ -1,7 +1,8 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
@@ -65,6 +66,8 @@ const state = {
   checks: new Set(), // ticked checks before power, and steps marked done by hand (0.4)
   folded: new Set(), // panel sections folded away (0.4.1)
   startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
+  continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
+  contSkipped: new Set(), // tests skipped for now (not saved)
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -696,6 +699,7 @@ function updateParts() {
   renderStepsPanel();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
 }
 
 // ---- the 3D board (board-view design §5), over the dimmed schematic ----
@@ -1237,8 +1241,8 @@ function startOver() {
     return;
   }
   state.startOverAt = 0;
-  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks] };
-  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [] }), revert: () => setProgress(before) });
+  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity };
+  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {} }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
 
@@ -1332,6 +1336,76 @@ function setCheck(id, on, label) {
   history.do({ label, apply: () => setProgress({ checks: after }), revert: () => setProgress({ checks: before }) });
 }
 
+// ---- the guided continuity test (0.5 big improvement B6) ----
+const currentTests = () => continuityTests(state.project ? state.project.board : null);
+
+function setContinuity(next, label) {
+  const before = state.continuity;
+  history.do({ label, apply: () => setProgress({ continuity: next }), revert: () => setProgress({ continuity: before }) });
+}
+
+function renderContinuityPanel() {
+  const tests = currentTests();
+  const summary = continuitySummary(tests.filter((t) => state.continuity[t.id] || !state.contSkipped.has(t.id)), state.continuity);
+  const full = continuitySummary(tests, state.continuity);
+  renderContinuity($('#continuity'), {
+    summary: { ...full, next: summary.next },
+    faultText,
+    onAnswer: (test, beeped) => {
+      const pass = test.kind === 'beep' ? beeped : !beeped;
+      setContinuity({ ...state.continuity, [test.id]: pass ? 'pass' : 'fail' }, `${test.a.text} to ${test.b.text}: ${beeped ? 'beeped' : 'no beep'}`);
+    },
+    onSkip: () => {
+      if (summary.next) state.contSkipped.add(summary.next.id);
+      renderContinuityPanel();
+    },
+    onShow: (ref) => selectPart(ref),
+    onRetry: (id) => {
+      const next = { ...state.continuity };
+      delete next[id];
+      setContinuity(next, 'Test again');
+    },
+    onReset: () => {
+      state.contSkipped.clear();
+      setContinuity({}, 'Start the continuity test again');
+    },
+  });
+}
+
+// ---- step extras (0.5 improvements 27-30) ----
+function autoStepWasDone() {
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  return step ? stepDone(step) : true;
+}
+
+/** "Next step by itself": when the open step has just become done, open the next one. */
+function autoNextStep(wasDone) {
+  if (wasDone || !store.get('stepsAuto', false)) return;
+  const steps = stepsOf();
+  const step = state.openStep !== null ? steps[state.openStep] : null;
+  if (step && stepDone(step) && state.openStep < steps.length - 1) {
+    openStep(state.openStep + 1);
+    setStatus(`Step ${state.openStep} done: on to step ${state.openStep + 1}.`);
+  }
+}
+
+function stepExtras(step) {
+  const board = state.project ? state.project.board : null;
+  const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
+  return {
+    joints,
+    note: state.notes[`step.${step.id}`] || '',
+    onNote: (text) => setNote(`step.${step.id}`, text),
+    onPrint: () => {
+      document.body.classList.add('print-step');
+      window.print();
+      setTimeout(() => document.body.classList.remove('print-step'), 500);
+    },
+    auto: store.get('stepsAuto', false) === true,
+    onAuto: (on) => { store.set('stepsAuto', on); },
+  };
+}
+
 function renderChecksPanel() {
   renderChecks($('#checks'), {
     checks: powerChecks(state.project ? state.project.board : null),
@@ -1344,6 +1418,7 @@ function renderStepsPanel() {
   renderSteps($('#steps'), stepsOf(), {
     current: state.openStep,
     isDone: stepDone,
+    extras: state.openStep !== null && stepsOf()[state.openStep] ? stepExtras(stepsOf()[state.openStep]) : null,
     onMarkDone: (i, on) => setCheck(`step:${stepsOf()[i].id}`, on, `Step ${i + 1} ${on ? 'done' : 'not done'}`),
     on3D: state.project && state.project.board ? () => setBoard3D(true) : null,
     doneIn: (step) => step.parts.filter((r) => state.ticked.has(r)).length,
@@ -1413,6 +1488,7 @@ function loadProgress() {
   state.myBoard = data ? data.myBoard : { anchor: null, photos: {}, placed: {} };
   state.notes = data ? data.notes : {};
   state.checks = new Set(data ? data.checks : []);
+  state.continuity = data ? data.continuity : {};
   refreshNotes();
 }
 
@@ -1427,7 +1503,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity });
   if (saved) flashSaved();
 }
 
@@ -1443,6 +1519,7 @@ function checkProgressKey() {
   renderChecklist();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
   renderPartCard();
   updateMyBoard();
 }
@@ -1477,7 +1554,8 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity }) {
+  const stepWasDone = autoStepWasDone();
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -1493,6 +1571,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks })
   if (myBoard) state.myBoard = myBoard;
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
+  if (continuity) state.continuity = continuity;
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -1504,8 +1583,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks })
   renderStepsPanel();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
   renderPartCard();
   updateMyBoard();
+  autoNextStep(stepWasDone);
 }
 
 function toggleTick(ref) {
@@ -1562,7 +1643,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -1587,8 +1668,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
