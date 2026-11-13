@@ -7,6 +7,7 @@ import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
 import { findLines, findValues, nextInStep } from './lookup.js';
+import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
 import { pinText } from './wiring.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -59,6 +60,8 @@ const state = {
   notes: {}, // your own note on each part (0.4 improvement 10)
   checklistOpenOnly: false, // the checklist shows only parts not soldered yet
   checks: new Set(), // ticked checks before power, and steps marked done by hand (0.4)
+  folded: new Set(), // panel sections folded away (0.4.1)
+  startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -91,12 +94,13 @@ function flashSaved() {
   savedTimer = setTimeout(() => { mark.textContent = ''; }, 2000);
 }
 
+const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 let settings = cleanSettings(store.get('settings', DEFAULT_SETTINGS));
-applySettings(document.documentElement, settings);
+applySettings(document.documentElement, settings, darkScheme.matches);
 
 function setSettings(next) {
   settings = next;
-  applySettings(document.documentElement, next);
+  applySettings(document.documentElement, next, darkScheme.matches);
   fillSettings($('#settings'), next);
   if (store.set('settings', next)) flashSaved();
 }
@@ -106,8 +110,8 @@ history.subscribe((h) => {
   const redo = $('#redo');
   undo.disabled = !h.canUndo;
   redo.disabled = !h.canRedo;
-  undo.title = h.undoLabel ? `Undo ${h.undoLabel}` : 'Nothing to undo';
-  redo.title = h.redoLabel ? `Redo ${h.redoLabel}` : 'Nothing to redo';
+  undo.title = h.undoLabel ? `Undo ${h.undoLabel} (Ctrl+Z)` : 'Nothing to undo';
+  redo.title = h.redoLabel ? `Redo ${h.redoLabel} (Ctrl+Y)` : 'Nothing to redo';
 });
 
 const SERVER_DOWN = "Can't reach dev.py. Is it still running? Start it again with: python dev.py <project folder>";
@@ -195,7 +199,7 @@ async function selectSheet(id) {
   setStageMessage('');
   setStatus('');
   const saved = state.views.get(id);
-  viewer.show(entry, { keepView: Boolean(saved) });
+  viewer.show(entry, { keepView: Boolean(saved), turn: store.get(`turn:${projectName()}:${id}`, 0) });
   if (saved) viewer.setView(saved);
   const wantFlip = state.flipped.has(id) && isLayout(id);
   if (wantFlip !== viewer.isFlipped()) viewer.setFlipped(wantFlip);
@@ -220,8 +224,7 @@ function updateFlip() {
   const allowed = canFlip();
   const flipped = Boolean(viewer.sheetRoot()) && viewer.isFlipped();
   button.disabled = !allowed;
-  if (allowed) button.removeAttribute('title');
-  else button.title = FLIP_DISABLED;
+  button.title = allowed ? 'See the layout from the solder side (F)' : FLIP_DISABLED;
   button.setAttribute('aria-pressed', String(allowed && flipped));
   button.textContent = allowed && flipped ? 'Back to component side' : 'Flip to solder side';
   $('#flip-banner').hidden = !flipped; // a mirrored drawing always says so
@@ -808,7 +811,22 @@ function renderMyBoardPanel() {
 }
 
 /** Everything that shows your board: the marks, the section, the photo's brightness. */
+function turnPhoto() {
+  if (!viewer.image()) return;
+  const next = (viewer.getTurn() + 90) % 360;
+  viewer.setTurn(next);
+  store.set(`turn:${projectName()}:${state.current}`, next);
+  updateRotateButton();
+}
+
+function updateRotateButton() {
+  const button = $('#rotate');
+  button.hidden = !viewer.image();
+  button.setAttribute('data-turn', String(viewer.image() ? viewer.getTurn() : 0));
+}
+
 function updateMyBoard() {
+  updateRotateButton();
   if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
   if (img) img.style.filter = photoBright(state.current) ? 'brightness(1.6) contrast(1.15)' : '';
@@ -968,7 +986,115 @@ function myBoardCardOptions(ref, onBoard) {
     placed: Boolean(state.myBoard.placed[ref]) && Boolean(linedPhoto()),
     onPlace: () => placeOnBoard(ref),
     onShow: () => showOnPhoto(ref),
+    onUnplace: () => changeMyBoard(`Take ${ref} off your board`, (b) => { delete b.placed[ref]; }),
   };
+}
+
+// ---- basics (0.4.1): folding, the panel, full screen, keep screen on, shopping list, start over ----
+const FOLDABLE = ['myboard', 'steps', 'wiring', 'checks', 'checklist'];
+
+/** Each foldable section's heading folds it; the sections are redrawn often, so this runs after every redraw. */
+function decorateFolds() {
+  for (const id of FOLDABLE) {
+    const section = document.getElementById(id);
+    const folded = state.folded.has(id);
+    section.toggleAttribute('data-folded', folded);
+    const heading = section.querySelector(':scope > h2');
+    if (!heading) continue;
+    if (heading.getAttribute('role') !== 'button') {
+      heading.setAttribute('role', 'button');
+      heading.tabIndex = 0;
+    }
+    heading.setAttribute('aria-expanded', String(!folded));
+    heading.title = folded ? 'Show this section' : 'Fold this section away';
+  }
+}
+
+function toggleFold(id) {
+  if (state.folded.has(id)) state.folded.delete(id);
+  else state.folded.add(id);
+  store.set('folded', [...state.folded]);
+  decorateFolds();
+}
+
+function foldTarget(e) {
+  const heading = e.target instanceof Element ? e.target.closest('section > h2[role="button"]') : null;
+  return heading && FOLDABLE.includes(heading.parentElement.id) ? heading.parentElement.id : null;
+}
+
+function setPanelHidden(hidden) {
+  $('#workspace').toggleAttribute('data-panel-hidden', hidden);
+  $('#panel-toggle').setAttribute('aria-pressed', String(hidden));
+  $('#panel-toggle').textContent = hidden ? 'Show panel' : 'Hide panel';
+  store.set('panelHidden', hidden);
+}
+
+function toggleFullscreen() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => setStatus("This browser won't go full screen here."));
+}
+
+let wakeLock = null;
+let wakeWanted = false;
+async function setWake(on) {
+  wakeWanted = on;
+  store.set('keepScreenOn', on);
+  if (on && !wakeLock) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch {
+      wakeWanted = false;
+      setStatus("This browser can't keep the screen on here.");
+    }
+  } else if (!on && wakeLock) {
+    const lock = wakeLock;
+    wakeLock = null;
+    await lock.release();
+  }
+  $('#wake').setAttribute('aria-pressed', String(wakeWanted));
+}
+
+function openShopping() {
+  const rows = shoppingList(state.parts);
+  const body = $('#shopping tbody');
+  body.replaceChildren(...rows.map((r) => el('tr', {},
+    el('td', {}, String(r.count)),
+    el('td', {}, `${r.value} ${r.type}${r.package ? `, ${r.package}` : ''}`),
+    el('td', {}, r.refs.join(', ')))));
+  $('#shopping').showModal();
+}
+
+async function copyShopping() {
+  try {
+    await navigator.clipboard.writeText(shoppingText(shoppingList(state.parts)));
+    setStatus('Shopping list copied.');
+  } catch {
+    setStatus("Couldn't copy: allow the clipboard for this page.");
+  }
+}
+
+function saveShoppingCsv() {
+  const url = URL.createObjectURL(new Blob([shoppingCsv(shoppingList(state.parts))], { type: 'text/csv' }));
+  const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-shopping-list.csv` });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Start over: the first click asks, a second within 5 s clears the ticks. Undo brings them back. */
+function startOver() {
+  if (Date.now() - state.startOverAt >= 5000) {
+    state.startOverAt = Date.now();
+    renderChecklist();
+    setTimeout(renderChecklist, 5100);
+    return;
+  }
+  state.startOverAt = 0;
+  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks] };
+  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [] }), revert: () => setProgress(before) });
+  setStatus('Started over. Ctrl+Z brings everything back.');
 }
 
 // ---- what to wire (0.4 design F1) ----
@@ -1014,6 +1140,10 @@ function renderWiringPanel() {
     onCopy: copyWiring,
     onOpenOnly: (on) => { state.wiringOpenOnly = on; renderWiringPanel(); },
     onExpand: (net, open) => { if (open) state.wiringExpanded.add(net); else state.wiringExpanded.delete(net); },
+    onExpandAll: (open) => {
+      state.wiringExpanded = new Set(open ? currentGroups().map((g) => g.net) : []);
+      renderWiringPanel();
+    },
   });
 }
 
@@ -1274,7 +1404,10 @@ function renderChecklist() {
     el('p', { className: 'progress-text' }, `${done} of ${total} soldered`),
     bar,
     notes,
-    el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open),
+    el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open,
+      el('button', { id: 'shopping-open', type: 'button' }, 'Shopping list'),
+      el('button', { id: 'start-over', type: 'button', title: 'Clear the soldered, wired and done ticks (undo brings them back)' },
+        Date.now() - state.startOverAt < 5000 ? 'Click again to start over' : 'Start over')),
     el('label', { className: 'check' }, openOnly, ' Only not soldered'),
     items,
   );
@@ -1521,7 +1654,7 @@ function renderTabs() {
 }
 
 function onKey(e) {
-  if (document.querySelector("dialog[open]#help")) return; // the help list handles its own keys (Esc closes it)
+  if (document.querySelector('dialog[open]:is(#help, #shopping)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
@@ -1558,6 +1691,9 @@ function onKey(e) {
     f: () => toggleFlip(),
     Escape: () => (state.mode ? stopTapping() : clearPart()),
     b: () => setBoard3D(!board3dOn),
+    s: () => state.selected && state.partsByRef.has(state.selected) && toggleTick(state.selected),
+    p: () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')),
+    r: () => turnPhoto(),
     '?': () => $('#help').showModal(),
     t: () => board3d && board3dOn && board3d.view('top'),
     u: () => board3d && board3dOn && board3d.view('bottom'),
@@ -1589,6 +1725,40 @@ async function start() {
   viewer.onView((v) => { $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`; });
   $('#zoom-level').addEventListener('click', () => viewer.fit());
   $('#help-done').addEventListener('click', () => $('#help').close());
+  state.folded = new Set((store.get('folded', []) || []).filter((id) => FOLDABLE.includes(id)));
+  new MutationObserver(decorateFolds).observe($('#panel'), { childList: true, subtree: true });
+  decorateFolds();
+  $('#panel').addEventListener('click', (e) => {
+    const id = foldTarget(e);
+    if (id) toggleFold(id);
+  });
+  $('#panel').addEventListener('keydown', (e) => {
+    const id = (e.key === 'Enter' || e.key === ' ') && foldTarget(e);
+    if (id) {
+      e.preventDefault();
+      toggleFold(id);
+    }
+  });
+  setPanelHidden(store.get('panelHidden', false) === true);
+  $('#panel-toggle').addEventListener('click', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
+  $('#rotate').addEventListener('click', turnPhoto);
+  $('#fullscreen').hidden = !document.fullscreenEnabled;
+  $('#fullscreen').addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', () => {
+    const on = Boolean(document.fullscreenElement);
+    $('#fullscreen').setAttribute('aria-pressed', String(on));
+    $('#fullscreen').textContent = on ? 'Leave full screen' : 'Full screen';
+  });
+  $('#wake').hidden = !('wakeLock' in navigator);
+  $('#wake').addEventListener('click', () => setWake(!wakeWanted));
+  document.addEventListener('visibilitychange', () => {
+    if (wakeWanted && !wakeLock && document.visibilityState === 'visible') setWake(true); // the browser lets go when hidden
+  });
+  if ('wakeLock' in navigator && store.get('keepScreenOn', false) === true) setWake(true);
+  darkScheme.addEventListener('change', () => applySettings(document.documentElement, settings, darkScheme.matches));
+  $('#shopping-copy').addEventListener('click', copyShopping);
+  $('#shopping-csv').addEventListener('click', saveShoppingCsv);
+  $('#shopping-done').addEventListener('click', () => $('#shopping').close());
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());
@@ -1611,6 +1781,8 @@ async function start() {
     if (e.target instanceof HTMLElement && e.target.id === 'progress-save') saveProgressFile();
     if (e.target instanceof HTMLElement && e.target.id === 'notes-checked') acknowledgeNotes();
     if (e.target instanceof HTMLElement && e.target.dataset.open) selectPart(e.target.dataset.open);
+    if (e.target instanceof HTMLElement && e.target.id === 'shopping-open') openShopping();
+    if (e.target instanceof HTMLElement && e.target.id === 'start-over') startOver();
   });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
     const before = settings;

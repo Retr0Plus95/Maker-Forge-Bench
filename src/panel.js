@@ -146,6 +146,11 @@ export function renderCard(container, part, o) {
       place.addEventListener('click', m.onPlace);
       buttons.append(place);
     }
+    if (m.placed && !m.anchor) {
+      const off = el('button', { id: 'part-unplace', type: 'button', 'data-focus': 'unplace' }, 'Take off my board');
+      off.addEventListener('click', m.onUnplace);
+      buttons.append(off);
+    }
     children.push(line, buttons);
   }
 
@@ -432,13 +437,17 @@ export function renderWiring(container, groups, o) {
   only.addEventListener('change', () => o.onOpenOnly(only.checked));
   const copy = el('button', { type: 'button', id: 'wiring-copy', 'data-focus': 'copy' }, 'Copy as text');
   copy.addEventListener('click', o.onCopy);
+  const openAll = el('button', { type: 'button', id: 'wiring-open-all', 'data-focus': 'open-all' }, 'Open all');
+  openAll.addEventListener('click', () => o.onExpandAll(true));
+  const closeAll = el('button', { type: 'button', id: 'wiring-close-all', 'data-focus': 'close-all' }, 'Close all');
+  closeAll.addEventListener('click', () => o.onExpandAll(false));
   const bar = el('progress', { max: String(Math.max(total, 1)) });
   bar.value = done;
   const children = [
     el('h2', {}, 'What to wire'),
     el('p', { className: 'progress-text' }, `${done} of ${total} legs wired`),
     bar,
-    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy),
+    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy, openAll, closeAll),
   ];
   for (const g of groups) {
     const doneHere = g.members.filter((m) => o.wired.has(m.key)).length;

@@ -53,21 +53,61 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     if (fitted) fit();
   }).observe(stage);
 
-  /** content: { kind: 'svg', root } or { kind: 'image', img } (the img already decoded). */
+  // A photo sits in a stack (the picture and its marks) inside a frame; turning the photo turns the
+  // stack and swaps the frame's sides, so zoom and fit work on what you see.
+  let turn = 0;
+  let frame = null;
+  let stack = null;
+  function layoutImage() {
+    const W = content.img.naturalWidth;
+    const H = content.img.naturalHeight;
+    size = turn % 180 ? { w: H, h: W } : { w: W, h: H };
+    frame.style.width = `${size.w}px`;
+    frame.style.height = `${size.h}px`;
+    stack.style.transform = { 0: '', 90: `translate(${H}px,0) rotate(90deg)`, 180: `translate(${W}px,${H}px) rotate(180deg)`, 270: `translate(0,${W}px) rotate(270deg)` }[turn];
+  }
+  /** A point in the frame (what you see) as a pixel of the photo itself. */
+  function photoPixel(X, Y) {
+    const W = content.img.naturalWidth;
+    const H = content.img.naturalHeight;
+    return { 0: [X, Y], 90: [Y, H - X], 180: [W - X, H - Y], 270: [W - Y, X] }[turn];
+  }
+
+  /** content: { kind: 'svg', root } or { kind: 'image', img } (the img already decoded). opts.turn: a photo's quarter turns. */
   function show(next, opts = {}) {
+    let node;
     if (next.kind === 'svg') {
       size = { w: Number(next.root.getAttribute('width')), h: Number(next.root.getAttribute('height')) };
+      node = next.root;
     } else {
-      size = { w: next.img.naturalWidth, h: next.img.naturalHeight };
-      next.img.width = size.w;
-      next.img.height = size.h;
+      next.img.width = next.img.naturalWidth;
+      next.img.height = next.img.naturalHeight;
       next.img.style.display = 'block';
+      stack = document.createElement('div');
+      stack.style.cssText = `position:absolute;left:0;top:0;transform-origin:0 0;width:${next.img.naturalWidth}px;height:${next.img.naturalHeight}px`;
+      stack.append(next.img);
+      frame = document.createElement('div');
+      frame.style.position = 'relative';
+      frame.append(stack);
+      node = frame;
     }
-    shadow.replaceChildren(ownStyle, next.kind === 'svg' ? next.root : next.img);
+    shadow.replaceChildren(ownStyle, node);
     overlay = null;
     content = next;
+    if (next.kind === 'image') {
+      turn = [90, 180, 270].includes(opts.turn) ? opts.turn : 0;
+      layoutImage();
+    }
     if (opts.keepView) apply(view);
     else fit();
+  }
+
+  /** Turns the photo on screen to 0, 90, 180 or 270 degrees, and fits it. */
+  function setTurn(deg) {
+    if (!content || content.kind !== 'image') return;
+    turn = [90, 180, 270].includes(deg) ? deg : 0;
+    layoutImage();
+    fit();
   }
 
   function clear() {
@@ -84,7 +124,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     overlay = null;
     if (!layer || !content || content.kind !== 'image') return;
     overlay = layer;
-    shadow.append(layer);
+    stack.append(layer);
   }
 
   // ---- labels: their box, and the ring around a found one ----
@@ -271,8 +311,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     if (label) for (const fn of labelListeners) fn(label);
     if (content && content.kind === 'image' && pointListeners.length) {
       const [sx, sy] = stagePoint(e);
-      const x = (sx - view.x) / view.scale;
-      const y = (sy - view.y) / view.scale;
+      const [x, y] = photoPixel((sx - view.x) / view.scale, (sy - view.y) / view.scale);
       for (const fn of pointListeners) fn(x, y);
     }
   });
@@ -307,7 +346,9 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     onPointClick: (fn) => pointListeners.push(fn),
     setOverlay,
     image: () => (content && content.kind === 'image' ? content.img : null),
-    imageSize: () => (content && content.kind === 'image' ? { ...size } : null),
+    imageSize: () => (content && content.kind === 'image' ? { w: content.img.naturalWidth, h: content.img.naturalHeight } : null),
+    setTurn,
+    getTurn: () => turn,
     stepRings,
     netRings,
     setFlipped,

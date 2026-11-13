@@ -17,18 +17,22 @@
     <span id="saved" aria-live="polite"></span>
     <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span> Undo</button>
     <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span> Redo</button>
+    <button id="wake" class="tool" type="button" aria-pressed="false" title="Stop the screen going dark while you solder">Keep screen on</button>
+    <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
   </div>
   <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
   <div class="bar">
     <div id="findbar" role="search">
       <label for="find">Find part</label>
-      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12">
+      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12" title="Find a part, a line or a value (/)">
     </div>
     <button id="flip" class="tool" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
-    <button id="split" class="tool" type="button" aria-pressed="false">Side by side</button>
-    <button id="board3d-toggle" class="tool" type="button" aria-pressed="false" hidden>3D board</button>
-    <button id="myboard-toggle" class="tool" type="button" aria-pressed="false" hidden>My board</button>
+    <button id="split" class="tool" type="button" aria-pressed="false" title="Two sheets at once, on a wide screen">Side by side</button>
+    <button id="board3d-toggle" class="tool" type="button" aria-pressed="false" hidden title="The perfboard in 3D (B)">3D board</button>
+    <button id="myboard-toggle" class="tool" type="button" aria-pressed="false" hidden title="Line up a photo of your own board">My board</button>
+    <button id="rotate" class="tool" type="button" hidden data-turn="0" title="Turn the photo a quarter (R)">Turn photo ↻</button>
+    <button id="panel-toggle" class="tool" type="button" aria-pressed="false" title="Hide or show the side panel (P)">Hide panel</button>
   </div>
   <div id="find-results"></div>
 </header>
@@ -85,12 +89,26 @@
   </dl>
   <button id="help-done" class="primary" type="button">Done</button>
 </dialog>
+<dialog id="shopping" aria-labelledby="shopping-title">
+  <h2 id="shopping-title">Shopping list</h2>
+  <p class="hint">Every part in the project, grouped by what you buy.</p>
+  <table>
+    <thead><tr><th scope="col">How many</th><th scope="col">Part</th><th scope="col">Which</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="dialog-actions">
+    <button id="shopping-copy" type="button">Copy as text</button>
+    <button id="shopping-csv" type="button">Save as spreadsheet (CSV)</button>
+    <button id="shopping-done" class="primary" type="button">Done</button>
+  </div>
+</dialog>
 <dialog id="settings" aria-labelledby="settings-title">
   <h2 id="settings-title">Easy reading</h2>
   <fieldset>
     <legend>Theme</legend>
     <label><input type="radio" name="theme" value="dark"> Dark</label>
     <label><input type="radio" name="theme" value="light"> Light</label>
+    <label><input type="radio" name="theme" value="system"> Same as this computer</label>
   </fieldset>
   <label class="check"><input type="checkbox" name="contrast"> High contrast</label>
   <label class="check"><input type="checkbox" name="clearFont"> Clear font (Atkinson Hyperlegible)</label>

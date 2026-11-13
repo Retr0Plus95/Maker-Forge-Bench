@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.4 works on a PC, from a local folder. Phone and tablet, GitHub links and the
+**Status:** release 0.4.1 works on a PC, from a local folder. Phone and tablet, GitHub links and the
 website come later (see the roadmap).
 
 ## Try it
@@ -64,6 +64,14 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
   when its drawing changes, keeping your zoom.
 - **Moving around:** `1`–`9` pick sheets, the zoom badge fits the sheet when clicked, Bench opens on
   the sheet you last looked at, and `?` lists every shortcut.
+- **At the bench:**
+  - **Full screen** and **Keep screen on**, so the screen doesn't go dark while you solder.
+  - **Hide panel** (`p`) for more drawing room; any panel section folds away from its heading.
+  - **Turn photo** (`r`) for a sideways photo.
+  - `s` marks the open part soldered.
+  - **Shopping list**: what to buy and how many, which you can copy or save as a spreadsheet.
+  - **Start over**, which asks twice and can be undone.
+  - Easy reading can follow your computer's light or dark setting.
 
 ## Describe your project: `forge-project.json`
 
