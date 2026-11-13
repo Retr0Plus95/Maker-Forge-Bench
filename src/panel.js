@@ -2,6 +2,7 @@
 // what to wire (0.4 design F1).
 // Everything is built with createElement and textContent: a project file's text is untrusted.
 import { isGroundLabel, isPowerLabel, pinText, stillToWire, wireKey } from './wiring.js';
+import { BAND_HEX } from './markings.js';
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -20,11 +21,14 @@ function el(tag, props = {}, ...children) {
 function keepFocus(container, build, fallbackSelector = 'button, input') {
   const active = document.activeElement;
   const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
+  const caret = focusKey && typeof active.selectionStart === 'number' ? [active.selectionStart, active.selectionEnd] : null;
   build();
   if (!focusKey) return;
   const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
   const fallback = container.querySelector(fallbackSelector);
-  (again && !again.disabled ? again : fallback)?.focus();
+  const target = again && !again.disabled ? again : fallback;
+  target?.focus();
+  if (caret && target === again && typeof again.setSelectionRange === 'function') again.setSelectionRange(...caret);
 }
 
 export function renderHint(container) {
@@ -69,6 +73,18 @@ export function renderCard(container, part, o) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
   }
 
+  const x = o.extras || {};
+  if (x.solderedAt) children.push(el('p', { className: 'part-soldered-at' }, x.solderedAt));
+  if (x.bands) children.push(bandsPicture(x.bands));
+  if (x.code) children.push(el('p', { className: 'part-code' }, `Printed on it: ${x.code} (${part.value})`));
+  if (x.polarity) children.push(polarityPicture(x.polarity));
+  if (x.library && x.library.polarity) children.push(el('p', { className: 'part-library-polarity' }, x.library.polarity));
+  if (x.library) {
+    children.push(el('details', { id: 'part-howto' },
+      el('summary', {}, `How to use it: ${x.library.name}`),
+      el('p', {}, x.library.howTo),
+      el('p', { className: 'hint' }, `From the Bench library. Source: ${x.library.source}.`)));
+  }
   if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
   if (o.step && o.step.onNext) {
     const next = el('button', { id: 'part-next-in-step', type: 'button', 'data-focus': 'next-in-step' }, `Next part in this step: ${o.step.next}`);
@@ -124,6 +140,11 @@ export function renderCard(container, part, o) {
       children.push(el('p', { className: 'part-unwired' }, left.length
         ? `Still to wire: ${left.length === 1 ? 'pin' : 'pins'} ${left.join(', ')}`
         : 'All its pins are wired.'));
+      if (left.length && x.onWireAll) {
+        const all = el('button', { id: 'part-wire-all', type: 'button', 'data-focus': 'wire-all' }, 'Mark all its pins wired');
+        all.addEventListener('click', x.onWireAll);
+        children.push(all);
+      }
     }
   }
 
@@ -162,6 +183,32 @@ export function renderCard(container, part, o) {
   }
 
   const actions = el('div', { className: 'part-actions' });
+  if (x.sameValue) {
+    const same = el('button', { id: 'part-tick-value', type: 'button', 'data-focus': 'tick-value' }, `Tick all ${x.sameValue.count} × ${x.sameValue.value}`);
+    same.addEventListener('click', x.sameValue.onTick);
+    actions.append(same);
+  }
+  if (x.onCopy) {
+    const copy = el('button', { id: 'part-copy', type: 'button', 'data-focus': 'copy', title: 'Copy the part and its value' }, 'Copy');
+    copy.addEventListener('click', x.onCopy);
+    actions.append(copy);
+  }
+  if (x.onLink) {
+    const link = el('button', { id: 'part-link', type: 'button', 'data-focus': 'link', title: 'A link that opens Bench right at this part' }, 'Copy link');
+    link.addEventListener('click', x.onLink);
+    actions.append(link);
+  }
+  if (x.searchHref) {
+    actions.append(el('a', { id: 'part-search', className: 'button-link', href: x.searchHref, target: '_blank', rel: 'noopener noreferrer',
+      title: 'Opens a web search for this part in a new tab' }, 'Search the web'));
+  }
+  if (x.onPrev || x.onNext) {
+    const prev = el('button', { id: 'part-prev', type: 'button', 'data-focus': 'prev', title: 'Previous part (,)' }, '← Previous part');
+    prev.addEventListener('click', x.onPrev);
+    const next = el('button', { id: 'part-next', type: 'button', 'data-focus': 'next', title: 'Next part (.)' }, 'Next part →');
+    next.addEventListener('click', x.onNext);
+    children.push(el('div', { className: 'part-nav' }, prev, next));
+  }
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
   }
@@ -212,6 +259,9 @@ export function renderCard(container, part, o) {
  * Back / Next and "Tick all in this step".
  */
 export function renderSteps(container, steps, o) {
+  // a step note being typed survives a redraw (only while you're in it, so undo shows what it brings back)
+  const typing = container.querySelector('#step-note');
+  const stepDraft = typing && document.activeElement === typing ? typing.value : null;
   if (!steps.length) {
     container.replaceChildren();
     return;
@@ -272,7 +322,22 @@ export function renderSteps(container, steps, o) {
       all.addEventListener('click', () => o.onTickAll(o.current));
       nav.append(all);
     }
-    box.append(nav, el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
+    box.append(nav);
+    if (o.extras) {
+      const x = o.extras;
+      if (x.joints) box.append(el('p', { className: 'step-joints hint' }, `About ${x.joints} solder joints in this step.`));
+      const note = el('textarea', { id: 'step-note', rows: '2', placeholder: 'Your note on this step', 'data-focus': 'step-note' });
+      note.value = stepDraft ?? (x.note || '');
+      note.addEventListener('change', () => x.onNote(note.value));
+      const print = el('button', { type: 'button', id: 'step-print', 'data-focus': 'step-print' }, 'Print this step');
+      print.addEventListener('click', x.onPrint);
+      const auto = el('input', { type: 'checkbox', id: 'steps-auto', 'data-focus': 'steps-auto' });
+      auto.checked = x.auto;
+      auto.addEventListener('change', () => x.onAuto(auto.checked));
+      box.append(el('label', { for: 'step-note', className: 'part-own-note-label' }, 'Your note'), note,
+        el('div', { className: 'step-extras' }, print, el('label', { className: 'check' }, auto, ' Next step by itself when this one is done')));
+    }
+    box.append(el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
     children.push(box);
   }
   // the panel is rebuilt on every change: the keyboard focus goes back where it was
@@ -303,15 +368,63 @@ export function renderMyBoard(container, o) {
   bright.addEventListener('change', () => o.onBright(bright.checked));
   actions.append(el('label', { className: 'check' }, bright, ' Brighter'));
   const status = el('p', { id: 'myboard-status', className: o.busy ? 'busy' : '', 'aria-live': 'polite' }, o.status);
-  keepFocus(container, () => container.replaceChildren(
+  const children = [
     el('h2', {}, 'Your board'),
     el('p', { className: 'hint' }, `This photo: ${o.photoLabel}`),
     el('div', { className: 'myboard-sides', role: 'group', 'aria-label': 'This photo shows' }, el('span', {}, 'It shows:'),
       sideButton('myboard-top', 'top', 'Top'), sideButton('myboard-under', 'bottom', 'Underneath')),
     actions,
     status,
-    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card.`),
-  ), '#myboard-line');
+    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card, or drag a selected part to move it.`),
+  ];
+  if (o.lined) {
+    const x = o.more;
+    const check = (id, label, on, fn) => {
+      const box = el('input', { type: 'checkbox', id, 'data-focus': id });
+      box.checked = on;
+      box.addEventListener('change', () => fn(box.checked));
+      return el('label', { className: 'check' }, box, ` ${label}`);
+    };
+    const size = el('select', { id: 'myboard-size', 'data-focus': 'size', 'aria-label': 'Mark size' });
+    for (const [value, text] of [['small', 'Small marks'], ['medium', 'Medium marks'], ['large', 'Large marks']]) {
+      const opt = el('option', { value }, text);
+      opt.selected = value === x.size;
+      size.append(opt);
+    }
+    size.addEventListener('change', () => x.onSize(size.value));
+    const next = el('button', { id: 'myboard-next', type: 'button', 'data-focus': 'next' }, 'Next part to place');
+    next.addEventListener('click', x.onNext);
+    const clear = el('button', { id: 'myboard-clear', type: 'button', 'data-focus': 'clear' }, x.clearArmed ? 'Click again to clear' : 'Clear my board');
+    clear.addEventListener('click', x.onClear);
+    children.push(
+      el('div', { className: 'myboard-actions' }, check('myboard-marks', 'Marks', x.marks, x.onMarks), size,
+        check('myboard-linelabels', 'Line labels', x.lineLabels, x.onLineLabels), check('myboard-wires', 'Suggested wires', x.wires, x.onWires)),
+      el('div', { className: 'myboard-actions' }, next, clear));
+    if (x.stepTodo) children.push(el('p', { id: 'myboard-step-todo', className: 'hint' }, x.stepTodo));
+    if (x.wires && x.routes.length) {
+      const list = el('ul', { id: 'myboard-routes' });
+      for (const g of x.routes) {
+        const shape = el('select', { 'aria-label': `Wire shape for ${g.label}`, 'data-focus': `route-${g.net}` });
+        for (const [value, text] of [['cols', 'along, then down'], ['rows', 'down, then along'], ['straight', 'straight']]) {
+          const opt = el('option', { value }, text);
+          opt.selected = value === g.shape;
+          shape.append(opt);
+        }
+        shape.addEventListener('change', () => x.onRoute(g.net, shape.value, g.label));
+        list.append(el('li', { 'data-net': g.net }, el('strong', {}, g.label), ' ', shape,
+          el('ul', {}, ...g.texts.map((t) => el('li', {}, t)))));
+      }
+      children.push(el('h3', {}, 'Suggested wires underneath'), list);
+    }
+    const findings = el('ul', { id: 'myboard-check' });
+    for (const f of x.findings) {
+      const show = el('button', { type: 'button', className: 'part-link' }, `Show ${f.refs[0]}`);
+      show.addEventListener('click', () => x.onShow(f.refs[0]));
+      findings.append(el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show));
+    }
+    children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
+  }
+  keepFocus(container, () => container.replaceChildren(...children), '#myboard-line');
 }
 
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
@@ -334,6 +447,58 @@ export function renderChecks(container, o) {
   ));
 }
 
+/**
+ * The guided continuity test (0.5 big improvement B6).
+ * o: { summary, results, onAnswer(test, beeped), onSkip(), onShow(ref), onRetry(id), onReset(), faultText(test) }
+ */
+export function renderContinuity(container, o) {
+  const { summary } = o;
+  if (!summary.total) {
+    container.replaceChildren();
+    return;
+  }
+  const bar = el('progress', { max: String(summary.total) });
+  bar.value = summary.done;
+  const children = [
+    el('h2', {}, 'Continuity test'),
+    el('p', { className: 'progress-text' }, `${summary.done} of ${summary.total} done · ${summary.faults.length} ${summary.faults.length === 1 ? 'fault' : 'faults'}`),
+    bar,
+    el('p', { className: 'hint' }, 'Power off, meter on beep. Put one probe on each leg it names, then say what the meter did.'),
+  ];
+  const t = summary.next;
+  if (t) {
+    const beeped = el('button', { id: 'cont-beeped', type: 'button', className: 'primary', 'data-focus': 'beeped' }, 'Beeped');
+    beeped.addEventListener('click', () => o.onAnswer(t, true));
+    const silent = el('button', { id: 'cont-silent', type: 'button', 'data-focus': 'silent' }, 'No beep');
+    silent.addEventListener('click', () => o.onAnswer(t, false));
+    const skip = el('button', { id: 'cont-skip', type: 'button', 'data-focus': 'skip' }, 'Skip');
+    skip.addEventListener('click', o.onSkip);
+    const show = el('button', { id: 'cont-show', type: 'button', 'data-focus': 'show' }, `Show ${t.a.ref}`);
+    show.addEventListener('click', () => o.onShow(t.a.ref));
+    children.push(el('div', { id: 'continuity-now', 'data-kind': t.kind },
+      el('p', { className: 'cont-pair' }, el('strong', {}, t.a.text), ' and ', el('strong', {}, t.b.text)),
+      el('p', { className: 'cont-expect' }, t.kind === 'beep' ? `It should beep: both are on ${t.line}.` : 'It must not beep: neighbouring pins on different lines.'),
+      el('div', { className: 'cont-actions' }, beeped, silent, skip, show)));
+  } else {
+    children.push(el('p', { id: 'continuity-done' }, summary.faults.length ? 'Every pair tested. Fix the faults below, then test them again.' : 'Every pair tested, no faults.'));
+  }
+  if (summary.faults.length) {
+    const list = el('ul', { id: 'continuity-faults' });
+    for (const f of summary.faults) {
+      const show = el('button', { type: 'button', className: 'part-link' }, `Show ${f.a.ref}`);
+      show.addEventListener('click', () => o.onShow(f.a.ref));
+      const again = el('button', { type: 'button', className: 'cont-retry' }, 'Test again');
+      again.addEventListener('click', () => o.onRetry(f.id));
+      list.append(el('li', {}, o.faultText(f), ' ', show, ' ', again));
+    }
+    children.push(el('h3', {}, 'Faults'), list);
+  }
+  const reset = el('button', { id: 'cont-reset', type: 'button' }, 'Start the test again');
+  reset.addEventListener('click', o.onReset);
+  children.push(reset);
+  keepFocus(container, () => container.replaceChildren(...children), '#cont-beeped, #cont-reset');
+}
+
 // ---- the pin view (0.4 design F2) ----
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function svg(tag, attrs = {}, text) {
@@ -346,13 +511,14 @@ const shorten = (s, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 /** A chip or header drawn pin by pin, seen from the top or underneath; clicking a pin shows its line. */
 function renderPinView(ref, connections, o) {
-  const { layout, side, selected, onSide, onPin } = o.pins;
+  const { layout, side, selected, onSide, onPin, names = {} } = o.pins;
+  const hasNames = Object.keys(names).length > 0;
   const byPin = new Map(connections.map((c) => [c.pin, c]));
   const ROW = 22;
   const top = 26;
   const dip = layout.kind === 'dip';
   const bodyX = dip ? 120 : 70;
-  const bodyW = dip ? 70 : 26;
+  const bodyW = dip ? (hasNames ? 104 : 70) : 26;
   const height = top + layout.rows * ROW + 8;
   const drawing = svg('svg', { viewBox: `0 0 310 ${height}`, width: '100%', role: 'group', 'aria-label': `${ref} pins` });
   drawing.append(svg('rect', { class: 'pin-body', x: bodyX, y: top - 10, width: bodyW, height: layout.rows * ROW + 4, rx: 4 }));
@@ -377,6 +543,9 @@ function renderPinView(ref, connections, o) {
     g.append(svg('line', { class: 'pin-leg', x1: x, y1: y, x2: x + outward * 14, y2: y }));
     if (conn && o.wired) g.append(svg('circle', { class: 'pin-dot', cx: x + outward * 14, cy: y, r: 4, 'data-filled': String(wired) }));
     g.append(svg('text', { class: 'pin-number', x: x - outward * 4, y: y + 4, 'text-anchor': outward < 0 ? 'start' : 'end' }, p.pin));
+    if (names[p.pin]) {
+      g.append(svg('text', { class: 'pin-name', x: x - outward * 20, y: y + 4, 'text-anchor': outward < 0 ? 'start' : 'end' }, names[p.pin].split(' ')[0]));
+    }
     if (label) g.append(svg('text', { class: 'pin-label', x: x + outward * 22, y: y + 4, 'text-anchor': outward < 0 ? 'end' : 'start' }, shorten(label)));
     const pick = () => onPin(p.pin);
     g.addEventListener('click', pick);
@@ -416,8 +585,51 @@ function renderPinView(ref, connections, o) {
       info.append(`pin ${selected}: not connected to anything.`);
     }
     box.append(info);
+    if (names[selected]) box.append(el('p', { id: 'pin-name', className: 'hint' }, `Pin ${selected} is ${names[selected]} (from the Bench library).`));
   }
   return box;
+}
+
+/** The colour bands of a resistor, drawn. */
+function bandsPicture(bands) {
+  const pic = svg('svg', { viewBox: '0 0 160 30', width: '160', height: '30', role: 'img', 'aria-label': `Colour bands: ${bands.join(' ')}` });
+  pic.append(svg('line', { x1: 0, y1: 15, x2: 160, y2: 15, stroke: '#b9bec4', 'stroke-width': 3 }));
+  pic.append(svg('rect', { x: 40, y: 5, width: 80, height: 20, rx: 9, fill: '#d9c39a', stroke: '#8b7a5a' }));
+  [52, 64, 76, 104].forEach((bx, i) => pic.append(svg('rect', { class: 'band', x: bx, y: 5, width: 7, height: 20, fill: BAND_HEX[bands[i]] })));
+  return el('div', { id: 'part-bands' }, pic, el('span', { className: 'bands-text' }, bands.join(' ')));
+}
+
+/** Which way round, drawn: an electrolytic's stripe, a diode's band, an LED's long leg and flat side. */
+function polarityPicture(kind) {
+  const pic = svg('svg', { viewBox: '0 0 200 60', width: '200', height: '60', role: 'img' });
+  const text = (x, y, t, anchor = 'middle') => pic.append(svg('text', { x, y, 'text-anchor': anchor, class: 'pol-text' }, t));
+  if (kind === 'electrolytic') {
+    pic.setAttribute('aria-label', 'Electrolytic: the stripe side is minus, the long leg is plus');
+    pic.append(svg('rect', { x: 60, y: 4, width: 80, height: 34, rx: 6, fill: '#1d3557' }));
+    pic.append(svg('rect', { x: 118, y: 4, width: 16, height: 34, fill: '#cfd6dd' }));
+    text(126, 26, '−');
+    pic.append(svg('line', { x1: 80, y1: 38, x2: 80, y2: 58, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('line', { x1: 120, y1: 38, x2: 120, y2: 50, stroke: '#b9bec4', 'stroke-width': 3 }));
+    text(70, 56, '+ long', 'end');
+    text(130, 50, '− short', 'start');
+  } else if (kind === 'diode') {
+    pic.setAttribute('aria-label', 'Diode: the band is the cathode, K');
+    pic.append(svg('line', { x1: 0, y1: 26, x2: 200, y2: 26, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('rect', { x: 60, y: 12, width: 80, height: 28, rx: 4, fill: '#232323' }));
+    pic.append(svg('rect', { x: 118, y: 12, width: 12, height: 28, fill: '#cfd6dd' }));
+    text(40, 54, 'A (anode)');
+    text(165, 54, 'K (band)');
+  } else {
+    pic.setAttribute('aria-label', 'LED: the long leg is plus, the flat side is minus');
+    pic.append(svg('path', { d: 'M80 34 V18 a20 20 0 0 1 40 0 V34 Z', fill: '#3ddc84', opacity: 0.85 }));
+    pic.append(svg('rect', { x: 76, y: 34, width: 48, height: 5, fill: '#2a9d4b' }));
+    pic.append(svg('line', { x1: 124, y1: 34, x2: 124, y2: 39, stroke: '#111', 'stroke-width': 2 }));
+    pic.append(svg('line', { x1: 90, y1: 39, x2: 90, y2: 60, stroke: '#b9bec4', 'stroke-width': 3 }));
+    pic.append(svg('line', { x1: 110, y1: 39, x2: 110, y2: 52, stroke: '#b9bec4', 'stroke-width': 3 }));
+    text(84, 58, '+ long', 'end');
+    text(116, 52, '− flat side', 'start');
+  }
+  return el('div', { id: 'part-polarity-picture', 'data-kind': kind }, pic);
 }
 
 /**
@@ -443,13 +655,26 @@ export function renderWiring(container, groups, o) {
   closeAll.addEventListener('click', () => o.onExpandAll(false));
   const bar = el('progress', { max: String(Math.max(total, 1)) });
   bar.value = done;
+  const kinds = ['power', 'ground', 'signal'].map((k) => {
+    const legs = groups.filter((g) => g.kind === k).flatMap((g) => g.members);
+    return `${{ power: 'Supplies', ground: '0 V', signal: 'Signals' }[k]} ${legs.filter((m) => o.wired.has(m.key)).length}/${legs.length}`;
+  }).join(' · ');
+  const filter = el('input', { type: 'search', id: 'wiring-filter', placeholder: 'Filter lines, e.g. TACH', 'aria-label': 'Filter lines', 'data-focus': 'filter' });
+  filter.value = o.filter || '';
+  filter.addEventListener('input', () => o.onFilter(filter.value));
+  const nextLine = el('button', { type: 'button', id: 'wiring-next', 'data-focus': 'next-line' }, 'Next line not finished');
+  nextLine.addEventListener('click', o.onNextLine);
   const children = [
     el('h2', {}, 'What to wire'),
     el('p', { className: 'progress-text' }, `${done} of ${total} legs wired`),
     bar,
-    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy, openAll, closeAll),
+    el('p', { id: 'wiring-kinds', className: 'hint' }, kinds),
+    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy, openAll, closeAll, nextLine),
+    filter,
   ];
+  const q = (o.filter || '').trim().toLowerCase();
   for (const g of groups) {
+    if (q && !g.label.toLowerCase().includes(q) && !g.net.toLowerCase().includes(q)) continue;
     const doneHere = g.members.filter((m) => o.wired.has(m.key)).length;
     const details = el('details', { className: `wire-group wire-${g.kind}`, 'data-net': g.net });
     details.open = o.expanded.has(g.net);
@@ -460,6 +685,8 @@ export function renderWiring(container, groups, o) {
     const show = el('button', { type: 'button', className: 'wire-show', 'data-focus': `show-${g.net}`, 'aria-pressed': String(o.shown === g.net) },
       o.shown === g.net ? 'Hide' : 'Show');
     show.addEventListener('click', () => o.onShow(g.net));
+    const all = el('button', { type: 'button', className: 'wire-all', 'data-focus': `all-${g.net}` }, 'Mark all wired');
+    all.addEventListener('click', () => o.onWireAll(g));
     const list = el('ul', { className: 'wire-members' });
     for (const m of g.members) {
       if (o.openOnly && o.wired.has(m.key)) continue;
@@ -468,7 +695,7 @@ export function renderWiring(container, groups, o) {
       box.addEventListener('change', () => o.onWire(m.key, box.checked));
       list.append(el('li', {}, el('label', {}, box, ` ${m.text}`)));
     }
-    details.append(show, list);
+    details.append(show, ' ', all, list);
     children.push(details);
   }
   keepFocus(container, () => container.replaceChildren(...children), '#wiring-copy');

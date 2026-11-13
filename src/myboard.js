@@ -81,8 +81,13 @@ const tap = (t) => (isObject(t) && isName(t.pin) && isPixel(t.x) && isPixel(t.y)
 
 /** Saved or imported board data, checked: anything odd is dropped, never fatal. */
 export function cleanMyBoard(raw, isRef) {
-  const out = { anchor: null, photos: {}, placed: {} };
+  const out = { anchor: null, photos: {}, placed: {}, routes: {} };
   if (!isObject(raw)) return out;
+  if (isObject(raw.routes)) {
+    for (const [net, shape] of Object.entries(raw.routes).slice(0, 500)) {
+      if (isName(net) && ['cols', 'rows', 'straight'].includes(shape)) out.routes[net] = shape;
+    }
+  }
   if (typeof raw.anchor === 'string' && isRef(raw.anchor)) out.anchor = raw.anchor;
   if (isObject(raw.photos)) {
     for (const [id, p] of Object.entries(raw.photos).slice(0, LIMITS.photos)) {
@@ -105,4 +110,42 @@ export function cleanMyBoard(raw, isRef) {
     }
   }
   return out;
+}
+
+/**
+ * Your board for the 3D view (0.5 big improvement B4): the anchor where the project has it, and
+ * every placed part on the holes you tapped, with types and sizes from the project. Shifted so the
+ * first hole is 2 (a hole of board round the edge); no wiring, which isn't known.
+ */
+export function boardFromPlacement(projectBoard, placed, anchor, wirePaths = []) {
+  if (!projectBoard || !anchor || !projectBoard.parts[anchor]) return null;
+  const parts = { [anchor]: { ...projectBoard.parts[anchor], pins: { ...projectBoard.parts[anchor].pins } } };
+  let placedCount = 0;
+  for (const [ref, pins] of Object.entries(placed || {})) {
+    const part = projectBoard.parts[ref];
+    if (!part || ref === anchor) continue;
+    const { keepout, ...rest } = part; // a module's outline was drawn for sheet 4, not your board
+    parts[ref] = { ...rest, pins: { ...pins } };
+    placedCount++;
+  }
+  const holes = Object.values(parts).flatMap((p) => Object.values(p.pins));
+  const dc = 2 - Math.min(...holes.map((h) => h[0]));
+  const dr = 2 - Math.min(...holes.map((h) => h[1]));
+  for (const p of Object.values(parts)) {
+    p.pins = Object.fromEntries(Object.entries(p.pins).map(([pin, [c, r]]) => [pin, [c + dc, r + dr]]));
+  }
+  const shifted = Object.values(parts).flatMap((p) => Object.values(p.pins));
+  const links = wirePaths.map((path) => ({ path: path.map(([c, r]) => [c + dc, r + dr]), side: 'bottom' }));
+  return {
+    pitch: projectBoard.pitch,
+    cols: Math.max(...shifted.map((h) => h[0])) + 1,
+    rows: Math.max(...shifted.map((h) => h[1])) + 1,
+    parts,
+    buses: [],
+    links,
+    bridges: [],
+    nets: projectBoard.nets,
+    netLabels: projectBoard.netLabels,
+    placedCount,
+  };
 }

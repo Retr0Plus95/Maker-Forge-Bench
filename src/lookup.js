@@ -38,3 +38,25 @@ export function nextInStep(step, ref, ticked) {
   }
   return null;
 }
+
+/**
+ * The command palette's search (0.5 extra 52): items whose label or hint has every word of the
+ * query, best first (label starts with the query, then a word of it does, then anywhere).
+ */
+export function paletteMatch(items, query, limit = 40) {
+  const words = (query || '').toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return items.slice(0, limit);
+  const q = words.join(' ');
+  return items
+    .map((item) => {
+      const label = item.label.toLowerCase();
+      const all = `${label} ${(item.hint || '').toLowerCase()}`;
+      if (!words.every((w) => all.includes(w))) return null;
+      const score = label.startsWith(q) ? 0 : label.split(/[\s,]+/).some((w) => w.startsWith(words[0])) ? 1 : 2;
+      return { item, score };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score || a.item.label.localeCompare(b.item.label, 'en', { numeric: true }))
+    .slice(0, limit)
+    .map((m) => m.item);
+}

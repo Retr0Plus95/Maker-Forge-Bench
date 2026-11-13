@@ -37,3 +37,23 @@ export function shoppingCsv(rows) {
   const lines = [['Quantity', 'Value', 'Type', 'Package', 'Parts'], ...rows.map((r) => [r.count, r.value, r.type, r.package, r.refs.join(' ')])];
   return lines.map((l) => l.map(cell).join(',')).join('\r\n') + '\r\n';
 }
+
+const TYPE_LABELS = {
+  resistor: 'Resistors', 'capacitor-ceramic': 'Ceramic capacitors', 'capacitor-electrolytic': 'Electrolytic capacitors',
+  ic: 'Chips', diode: 'Diodes', led: 'LEDs', transistor: 'Transistors', connector: 'Connectors', crystal: 'Crystals',
+  module: 'Modules', potentiometer: 'Potentiometers', switch: 'Switches', fuse: 'Fuses',
+};
+
+/** "Resistors" for resistor, and so on. */
+export const typeLabel = (type) => TYPE_LABELS[type] || (type ? `${type[0].toUpperCase()}${type.slice(1)}` : 'Other parts');
+
+/** The checklist grouped by type (0.5 improvement 19), groups A to Z, parts in their own order. */
+export function groupByType(parts) {
+  const groups = new Map();
+  for (const p of parts) {
+    const label = typeLabel(p.type);
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(p);
+  }
+  return [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([label, list]) => ({ label, parts: list }));
+}

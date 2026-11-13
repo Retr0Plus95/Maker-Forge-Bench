@@ -77,7 +77,7 @@ async function launchBrowser(args = []) {
 
 export async function openPage(url, viewport, options = {}) {
   const browser = await launchBrowser(options.args);
-  const page = await browser.newPage({ viewport });
+  const page = await browser.newPage({ viewport, reducedMotion: options.reducedMotion ?? 'reduce' }); // camera moves are instant, so tests see where they end
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
   page.on('pageerror', (e) => problems.push(`page error: ${e.message}`));

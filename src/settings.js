@@ -1,6 +1,6 @@
 // Easy reading settings: the same switches as Maker Forge, kept on <html>.
 
-export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', contrast: false, clearFont: false, textSize: 100, reduceMotion: false });
+export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', contrast: false, clearFont: false, textSize: 100, reduceMotion: false, compact: false });
 const SIZES = [100, 125, 150, 175];
 
 /** Settings read back from storage: anything unknown falls back to the default. */
@@ -12,6 +12,7 @@ export function cleanSettings(raw) {
     clearFont: s.clearFont === true,
     textSize: SIZES.includes(s.textSize) ? s.textSize : 100,
     reduceMotion: s.reduceMotion === true,
+    compact: s.compact === true,
   };
 }
 
@@ -27,6 +28,7 @@ export function applySettings(root, s, prefersDark = true) {
   flag('data-contrast', s.contrast, 'high');
   flag('data-font', s.clearFont, 'clear');
   flag('data-motion', s.reduceMotion, 'reduce');
+  flag('data-compact', s.compact, 'on');
   root.style.fontSize = `${s.textSize}%`;
 }
 
@@ -37,6 +39,7 @@ const LABELS = {
   clearFont: (s) => `Clear font: ${onOff(s.clearFont)}`,
   textSize: (s) => `Text size: ${s.textSize}%`,
   reduceMotion: (s) => `Reduce motion: ${onOff(s.reduceMotion)}`,
+  compact: (s) => `Compact: ${onOff(s.compact)}`,
 };
 
 /** Shows the settings in the dialog's controls. */

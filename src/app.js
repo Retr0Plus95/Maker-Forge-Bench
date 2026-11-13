@@ -1,13 +1,21 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
-import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
+import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
-import { findLines, findValues, nextInStep } from './lookup.js';
-import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
+import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
+import { libraryFor as libraryForPart } from './library.js';
+import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
+import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
+import { groupByType, shoppingCsv, shoppingList, shoppingText } from './bom.js';
+import { addVersion, buildReport, clock, cleanVersions, day, duration, logAdd, logText, solderedAt, timeSpent } from './buildlog.js';
+import { capacitorCode, resistorBands } from './markings.js';
+import { libraryFor } from './library.js';
+import { stillToWire } from './wiring.js';
 import { pinText } from './wiring.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -62,11 +70,53 @@ const state = {
   checks: new Set(), // ticked checks before power, and steps marked done by hand (0.4)
   folded: new Set(), // panel sections folded away (0.4.1)
   startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
+  continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
+  contSkipped: new Set(), // tests skipped for now (not saved)
+  dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
+  clearAt: 0, // when Clear my board was first clicked
+  log: [], // the build log: [{ t, text }] (0.5 big improvement B10)
+  versionDeleteAt: { name: null, t: 0 }, // a version's Delete asks twice
+  trail: [], // the parts you opened, for Alt+← and Alt+→
+  trailAt: -1,
+  checklistQuery: '',
+  checklistGroup: false,
+  checklistSort: 'list',
+  wiringFilter: '',
 };
+const APP_VERSION = '0.5.0';
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
 const history = createHistory();
+// The build log (0.5 big improvement B10): every change you make, and its undo and redo, with the time.
+// Easy reading changes aren't building, so they stay out of it.
+const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact)/;
+let lastHistory = { undoLabel: null, redoLabel: null };
+history.subscribe((h) => { lastHistory = h; });
+const historyDo = history.do.bind(history);
+const historyUndo = history.undo.bind(history);
+const historyRedo = history.redo.bind(history);
+history.do = (action) => {
+  historyDo(action);
+  addLog(action.label);
+};
+history.undo = () => {
+  const label = lastHistory.undoLabel;
+  const done = historyUndo();
+  if (done) addLog(`Undo ${label}`);
+  return done;
+};
+history.redo = () => {
+  const label = lastHistory.redoLabel;
+  const done = historyRedo();
+  if (done) addLog(`Redo ${label}`);
+  return done;
+};
+function addLog(text) {
+  if (!text || NOT_BUILDING.test(text) || typeof state === 'undefined' || !state.progressKey) return;
+  state.log = logAdd(state.log, text);
+  saveProgress();
+}
 
 /** localStorage, or a stand-in that forgets on reload if the browser won't give us one. */
 function browserStorage() {
@@ -124,10 +174,13 @@ function setStatus(text) {
   $('#status').textContent = text || state.projectProblem;
 }
 
-function setStageMessage(text) {
+let retrySheet = null;
+function setStageMessage(text, retryId = null) {
   const box = $('#stage-message');
   box.textContent = text;
   box.hidden = !text;
+  retrySheet = text ? retryId : null;
+  $('#stage-retry').hidden = !retrySheet;
 }
 
 async function prepare(sheet) {
@@ -191,14 +244,15 @@ async function selectSheet(id) {
   if (entry.kind === 'error') {
     viewer.clear();
     updateMyBoard();
-    setStageMessage(entry.message);
+    setStageMessage(entry.message, sheet.missing ? null : id); // a missing file comes back by itself when it appears
     setStatus(entry.message);
     updateFlip();
     return false;
   }
   setStageMessage('');
   setStatus('');
-  const saved = state.views.get(id);
+  const kept = store.get(`views:${projectName()}`, {})[id];
+  const saved = state.views.get(id) || (kept && ['scale', 'x', 'y'].every((k) => Number.isFinite(kept[k])) && kept.scale > 0 ? kept : null);
   viewer.show(entry, { keepView: Boolean(saved), turn: store.get(`turn:${projectName()}:${id}`, 0) });
   if (saved) viewer.setView(saved);
   const wantFlip = state.flipped.has(id) && isLayout(id);
@@ -261,7 +315,10 @@ function toggleFlip() {
 /** Find part: show the label's sheet, zoom to the label and ring it. A query that is a part's ref opens its card. */
 async function goTo(label, query) {
   const ref = query ? findRef(query) : null;
-  if (ref) state.selected = ref;
+  if (ref) {
+    pushTrail(ref);
+    state.selected = ref;
+  }
   if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
   viewer.zoomToRect(viewer.labelRect(label.el));
   viewer.ring(label.el);
@@ -327,6 +384,7 @@ function renderPartCard() {
     onWire: setWired,
     pins: pinOptions(onBoard),
     myBoard: myBoardCardOptions(part.ref, onBoard),
+    extras: cardExtras(part, board),
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
@@ -342,7 +400,9 @@ function pinOptions(onBoard) {
   const side = store.get('pinSide', 'top') === 'bottom' ? 'bottom' : 'top';
   const layout = onBoard ? pinLayout(onBoard, side) : null;
   if (!layout) return null;
+  const lib = libraryFor(state.partsByRef.get(state.selected));
   return {
+    names: lib && lib.pins ? Object.fromEntries(layout.pins.filter((p) => lib.pins[p.pin]).map((p) => [p.pin, lib.pins[p.pin]])) : {},
     layout,
     side,
     open: state.pinsOpen,
@@ -350,6 +410,65 @@ function pinOptions(onBoard) {
     onToggle: () => { state.pinsOpen = !state.pinsOpen; renderPartCard(); },
     onSide: (value) => { store.set('pinSide', value); renderPartCard(); },
     onPin: (pin) => { state.pinSelected = pin; renderPartCard(); },
+  };
+}
+
+const POLARITY_PICTURES = { electrolytic: 'electrolytic', rectifier: 'diode', led: 'led' };
+
+async function copyText(text, done) {
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus(done);
+  } catch {
+    setStatus("Couldn't copy: allow the clipboard for this page.");
+  }
+}
+
+/** Ticks several parts in one undo step. */
+function tickParts(refs, label) {
+  const before = [...state.ticked];
+  const after = [...new Set([...before, ...refs.filter((r) => isKnownRef(r))])];
+  if (after.length === before.length) return;
+  history.do({ label, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
+}
+
+/** Marks several legs wired in one undo step. */
+function wireMany(keys, label) {
+  const before = [...state.wired];
+  const after = [...new Set([...before, ...keys])];
+  if (after.length === before.length) return;
+  history.do({ label, apply: () => setProgress({ wired: after }), revert: () => setProgress({ wired: before }) });
+}
+
+/** The previous or next part in the checklist's order. */
+function stepPart(delta) {
+  if (!state.parts.length) return;
+  const i = state.parts.findIndex((p) => p.ref === state.selected);
+  const next = state.parts[((i < 0 ? (delta > 0 ? -1 : 0) : i) + delta + state.parts.length) % state.parts.length];
+  selectPart(next.ref);
+}
+
+/** The card's helpers (0.5 improvements 9-17 and the library): markings, pictures, buttons. */
+function cardExtras(part, board) {
+  const lib = libraryFor(part);
+  const same = part.value && !part.guessed
+    ? state.parts.filter((p) => p.value === part.value && p.type === part.type).map((p) => p.ref) : [];
+  const conns = board ? connectionsOf(board, part.ref) : [];
+  const left = board ? stillToWire(part.ref, conns, state.wired) : [];
+  const when = state.ticked.has(part.ref) ? solderedAt(state.log, part.ref) : null;
+  return {
+    solderedAt: when ? `Soldered at ${clock(when)}${day(when) !== day(Date.now()) ? ` on ${day(when)}` : ''}` : null,
+    bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
+    code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
+    polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
+    library: lib,
+    onCopy: () => copyText(`${part.ref}${part.value ? ` ${part.value}` : ''}`, `Copied ${part.ref}.`),
+    onLink: () => copyText(`${window.location.origin}${window.location.pathname}?sheet=${encodeURIComponent(state.current)}&part=${encodeURIComponent(part.ref)}`, 'Link to this part copied.'),
+    sameValue: same.length >= 2 ? { count: same.length, value: part.value, onTick: () => tickParts(same, `Tick all ${part.value}`) } : null,
+    onWireAll: left.length ? () => wireMany(left.map((pin) => `${part.ref}:${pin}`), `Wired all of ${part.ref}`) : null,
+    onPrev: () => stepPart(-1),
+    onNext: () => stepPart(1),
+    searchHref: part.value ? `https://duckduckgo.com/?q=${encodeURIComponent(`${part.value} datasheet`)}` : null,
   };
 }
 
@@ -383,8 +502,26 @@ function openLine(net) {
   if (group) group.scrollIntoView({ block: 'nearest' });
 }
 
+let walkingTrail = false;
+function walkTrail(delta) {
+  const at = state.trailAt + delta;
+  if (at < 0 || at >= state.trail.length) return;
+  state.trailAt = at;
+  walkingTrail = true;
+  selectPart(state.trail[at]);
+  walkingTrail = false;
+}
+
+/** Remembers a part you opened, for Alt+← and Alt+→. */
+function pushTrail(ref) {
+  if (walkingTrail || !ref || state.trail[state.trailAt] === ref) return;
+  state.trail = [...state.trail.slice(0, state.trailAt + 1), ref].slice(-50);
+  state.trailAt = state.trail.length - 1;
+}
+
 function selectPart(ref, labelEl) {
   if (ref !== state.selected) state.pinSelected = null;
+  pushTrail(ref);
   state.selected = ref;
   const label = labelEl || (firstLabelFor(state.current, ref) || {}).el || null;
   viewer.ring(label);
@@ -634,6 +771,7 @@ function updateParts() {
   renderStepsPanel();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
 }
 
 // ---- the 3D board (board-view design §5), over the dimmed schematic ----
@@ -650,7 +788,82 @@ function syncStep3D() {
   const open = state.openStep !== null && steps[state.openStep] ? state.openStep : null;
   const now = open !== null ? steps[open].parts : [];
   const later = open !== null ? steps.slice(open + 1).flatMap((s) => s.parts) : [];
-  board3d.setStep(now, later);
+  board3d.setStep(now, later, { hideLater: open !== null && ($('#board3d-upto').checked || Boolean(stepPlayer)) });
+}
+
+/** What the 3D view prints and names: each part's value. */
+const partDetails = () => Object.fromEntries(state.parts.map((p) => [p.ref, { value: p.value || '' }]));
+
+function download(href, name) {
+  const link = el('a', { href, download: name });
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+const fileSafe = (s) => s.replace(/[\\/:*?"<>|]/g, '_');
+
+/** Play the steps: the 3D board builds up one step at a time (0.5 big improvement B9). */
+let stepPlayer = null;
+function playSteps() {
+  if (stepPlayer) {
+    clearInterval(stepPlayer);
+    stepPlayer = null;
+    $('#board3d-play').setAttribute('aria-pressed', 'false');
+    $('#board3d-play').textContent = 'Play the steps';
+    syncStep3D();
+    return;
+  }
+  const steps = stepsOf();
+  if (!steps.length) return;
+  let i = 0;
+  $('#board3d-play').setAttribute('aria-pressed', 'true');
+  $('#board3d-play').textContent = 'Stop';
+  stepPlayer = setInterval(() => {
+    i++;
+    if (i >= steps.length) {
+      playSteps();
+      return;
+    }
+    openStep(i);
+  }, 1400);
+  openStep(0);
+}
+
+let board3dSource = 'sheet4'; // which board the 3D view shows: 'sheet4' or 'mine' (0.5 big improvement B4)
+
+/** Your own placement as a board, when a photo is lined up. */
+function myBoardFor3D() {
+  const board = state.project ? state.project.board : null;
+  if (!board || !Object.keys(state.myBoard.photos).length) return null;
+  const wires = store.get('showWires', false) === true
+    ? suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => w.path)) : [];
+  return boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
+}
+
+/** The board the 3D view draws now. */
+function board3dData() {
+  const mine = board3dSource === 'mine' ? myBoardFor3D() : null;
+  return mine || (state.project ? state.project.board : null);
+}
+
+function updateBoard3DSource() {
+  const mine = myBoardFor3D();
+  if (!mine && board3dSource === 'mine') board3dSource = 'sheet4';
+  $('#board3d-mine').hidden = !mine;
+  $('#board3d-sheet4').setAttribute('aria-pressed', String(board3dSource === 'sheet4'));
+  $('#board3d-mine').setAttribute('aria-pressed', String(board3dSource === 'mine'));
+  const note = $('#board3d-mine-note');
+  note.hidden = board3dSource !== 'mine' || !mine;
+  if (mine) {
+    const total = Object.keys(state.project.board.parts).length;
+    note.textContent = `${mine.placedCount + 1} of ${total} parts placed`;
+  }
+}
+
+function setBoard3DSource(source) {
+  board3dSource = source;
+  updateBoard3DSource();
+  resetBoard3D();
 }
 
 let board3dBuilding = null; // the build in progress, so two quick toggles build one view
@@ -661,6 +874,7 @@ async function setBoard3D(on) {
   $('#board3d').hidden = !board3dOn;
   $('#board3d-toggle').setAttribute('aria-pressed', String(board3dOn));
   $('#sheet-host').style.opacity = board3dOn ? '0.35' : '';
+  $('#zoom-level').hidden = board3dOn; // the sheet's zoom; the 3D view has its own cube there
   if (!board3dOn) return;
   const schematic = state.sheets.find((s) => s.kind === 'schematic' && !s.missing);
   const shown = state.sheets.find((s) => s.id === state.current);
@@ -669,14 +883,22 @@ async function setBoard3D(on) {
   if (!board3d) {
     if (!board3dBuilding) {
       message.hidden = true;
-      const board = state.project.board;
-      const cameraKey = `camera:${projectName()}`;
+      const board = board3dData();
+      const cameraKey = `camera:${projectName()}:${board3dSource}`;
       board3dBuilding = createBoard3D($('#board3d-view'), board, {
         onPick: (ref) => selectPart(ref),
         camera: store.get(cameraKey, null),
         onCamera: (camera) => store.set(cameraKey, camera),
+        details: partDetails(),
       }).then((view) => {
-        if (view) view.showWiring($('#board3d-wiring').checked);
+        if (view) {
+          view.showWiring($('#board3d-wiring').checked);
+          view.showLabels($('#board3d-labels').checked);
+          view.setXray($('#board3d-xray').checked);
+          view.setExplode(Number($('#board3d-explode').value));
+          const cut = Number($('#board3d-clip').value);
+          view.setClip(cut >= 1 ? null : cut);
+        }
         board3d = view;
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
@@ -698,7 +920,8 @@ async function setBoard3D(on) {
 async function resetBoard3D() {
   updateBoard3DButton();
   if (board3dBuilding) await board3dBuilding;
-  const board = state.project ? state.project.board : null;
+  updateBoard3DSource();
+  const board = board3dData();
   if (board3d && board && JSON.stringify(board) === board3dBoard) return;
   if (board3d) board3d.dispose();
   board3d = null;
@@ -748,6 +971,16 @@ function pinState(ref, pin) {
 }
 
 /** The marks on the photo on screen: the anchor's pins, placed parts, and the taps of a part being placed. */
+/** Your placements, with a part being dragged shown where it would land. */
+function placedNow() {
+  const placed = state.myBoard.placed;
+  const d = state.dragPreview;
+  if (!d || !placed[d.ref] || (!d.dc && !d.dr)) return placed;
+  return { ...placed, [d.ref]: Object.fromEntries(Object.entries(placed[d.ref]).map(([pin, [c, r]]) => [pin, [c + d.dc, r + d.dr]])) };
+}
+
+const MARK_SCALE = { small: 0.7, medium: 1, large: 1.45 };
+
 function drawMyBoardMarks() {
   const img = viewer.image();
   const t = img ? transformFor(state.current) : null;
@@ -757,23 +990,144 @@ function drawMyBoardMarks() {
   }
   const board = boardOf();
   const anchor = anchorRef();
+  const placed = placedNow();
   const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
   const inStep = new Set(step ? step.parts : []);
-  const cls = (ref) => (ref === state.selected ? 'myboard-selected' : inStep.has(ref) ? 'myboard-step' : '');
+  const cls = (ref) => [ref === state.selected ? 'myboard-selected' : inStep.has(ref) ? 'myboard-step' : '', state.ticked.has(ref) ? 'myboard-soldered' : ''].filter(Boolean).join(' ');
   const pins = [];
   const tags = [];
-  for (const [pin, hole] of Object.entries(board.parts[anchor].pins)) pins.push({ ref: anchor, pin, at: t.toPixel(hole), state: pinState(anchor, pin), cls: cls(anchor) });
-  tags.push({ ref: anchor, at: t.toPixel(board.parts[anchor].pins[anchorPins(board.parts[anchor]).a]), cls: cls(anchor) });
-  for (const [ref, placed] of Object.entries(state.myBoard.placed)) {
-    if (ref === anchor || (state.mode && state.mode.kind === 'place' && state.mode.ref === ref)) continue;
-    const entries = Object.entries(placed);
-    for (const [pin, hole] of entries) pins.push({ ref, pin, at: t.toPixel(hole), state: pinState(ref, pin), cls: cls(ref) });
-    if (entries.length) tags.push({ ref, at: t.toPixel(entries[0][1]), cls: cls(ref) });
+  const texts = [];
+  const marks = store.get('marksHidden', false) !== true;
+  const scale = MARK_SCALE[store.get('markSize', 'medium')] || 1;
+  if (marks) {
+    for (const [pin, hole] of Object.entries(board.parts[anchor].pins)) pins.push({ ref: anchor, pin, at: t.toPixel(hole), state: pinState(anchor, pin), cls: cls(anchor) });
+    tags.push({ ref: anchor, at: t.toPixel(board.parts[anchor].pins[anchorPins(board.parts[anchor]).a]), cls: cls(anchor) });
+    for (const [ref, holes] of Object.entries(placed)) {
+      if (ref === anchor || (state.mode && state.mode.kind === 'place' && state.mode.ref === ref)) continue;
+      const entries = Object.entries(holes);
+      for (const [pin, hole] of entries) pins.push({ ref, pin, at: t.toPixel(hole), state: pinState(ref, pin), cls: cls(ref) });
+      if (entries.length) tags.push({ ref, at: t.toPixel(entries[0][1]), cls: cls(ref) });
+    }
+    if (state.mode && state.mode.kind === 'place') {
+      for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+    }
+    // line labels beside the chip's pins, out from the chip's middle
+    if (store.get('lineLabels', false) === true) {
+      const chip = Object.values(board.parts[anchor].pins).map((h) => t.toPixel(h));
+      const mid = [chip.reduce((s, p) => s + p[0], 0) / chip.length, chip.reduce((s, p) => s + p[1], 0) / chip.length];
+      for (const c of connectionsOf(board, anchor)) {
+        const at = t.toPixel(board.parts[anchor].pins[c.pin]);
+        const len = Math.hypot(at[0] - mid[0], at[1] - mid[1]) || 1;
+        texts.push({ at: [at[0] + ((at[0] - mid[0]) / len) * t.pitch * 1.4, at[1] + ((at[1] - mid[1]) / len) * t.pitch * 1.4], text: c.label, cls: 'line-label' });
+      }
+    }
+    // the selected part's pin names
+    const sel = state.selected;
+    const selHoles = sel === anchor ? board.parts[anchor].pins : sel ? placed[sel] : null;
+    if (selHoles) {
+      const lib = libraryForPart(state.partsByRef.get(sel));
+      for (const [pin, hole] of Object.entries(selHoles)) {
+        const at = t.toPixel(hole);
+        const name = lib && lib.pins && lib.pins[pin] ? lib.pins[pin].split(' ')[0] : pinText(pin);
+        texts.push({ at: [at[0], at[1] - t.pitch * 0.62], text: name, cls: 'pin-name' });
+      }
+    }
   }
-  if (state.mode && state.mode.kind === 'place') {
-    for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+  const wires = store.get('showWires', false) === true
+    ? suggestAll(board, placed, anchor, state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => ({ net: g.net, kind: g.kind, points: w.path.map((h) => t.toPixel(h)) })))
+    : [];
+  viewer.setOverlay(buildOverlay(viewer.imageSize(), t.pitch, pins, tags, { wires, texts, scale }));
+}
+
+/** Dragging a selected, placed part on a lined-up photo moves it on whole holes (0.5 big improvement B1). */
+function onPhotoDrag(phase, x, y) {
+  const t = transformFor(state.current);
+  if (!t) return false;
+  const [c, r] = snap(t.toBoard([x, y]));
+  if (phase === 'down') {
+    const ref = state.selected;
+    const holes = ref && ref !== anchorRef() ? state.myBoard.placed[ref] : null;
+    if (state.mode || !holes) return false;
+    const [fc, fr] = t.toBoard([x, y]);
+    const near = Object.values(holes).some(([hc, hr]) => Math.hypot(hc - fc, hr - fr) <= 0.7);
+    if (!near) return false;
+    state.dragPreview = { ref, from: [c, r], dc: 0, dr: 0 };
+    return true;
   }
-  viewer.setOverlay(buildOverlay(viewer.imageSize(), t.pitch, pins, tags));
+  const d = state.dragPreview;
+  if (!d) return false;
+  if (phase === 'move') {
+    const dc = c - d.from[0];
+    const dr = r - d.from[1];
+    if (dc !== d.dc || dr !== d.dr) {
+      state.dragPreview = { ...d, dc, dr };
+      drawMyBoardMarks();
+    }
+    return true;
+  }
+  state.dragPreview = null;
+  if (phase === 'up' && (c !== d.from[0] || r !== d.from[1])) {
+    const dc = c - d.from[0];
+    const dr = r - d.from[1];
+    changeMyBoard(`Move ${d.ref}`, (b) => {
+      b.placed[d.ref] = Object.fromEntries(Object.entries(b.placed[d.ref]).map(([pin, [pc, pr]]) => [pin, [pc + dc, pr + dr]]));
+    });
+  } else {
+    drawMyBoardMarks();
+  }
+  return true;
+}
+
+/** The order to place parts in: the build steps', then any others. */
+function placingOrder() {
+  const board = boardOf();
+  const fromSteps = stepsOf().flatMap((s) => s.parts);
+  return [...new Set([...fromSteps, ...Object.keys(board.parts)])].filter((ref) => board.parts[ref] && ref !== anchorRef());
+}
+
+function myBoardMore() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  const unplacedInStep = step ? step.parts.filter((ref) => board.parts[ref] && ref !== anchor && !state.myBoard.placed[ref]) : [];
+  const routes = store.get('showWires', false) === true ? suggestAll(board, state.myBoard.placed, anchor, state.myBoard.routes || {})
+    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map(wireText) })) : [];
+  return {
+    marks: store.get('marksHidden', false) !== true,
+    size: store.get('markSize', 'medium'),
+    lineLabels: store.get('lineLabels', false) === true,
+    wires: store.get('showWires', false) === true,
+    routes,
+    findings: checkPlacement(board, state.myBoard.placed, anchor),
+    stepTodo: step && unplacedInStep.length ? `Step ${state.openStep + 1}, not placed yet: ${unplacedInStep.join(', ')}` : '',
+    clearArmed: Date.now() - state.clearAt < 5000,
+    onMarks: (on) => { store.set('marksHidden', !on); updateMyBoard(); },
+    onSize: (size) => { store.set('markSize', size); updateMyBoard(); },
+    onLineLabels: (on) => { store.set('lineLabels', on); updateMyBoard(); },
+    onWires: (on) => { store.set('showWires', on); updateMyBoard(); resetBoard3D(); },
+    onRoute: (net, shape, label) => changeMyBoard(`Wires for ${label}: ${shape}`, (b) => { b.routes = { ...(b.routes || {}), [net]: shape }; }),
+    onShow: (ref) => selectPart(ref),
+    onNext: () => {
+      const ref = placingOrder().find((r) => !state.myBoard.placed[r]);
+      if (ref) {
+        selectPart(ref);
+        placeOnBoard(ref);
+      } else {
+        say('Every part is placed.');
+      }
+    },
+    onClear: () => {
+      if (Date.now() - state.clearAt >= 5000) {
+        state.clearAt = Date.now();
+        renderMyBoardPanel();
+        setTimeout(renderMyBoardPanel, 5100);
+        return;
+      }
+      state.clearAt = 0;
+      changeMyBoard('Clear my board', (b) => { b.placed = {}; });
+      say('Your board is cleared. Ctrl+Z brings the parts back.');
+    },
+  };
 }
 
 function myBoardIdleStatus() {
@@ -807,6 +1161,7 @@ function renderMyBoardPanel() {
     onLine: startLining,
     onStop: stopTapping,
     onBright: setBright,
+    more: transformFor(state.current) ? myBoardMore() : null,
   });
 }
 
@@ -827,6 +1182,7 @@ function updateRotateButton() {
 
 function updateMyBoard() {
   updateRotateButton();
+  if (board3dSource === 'mine' || !$('#board3d-mine').hidden !== Boolean(myBoardFor3D())) resetBoard3D();
   if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
   if (img) img.style.filter = photoBright(state.current) ? 'brightness(1.6) contrast(1.15)' : '';
@@ -1083,6 +1439,98 @@ function saveShoppingCsv() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// ---- history: the build log, named versions, the build report (0.5 B10, improvement 47) ----
+function renderLog() {
+  const filter = $('#log-filter').value.trim().toLowerCase();
+  const entries = [...state.log].reverse().filter((e) => !filter || e.text.toLowerCase().includes(filter)).slice(0, 400);
+  $('#log-list').replaceChildren(...entries.map((e) => el('li', {}, el('time', {}, clock(e.t)), ' ', e.text)));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  $('#log-time').textContent = `Time spent today: ${duration(timeSpent(state.log, today.getTime()))} · in all: ${duration(timeSpent(state.log))}`;
+}
+
+function openLog() {
+  renderLog();
+  $('#log').showModal();
+}
+
+const versionsKey = () => `versions:${projectName()}`;
+const snapshot = () => JSON.parse(exportProgress({
+  project: projectName(), revision: state.project ? state.project.revision : null,
+  ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
+  myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
+}));
+
+function renderVersions() {
+  const versions = cleanVersions(store.get(versionsKey(), []));
+  $('#versions-list').replaceChildren(...versions.map((v) => {
+    const restore = el('button', { type: 'button', className: 'version-restore' }, 'Restore');
+    restore.addEventListener('click', () => restoreVersion(v));
+    const armed = state.versionDeleteAt.name === v.name && Date.now() - state.versionDeleteAt.t < 5000;
+    const del = el('button', { type: 'button', className: 'version-delete' }, armed ? 'Click again to delete' : 'Delete');
+    del.addEventListener('click', () => {
+      if (!(state.versionDeleteAt.name === v.name && Date.now() - state.versionDeleteAt.t < 5000)) {
+        state.versionDeleteAt = { name: v.name, t: Date.now() };
+        renderVersions();
+        return;
+      }
+      state.versionDeleteAt = { name: null, t: 0 };
+      store.set(versionsKey(), cleanVersions(store.get(versionsKey(), [])).filter((x) => x.name !== v.name));
+      renderVersions();
+    });
+    return el('li', {}, el('strong', {}, v.name), el('span', { className: 'version-when' }, ` ${day(v.at)} ${clock(v.at)}`), restore, del);
+  }));
+}
+
+function openVersions() {
+  renderVersions();
+  $('#versions').showModal();
+}
+
+function saveVersion() {
+  const name = $('#version-name').value.trim() || `Version ${cleanVersions(store.get(versionsKey(), [])).length + 1}`;
+  store.set(versionsKey(), addVersion(cleanVersions(store.get(versionsKey(), [])), name, snapshot()));
+  $('#version-name').value = '';
+  addLog(`Saved version "${name}"`);
+  renderVersions();
+}
+
+function restoreVersion(v) {
+  let data;
+  try {
+    data = importProgress(JSON.stringify({ ...v.data, format: 'bench-progress', version: 1 }));
+  } catch {
+    setStatus(`Version "${v.name}" couldn't be read.`);
+    return;
+  }
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
+  history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
+  setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
+}
+
+function saveReport() {
+  const board = state.project ? state.project.board : null;
+  const groups = currentGroups();
+  const steps = stepsOf();
+  const checks = powerChecks(board);
+  const tests = currentTests();
+  const summary = continuitySummary(tests, state.continuity);
+  const text = buildReport({
+    project: projectName(), revision: state.project ? state.project.revision : null, now: Date.now(),
+    soldered: state.parts.filter((p) => state.ticked.has(p.ref)).length, parts: state.parts.length,
+    wired: groups.reduce((n, g) => n + g.members.filter((m) => state.wired.has(m.key)).length, 0), legs: groups.reduce((n, g) => n + g.members.length, 0),
+    stepsDone: steps.filter(stepDone).length, steps: steps.length,
+    checksDone: checks.filter((c) => state.checks.has(c.id)).length, checks: checks.length,
+    continuityDone: summary.done, continuity: summary.total, faults: summary.faults.map(faultText),
+    placed: Object.keys(state.myBoard.placed).length + (Object.keys(state.myBoard.photos).length ? 1 : 0), boardParts: board ? Object.keys(board.parts).length : 0,
+    time: timeSpent(state.log), unsoldered: state.parts.filter((p) => !state.ticked.has(p.ref)).map((p) => p.ref), notes: state.notes,
+  });
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
+  download(url, `${fileSafe(projectName())}-build-report.md`);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /** Start over: the first click asks, a second within 5 s clears the ticks. Undo brings them back. */
 function startOver() {
   if (Date.now() - state.startOverAt >= 5000) {
@@ -1092,9 +1540,158 @@ function startOver() {
     return;
   }
   state.startOverAt = 0;
-  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks] };
-  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [] }), revert: () => setProgress(before) });
+  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity };
+  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {} }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
+}
+
+// ---- moving around and the app (0.5 improvements 1-8, 44-52) ----
+function stepSheet(delta) {
+  const i = state.sheets.findIndex((s) => s.id === state.current);
+  const next = state.sheets[(i + delta + state.sheets.length) % state.sheets.length];
+  if (next) selectSheet(next.id);
+}
+
+/** Everything the palette can find, each with what it does. */
+function paletteItems() {
+  const items = [];
+  for (const p of state.parts) items.push({ label: `${p.ref}${p.value ? ` ${p.value}` : ''}`, hint: 'part', run: () => selectPart(p.ref) });
+  for (const g of currentGroups()) items.push({ label: `Line ${g.label}`, hint: 'line', run: () => openLine(g.net) });
+  for (const s of state.sheets) items.push({ label: s.label, hint: 'sheet', run: () => selectSheet(s.id) });
+  stepsOf().forEach((s, i) => items.push({ label: `Step ${i + 1}: ${s.title}`, hint: 'step', run: () => openStep(i) }));
+  const act = (label, run) => items.push({ label, hint: 'action', run });
+  if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
+  act('Shopping list', openShopping);
+  act('Build log', openLog);
+  act('Versions', openVersions);
+  act('Build report', saveReport);
+  act('Calculators', openCalc);
+  act('Keyboard shortcuts', () => $('#help').showModal());
+  act('Easy reading', () => $('#settings-button').click());
+  act('Save progress as file', saveProgressFile);
+  act('Full screen', toggleFullscreen);
+  act('Hide or show the side panel', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
+  act('Side by side', () => $('#split').click());
+  act('Flip to solder side', () => toggleFlip());
+  act('Fit the sheet', () => viewer.fit());
+  return items;
+}
+
+let paletteAll = [];
+let paletteShown = [];
+let paletteAt = 0;
+function renderPalette() {
+  paletteShown = paletteMatch(paletteAll, $('#palette-input').value);
+  paletteAt = Math.min(paletteAt, Math.max(0, paletteShown.length - 1));
+  $('#palette-list').replaceChildren(...paletteShown.map((item, i) => {
+    const li = el('li', { role: 'option', 'aria-selected': String(i === paletteAt) }, el('span', {}, item.label), el('span', { className: 'hint' }, item.hint));
+    li.addEventListener('click', () => runPalette(i));
+    return li;
+  }));
+}
+function openPalette() {
+  paletteAll = paletteItems();
+  paletteAt = 0;
+  $('#palette-input').value = '';
+  renderPalette();
+  if (!$('#palette').open) $('#palette').showModal();
+  $('#palette-input').focus();
+}
+function runPalette(i) {
+  const item = paletteShown[i];
+  $('#palette').close();
+  if (item) item.run();
+}
+
+function openCalc() {
+  $('#calc').showModal();
+  updateCalc();
+}
+function updateCalc() {
+  const num = (id) => {
+    const v = parseFloat($(id).value);
+    return Number.isFinite(v) ? v : undefined;
+  };
+  const led = ledResistor(num('#calc-led-supply'), num('#calc-led-vf'), num('#calc-led-ma'));
+  $('#calc-led-out').textContent = led ? `${Math.round(led.r)} Ω: use ${ohmsText(led.e12)} Ω, about ${led.mA.toFixed(1)} mA (${(led.w * 1000).toFixed(0)} mW in the resistor)` : 'Supply must be above the LED voltage.';
+  const ma = num('#calc-ohm-ma');
+  const o = ohmsLaw({ v: num('#calc-ohm-v'), i: ma === undefined ? undefined : ma / 1000, r: num('#calc-ohm-r') });
+  $('#calc-ohm-out').textContent = o ? `${+o.v.toFixed(3)} V · ${+(o.i * 1000).toFixed(3)} mA · ${ohmsText(o.r)} Ω · ${+(o.w * 1000).toFixed(1)} mW` : 'Fill in any two.';
+  const d = divider(num('#calc-div-vin'), num('#calc-div-r1'), num('#calc-div-r2'));
+  $('#calc-div-out').textContent = d ? `Out: ${d.vout.toFixed(2)} V, ${d.mA.toFixed(3)} mA through the pair` : 'Fill in all three.';
+}
+
+function renderRecentFinds() {
+  const recent = store.get('recentFinds', []);
+  $('#find-recent').replaceChildren(...(Array.isArray(recent) ? recent : []).filter((q) => typeof q === 'string').map((q) => el('option', { value: q })));
+}
+function rememberFind(query) {
+  const q = query.trim().slice(0, 60);
+  if (!q) return;
+  const recent = (store.get('recentFinds', []) || []).filter((x) => typeof x === 'string' && x !== q);
+  store.set('recentFinds', [q, ...recent].slice(0, 8));
+  renderRecentFinds();
+}
+
+/** Hovering a part's label on a drawing names it (0.5 improvement 7). */
+let labelTipFrame = 0;
+function onStageHover(e) {
+  // the event's path is only there while it's being handled: read it now, draw on the next frame
+  const target = e.composedPath()[0];
+  const { clientX, clientY } = e;
+  if (labelTipFrame) cancelAnimationFrame(labelTipFrame);
+  labelTipFrame = requestAnimationFrame(() => {
+    labelTipFrame = 0;
+    const tip = $('#label-tip');
+    const text = target instanceof Element ? target.closest('text') : null;
+    const ref = text ? refOfLabel(labelText(text), isKnownRef) : null;
+    const part = ref ? state.partsByRef.get(ref) : null;
+    if (!part) {
+      tip.hidden = true;
+      return;
+    }
+    const r = $('#stage').getBoundingClientRect();
+    tip.textContent = [part.ref, part.value].filter(Boolean).join(' · ') + (part.role ? ` · ${part.role.split(/[.:]/)[0]}` : '');
+    tip.style.left = `${clientX - r.left + 14}px`;
+    tip.style.top = `${clientY - r.top + 12}px`;
+    tip.hidden = false;
+  });
+}
+
+function wirePanelResize() {
+  const handle = $('#panel-resize');
+  const set = (w) => {
+    const width = Math.round(Math.min(760, Math.max(260, w)));
+    $('#panel').style.width = `${width}px`;
+    return width;
+  };
+  const savedWidth = store.get('panelWidth', null);
+  if (Number.isFinite(savedWidth)) set(savedWidth);
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    handle.classList.add('active');
+    try { handle.setPointerCapture(e.pointerId); } catch { /* not tracked */ }
+    const right = $('#workspace').getBoundingClientRect().right;
+    const move = (ev) => set(right - ev.clientX);
+    const up = (ev) => {
+      store.set('panelWidth', set(right - ev.clientX));
+      handle.classList.remove('active');
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', up);
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', up);
+  });
+}
+
+function showWhatsNew() {
+  const seen = store.get('seenVersion', null);
+  if (seen === null) {
+    store.set('seenVersion', APP_VERSION); // a first visit: nothing to call new
+    return;
+  }
+  if (seen !== APP_VERSION) $('#whats-new').hidden = false;
 }
 
 // ---- what to wire (0.4 design F1) ----
@@ -1112,6 +1709,7 @@ function updateNetRings() {
   const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
   const refs = group ? [...new Set(group.members.map((m) => m.ref))] : [];
   viewer.netRings(refs.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean));
+  if (board3d && board3dOn) board3d.setNet(refs);
 }
 
 function showNet(net) {
@@ -1140,6 +1738,19 @@ function renderWiringPanel() {
     onCopy: copyWiring,
     onOpenOnly: (on) => { state.wiringOpenOnly = on; renderWiringPanel(); },
     onExpand: (net, open) => { if (open) state.wiringExpanded.add(net); else state.wiringExpanded.delete(net); },
+    filter: state.wiringFilter,
+    onFilter: (text) => { state.wiringFilter = text; renderWiringPanel(); },
+    onWireAll: (g) => wireMany(g.members.map((m) => m.key), `Wired all of ${g.label}`),
+    onNextLine: () => {
+      const g = currentGroups().find((x) => x.members.some((m) => !state.wired.has(m.key)));
+      if (!g) {
+        setStatus('Every line is wired.');
+        return;
+      }
+      state.wiringExpanded = new Set([g.net]);
+      renderWiringPanel();
+      [...document.querySelectorAll('#wiring details')].find((d) => d.dataset.net === g.net)?.scrollIntoView({ block: 'nearest' });
+    },
     onExpandAll: (open) => {
       state.wiringExpanded = new Set(open ? currentGroups().map((g) => g.net) : []);
       renderWiringPanel();
@@ -1171,6 +1782,7 @@ function updateStepRings() {
   viewer.stepRings(els);
   syncStep3D();
   drawMyBoardMarks();
+  renderMyBoardPanel(); // its "not placed yet" follows the open step
 }
 
 /** A step is done when all its parts are soldered, or, with nothing to tick, when you marked it done. */
@@ -1186,6 +1798,76 @@ function setCheck(id, on, label) {
   history.do({ label, apply: () => setProgress({ checks: after }), revert: () => setProgress({ checks: before }) });
 }
 
+// ---- the guided continuity test (0.5 big improvement B6) ----
+const currentTests = () => continuityTests(state.project ? state.project.board : null);
+
+function setContinuity(next, label) {
+  const before = state.continuity;
+  history.do({ label, apply: () => setProgress({ continuity: next }), revert: () => setProgress({ continuity: before }) });
+}
+
+function renderContinuityPanel() {
+  const tests = currentTests();
+  const summary = continuitySummary(tests.filter((t) => state.continuity[t.id] || !state.contSkipped.has(t.id)), state.continuity);
+  const full = continuitySummary(tests, state.continuity);
+  renderContinuity($('#continuity'), {
+    summary: { ...full, next: summary.next },
+    faultText,
+    onAnswer: (test, beeped) => {
+      const pass = test.kind === 'beep' ? beeped : !beeped;
+      setContinuity({ ...state.continuity, [test.id]: pass ? 'pass' : 'fail' }, `${test.a.text} to ${test.b.text}: ${beeped ? 'beeped' : 'no beep'}`);
+    },
+    onSkip: () => {
+      if (summary.next) state.contSkipped.add(summary.next.id);
+      renderContinuityPanel();
+    },
+    onShow: (ref) => selectPart(ref),
+    onRetry: (id) => {
+      const next = { ...state.continuity };
+      delete next[id];
+      setContinuity(next, 'Test again');
+    },
+    onReset: () => {
+      state.contSkipped.clear();
+      setContinuity({}, 'Start the continuity test again');
+    },
+  });
+}
+
+// ---- step extras (0.5 improvements 27-30) ----
+function autoStepWasDone() {
+  const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  return step ? stepDone(step) : true;
+}
+
+/** "Next step by itself": when the open step has just become done, open the next one. */
+function autoNextStep(wasDone) {
+  if (wasDone || !store.get('stepsAuto', false)) return;
+  const steps = stepsOf();
+  const step = state.openStep !== null ? steps[state.openStep] : null;
+  if (step && stepDone(step) && state.openStep < steps.length - 1) {
+    openStep(state.openStep + 1);
+    setStatus(`Step ${state.openStep} done: on to step ${state.openStep + 1}.`);
+  }
+}
+
+function stepExtras(step) {
+  const board = state.project ? state.project.board : null;
+  const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
+  return {
+    joints,
+    note: state.notes[`step.${step.id}`] || '',
+    onNote: (text) => setNote(`step.${step.id}`, text),
+    onPrint: () => {
+      document.body.classList.add('print-step');
+      window.print();
+      setTimeout(() => document.body.classList.remove('print-step'), 500);
+    },
+    auto: store.get('stepsAuto', false) === true,
+    onAuto: (on) => { store.set('stepsAuto', on); },
+  };
+}
+
 function renderChecksPanel() {
   renderChecks($('#checks'), {
     checks: powerChecks(state.project ? state.project.board : null),
@@ -1198,6 +1880,7 @@ function renderStepsPanel() {
   renderSteps($('#steps'), stepsOf(), {
     current: state.openStep,
     isDone: stepDone,
+    extras: state.openStep !== null && stepsOf()[state.openStep] ? stepExtras(stepsOf()[state.openStep]) : null,
     onMarkDone: (i, on) => setCheck(`step:${stepsOf()[i].id}`, on, `Step ${i + 1} ${on ? 'done' : 'not done'}`),
     on3D: state.project && state.project.board ? () => setBoard3D(true) : null,
     doneIn: (step) => step.parts.filter((r) => state.ticked.has(r)).length,
@@ -1267,6 +1950,8 @@ function loadProgress() {
   state.myBoard = data ? data.myBoard : { anchor: null, photos: {}, placed: {} };
   state.notes = data ? data.notes : {};
   state.checks = new Set(data ? data.checks : []);
+  state.continuity = data ? data.continuity : {};
+  state.log = data ? data.log : [];
   refreshNotes();
 }
 
@@ -1281,7 +1966,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log });
   if (saved) flashSaved();
 }
 
@@ -1297,6 +1982,7 @@ function checkProgressKey() {
   renderChecklist();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
   renderPartCard();
   updateMyBoard();
 }
@@ -1331,7 +2017,8 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity }) {
+  const stepWasDone = autoStepWasDone();
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -1347,6 +2034,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks })
   if (myBoard) state.myBoard = myBoard;
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
+  if (continuity) state.continuity = continuity;
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -1358,8 +2046,11 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks })
   renderStepsPanel();
   renderWiringPanel();
   renderChecksPanel();
+  renderContinuityPanel();
   renderPartCard();
   updateMyBoard();
+  updateTabCounts();
+  autoNextStep(stepWasDone);
 }
 
 function toggleTick(ref) {
@@ -1386,15 +2077,43 @@ function renderChecklist() {
   bar.value = done;
   const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)),
     ...(state.checklistNotes.length ? [el('button', { id: 'notes-checked', type: 'button' }, 'Mark them checked')] : []));
-  const shown = state.checklistOpenOnly ? state.parts.filter((p) => !state.ticked.has(p.ref)) : state.parts;
-  const items = el('ul', { className: 'checklist-items' }, ...shown.map((part) => {
+  const stepOf = new Map();
+  stepsOf().forEach((s, i) => s.parts.forEach((ref) => { if (!stepOf.has(ref)) stepOf.set(ref, i); }));
+  const q = state.checklistQuery.trim().toLowerCase();
+  let shown = state.parts.filter((p) => (!state.checklistOpenOnly || !state.ticked.has(p.ref)) &&
+    (!q || `${p.ref} ${p.value || ''} ${p.type || ''}`.toLowerCase().includes(q)));
+  if (state.checklistSort === 'name') shown = [...shown].sort((a, b) => a.ref.localeCompare(b.ref, 'en', { numeric: true }));
+  if (state.checklistSort === 'step') shown = [...shown].sort((a, b) => (stepOf.get(a.ref) ?? 999) - (stepOf.get(b.ref) ?? 999));
+  const row = (part) => {
     const box = el('input', { type: 'checkbox', 'data-ref': part.ref, 'aria-label': `${part.ref} soldered` });
     box.checked = state.ticked.has(part.ref);
     const name = el('button', { type: 'button', className: 'checklist-name', 'data-open': part.ref }, `${part.ref}${part.value ? ` ${part.value}` : ''}`);
-    const row = el('li', { 'data-ref': part.ref }, box, name);
-    if (part.polarized) row.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
-    return row;
-  }));
+    const li = el('li', { 'data-ref': part.ref }, box, name);
+    if (stepOf.has(part.ref)) li.append(el('span', { className: 'step-no', title: `Build step ${stepOf.get(part.ref) + 1}` }, `S${stepOf.get(part.ref) + 1}`));
+    if (part.polarized) li.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
+    return li;
+  };
+  const items = el('div', { className: 'checklist-list' });
+  if (state.checklistGroup) {
+    for (const g of groupByType(shown)) {
+      const all = state.parts.filter((p) => groupByType([p])[0].label === g.label);
+      items.append(el('h3', {}, `${g.label} (${all.filter((p) => state.ticked.has(p.ref)).length}/${all.length})`),
+        el('ul', { className: 'checklist-items' }, ...g.parts.map(row)));
+    }
+  } else {
+    items.append(el('ul', { className: 'checklist-items' }, ...shown.map(row)));
+  }
+  const search = el('input', { type: 'search', id: 'checklist-search', placeholder: 'Search parts', 'aria-label': 'Search the checklist' });
+  search.value = state.checklistQuery;
+  const group = el('input', { type: 'checkbox', id: 'checklist-group' });
+  group.checked = state.checklistGroup;
+  const sort = el('select', { id: 'checklist-sort', 'aria-label': 'Order' });
+  for (const [value, text] of [['list', 'Project order'], ['name', 'By name'], ['step', 'By build step']]) {
+    const opt = el('option', { value }, text);
+    opt.selected = value === state.checklistSort;
+    sort.append(opt);
+  }
+  const tools = el('div', { id: 'checklist-tools' }, search, el('label', { className: 'check' }, group, ' By type'), sort);
   const openOnly = el('input', { type: 'checkbox', id: 'checklist-open-only' });
   openOnly.checked = state.checklistOpenOnly;
   const open = el('label', { className: 'button-like' }, 'Open progress file',
@@ -1406,9 +2125,13 @@ function renderChecklist() {
     notes,
     el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open,
       el('button', { id: 'shopping-open', type: 'button' }, 'Shopping list'),
+      el('button', { id: 'log-open', type: 'button' }, 'Build log'),
+      el('button', { id: 'versions-open', type: 'button' }, 'Versions'),
+      el('button', { id: 'report-save', type: 'button', title: 'A summary of where the build stands, as a Markdown file' }, 'Build report'),
       el('button', { id: 'start-over', type: 'button', title: 'Clear the soldered, wired and done ticks (undo brings them back)' },
         Date.now() - state.startOverAt < 5000 ? 'Click again to start over' : 'Start over')),
     el('label', { className: 'check' }, openOnly, ' Only not soldered'),
+    tools,
     items,
   );
 }
@@ -1416,7 +2139,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -1441,8 +2164,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -1498,6 +2221,13 @@ function updateSheetNote() {
  */
 async function refreshSheet(sheet, mtime) {
   markUpdated();
+  const tab = [...$('#tabs').children].find((t) => t.dataset.id === sheet.id);
+  if (tab) {
+    tab.classList.remove('flash');
+    void tab.offsetWidth; // restart the flash
+    tab.classList.add('flash');
+    setTimeout(() => tab.classList.remove('flash'), 2600);
+  }
   if (mtime !== undefined) sheet.mtime = mtime;
   const generation = (state.generations.get(sheet.id) || 0) + 1;
   state.generations.set(sheet.id, generation);
@@ -1650,13 +2380,40 @@ function renderTabs() {
     return tab;
   }));
   updatePartDots();
+  updateTabCounts();
   if (split.on) fillSplitChoices();
 }
 
+/** Each tab says how many of the parts on its sheet are soldered (0.5 improvement 6). */
+function updateTabCounts() {
+  // which sheets each part is on, worked out once per update (not once per tab)
+  const onSheets = new Map(state.parts.map((p) => [p.ref, new Set(sheetsWithPart(p.ref).map((s) => s.id))]));
+  for (const tab of $('#tabs').children) {
+    const on = state.parts.filter((p) => onSheets.get(p.ref).has(tab.dataset.id));
+    if (on.length) tab.setAttribute('data-count', `${on.filter((p) => state.ticked.has(p.ref)).length}/${on.length}`);
+    else tab.removeAttribute('data-count');
+  }
+}
+
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
+    e.preventDefault();
+    openPalette();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    saveProgressFile();
+    return;
+  }
+  if (e.altKey && !e.ctrlKey && !typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault();
+    walkTrail(e.key === 'ArrowLeft' ? -1 : 1);
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
     const key = e.key.toLowerCase();
     if (key === 'z' && !e.shiftKey) {
@@ -1681,17 +2438,22 @@ function onKey(e) {
     '+': () => viewer.zoomBy(1.25),
     '=': () => viewer.zoomBy(1.25),
     '-': () => viewer.zoomBy(1 / 1.25),
-    ArrowLeft: () => viewer.panBy(w * 0.1, 0),
-    ArrowRight: () => viewer.panBy(-w * 0.1, 0),
-    ArrowUp: () => viewer.panBy(0, h * 0.1),
-    ArrowDown: () => viewer.panBy(0, -h * 0.1),
+    ArrowLeft: () => (board3d && board3dOn ? board3d.orbit(0.15, 0) : viewer.panBy(w * 0.1, 0)),
+    ArrowRight: () => (board3d && board3dOn ? board3d.orbit(-0.15, 0) : viewer.panBy(-w * 0.1, 0)),
+    ArrowUp: () => (board3d && board3dOn ? board3d.orbit(0, -0.1) : viewer.panBy(0, h * 0.1)),
+    ArrowDown: () => (board3d && board3dOn ? board3d.orbit(0, 0.1) : viewer.panBy(0, -h * 0.1)),
     '/': () => find.focus(),
     n: () => find.next(),
     N: () => find.prev(),
     f: () => toggleFlip(),
     Escape: () => (state.mode ? stopTapping() : clearPart()),
     b: () => setBoard3D(!board3dOn),
+    '[': () => stepSheet(-1),
+    ']': () => stepSheet(1),
+    w: () => viewer.fitWidth(),
     s: () => state.selected && state.partsByRef.has(state.selected) && toggleTick(state.selected),
+    ',': () => stepPart(-1),
+    '.': () => stepPart(1),
     p: () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')),
     r: () => turnPhoto(),
     '?': () => $('#help').showModal(),
@@ -1722,7 +2484,19 @@ async function start() {
     renderMyBoardPanel();
   });
   viewer.onPointClick(onPhotoTap);
-  viewer.onView((v) => { $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`; });
+  viewer.setDragHandler(onPhotoDrag);
+  let viewSave = 0;
+  viewer.onView((v) => {
+    $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`;
+    clearTimeout(viewSave);
+    const id = state.current;
+    viewSave = setTimeout(() => {
+      if (!id || id !== state.current) return;
+      const all = store.get(`views:${projectName()}`, {}) || {};
+      all[id] = { scale: v.scale, x: v.x, y: v.y };
+      store.set(`views:${projectName()}`, all);
+    }, 400);
+  });
   $('#zoom-level').addEventListener('click', () => viewer.fit());
   $('#help-done').addEventListener('click', () => $('#help').close());
   state.folded = new Set((store.get('folded', []) || []).filter((id) => FOLDABLE.includes(id)));
@@ -1757,11 +2531,81 @@ async function start() {
   if ('wakeLock' in navigator && store.get('keepScreenOn', false) === true) setWake(true);
   darkScheme.addEventListener('change', () => applySettings(document.documentElement, settings, darkScheme.matches));
   $('#shopping-copy').addEventListener('click', copyShopping);
+  $('#log-filter').addEventListener('input', renderLog);
+  $('#palette-input').addEventListener('input', () => { paletteAt = 0; renderPalette(); });
+  $('#palette-input').addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      paletteAt = Math.max(0, Math.min(paletteShown.length - 1, paletteAt + (e.key === 'ArrowDown' ? 1 : -1)));
+      renderPalette();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      runPalette(paletteAt);
+    }
+  });
+  $('#calc-open').addEventListener('click', openCalc);
+  $('#stage-retry').addEventListener('click', () => {
+    const id = retrySheet;
+    if (!id) return;
+    state.cache.delete(id);
+    state.loaded.delete(id);
+    selectSheet(id);
+  });
+  $('#calc').addEventListener('input', updateCalc);
+  $('#calc-done').addEventListener('click', () => $('#calc').close());
+  renderRecentFinds();
+  $('#find').addEventListener('keydown', (e) => { if (e.key === 'Enter') rememberFind($('#find').value); });
+  $('#stage').addEventListener('pointermove', onStageHover);
+  $('#stage').addEventListener('pointerleave', () => { $('#label-tip').hidden = true; });
+  wirePanelResize();
+  showWhatsNew();
+  $('#whats-new-close').addEventListener('click', () => {
+    store.set('seenVersion', APP_VERSION);
+    $('#whats-new').hidden = true;
+  });
+  $('#checklist').addEventListener('input', (e) => {
+    if (!(e.target instanceof HTMLInputElement) || e.target.id !== 'checklist-search') return;
+    state.checklistQuery = e.target.value;
+    const caret = [e.target.selectionStart, e.target.selectionEnd];
+    renderChecklist();
+    const again = $('#checklist-search');
+    again.focus();
+    again.setSelectionRange(...caret);
+  });
+  $('#log-copy').addEventListener('click', () => copyText(logText(state.log), 'Build log copied.'));
+  $('#log-done').addEventListener('click', () => $('#log').close());
+  $('#version-save').addEventListener('click', saveVersion);
+  $('#version-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') saveVersion(); });
+  $('#versions-done').addEventListener('click', () => $('#versions').close());
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());
+  for (const [id, name] of [['#board3d-front', 'front'], ['#board3d-side', 'side'], ['#board3d-iso', 'iso']]) {
+    $(id).addEventListener('click', () => board3d && board3d.view(name));
+  }
+  $('#board3d-fit').addEventListener('click', () => board3d && board3d.fit());
+  $('#board3d-sheet4').addEventListener('click', () => setBoard3DSource('sheet4'));
+  $('#board3d-mine').addEventListener('click', () => setBoard3DSource('mine'));
+  $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
+  $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
+  $('#board3d-upto').addEventListener('change', syncStep3D);
+  $('#board3d-explode').addEventListener('input', (e) => board3d && board3d.setExplode(Number(e.target.value)));
+  $('#board3d-clip').addEventListener('input', (e) => board3d && board3d.setClip(Number(e.target.value) >= 1 ? null : Number(e.target.value)));
+  $('#board3d-measure-toggle').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    if (board3d) board3d.setMeasure(on);
+  });
+  $('#board3d-play').addEventListener('click', playSteps);
+  $('#board3d-png').addEventListener('click', () => board3d && download(board3d.picture(), `${fileSafe(projectName())}-3d.png`));
+  $('#board3d-stl').addEventListener('click', () => {
+    if (!board3d) return;
+    const url = URL.createObjectURL(new Blob([board3d.stl()], { type: 'model/stl' }));
+    download(url, `${fileSafe(projectName())}-board.stl`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
   $('#board3d-wiring').addEventListener('change', (e) => board3d && board3d.showWiring(e.target.checked));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
   for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());
@@ -1774,6 +2618,12 @@ async function start() {
     else if (t instanceof HTMLInputElement && t.id === 'checklist-open-only') {
       state.checklistOpenOnly = t.checked;
       renderChecklist();
+    } else if (t instanceof HTMLInputElement && t.id === 'checklist-group') {
+      state.checklistGroup = t.checked;
+      renderChecklist();
+    } else if (t instanceof HTMLSelectElement && t.id === 'checklist-sort') {
+      state.checklistSort = t.value;
+      renderChecklist();
     }
     else if (t instanceof HTMLInputElement && t.id === 'progress-open') openProgressFile(t);
   });
@@ -1782,6 +2632,9 @@ async function start() {
     if (e.target instanceof HTMLElement && e.target.id === 'notes-checked') acknowledgeNotes();
     if (e.target instanceof HTMLElement && e.target.dataset.open) selectPart(e.target.dataset.open);
     if (e.target instanceof HTMLElement && e.target.id === 'shopping-open') openShopping();
+    if (e.target instanceof HTMLElement && e.target.id === 'log-open') openLog();
+    if (e.target instanceof HTMLElement && e.target.id === 'versions-open') openVersions();
+    if (e.target instanceof HTMLElement && e.target.id === 'report-save') saveReport();
     if (e.target instanceof HTMLElement && e.target.id === 'start-over') startOver();
   });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
@@ -1814,7 +2667,19 @@ async function start() {
   // Read the other sheets in the background, so Find part can search all of them.
   await Promise.all(state.sheets.map(load));
   updateParts();
+  updateTabCounts();
   find.refresh();
+  openFromLink();
+}
+
+/** A link with ?sheet=…&part=… opens there (0.5 improvement 1). */
+async function openFromLink() {
+  const q = new URLSearchParams(window.location.search);
+  const sheet = q.get('sheet');
+  const part = q.get('part');
+  if (sheet && state.sheets.some((s) => s.id === sheet)) await selectSheet(sheet);
+  if (part && state.partsByRef.has(part)) selectPart(part);
+  if (sheet || part) window.history.replaceState(null, '', window.location.pathname); // once: a reload stays where you are
 }
 
 start();

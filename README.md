@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.4.1 works on a PC, from a local folder. Phone and tablet, GitHub links and the
+**Status:** release 0.5 works on a PC, from a local folder. Phone and tablet, GitHub links and the
 website come later (see the roadmap).
 
 ## Try it
@@ -33,10 +33,18 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
   part one click away), **which holes it goes in** on sheet 4, and **which build step** it's in.
 - **Build steps:** the build order, one step at a time, with why, what to do, and that step's parts
   ringed on the drawing. Space / Shift+Space to move, and "Tick all in this step".
-- **3D board** (`b`): the perfboard in 3D over the dimmed schematic, every part labelled, the wiring
-  underneath (which you can hide). Click a part to open its card: its holes light up and it lifts.
-  Double-click to turn to it. The open step's parts glow blue. `t` and `u` show the top and the
-  underside, and the camera is remembered.
+- **3D board** (`b`): the perfboard in 3D over the dimmed schematic.
+  - **Models:** every part is drawn from its datasheet size. That includes resistors with their
+    real colour bands, ceramics printed with their code, and electrolytics with sleeve, stripe and
+    vent. The chip sits in its socket with notch, legs and name, and the fan headers have their
+    wall and key. There's a solder joint under every leg.
+  - **Look:** studio lighting with soft shadows.
+  - **Moving around:** a view cube in the corner, Top, Underside, Front, Side, 3/4 and Fit. Arrow
+    keys turn the board, hover names a part, click selects it (outlined, its holes lit) and
+    double-click flies to it.
+  - **Tools:** exploded view, X-ray, a cut-away, measure in mm and holes, play the build steps,
+    build up to this step, labels on or off, and save a picture (PNG) or the board as STL.
+  - **My board** shows your own placement instead of sheet 4.
 - **Build checklist:** tick parts as you solder them, and their labels turn green on every sheet.
   Progress saves itself, and **Save progress as file** moves it to another device. "Only not
   soldered" hides what's done; polarised parts say "Way round matters".
@@ -64,6 +72,21 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
   when its drawing changes, keeping your zoom.
 - **Moving around:** `1`–`9` pick sheets, the zoom badge fits the sheet when clicked, Bench opens on
   the sheet you last looked at, and `?` lists every shortcut.
+- **Parts library:** pin names for the ATmega328P (with the Arduino numbers), the MP1584 module,
+  common transistors, diodes, LEDs, electrolytics, crystals and fan headers. Each comes with which
+  way round it goes, how to use it, and its source. The card also shows a resistor's colour bands,
+  a ceramic's printed code, and pictures of which way round.
+- **Continuity test:** the meter's beep test, pair by pair, from the project's own connections
+  (should beep / must not beep), with faults kept and explained.
+- **Your board, more:**
+  - drag a placed part to move it;
+  - **Check my board** finds two legs in one hole, parts on top of each other, and risky
+    neighbours;
+  - **suggested wires** underneath, three shapes per line.
+- **History:** a build log with times and time spent, named versions of your progress, and a
+  build report to download.
+- **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).
+  Calculators: LED resistor, Ohm's law, divider.
 - **At the bench:**
   - **Full screen** and **Keep screen on**, so the screen doesn't go dark while you solder.
   - **Hide panel** (`p`) for more drawing room; any panel section folds away from its heading.
