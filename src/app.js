@@ -1,6 +1,6 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
-import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
+import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
 import { renderCard, renderChecks, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
@@ -178,6 +178,7 @@ function load(sheet) {
 async function selectSheet(id) {
   if (state.current && state.current !== id && viewer.sheetRoot()) state.views.set(state.current, viewer.getView());
   state.current = id;
+  store.set(`sheet:${projectName()}`, id);
   updateSheetNote();
   for (const tab of $('#tabs').children) tab.setAttribute('aria-selected', String(tab.dataset.id === id));
   const sheet = state.sheets.find((s) => s.id === id);
@@ -455,6 +456,7 @@ window.makerForge = Object.freeze({
   board3d: Object.freeze({
     view: () => (board3d && board3dOn ? board3d.getView() : null),
     screenOf: (ref) => (board3d && board3dOn ? board3d.screenOf(ref) : null),
+    info: () => (board3d && board3dOn ? board3d.info() : null),
   }),
 });
 
@@ -593,7 +595,8 @@ async function readProjectFile() {
     state.projectProblem = '';
     return project;
   } catch (error) {
-    state.projectProblem = error instanceof ProjectError ? error.message : SERVER_DOWN;
+    if (!(error instanceof ProjectError) && !(error instanceof ServerError)) console.warn(error);
+    state.projectProblem = projectProblemText(error, error instanceof ServerError, SERVER_DOWN);
     return null;
   }
 }
@@ -664,7 +667,13 @@ async function setBoard3D(on) {
     if (!board3dBuilding) {
       message.hidden = true;
       const board = state.project.board;
-      board3dBuilding = createBoard3D($('#board3d-view'), board, { onPick: (ref) => selectPart(ref) }).then((view) => {
+      const cameraKey = `camera:${projectName()}`;
+      board3dBuilding = createBoard3D($('#board3d-view'), board, {
+        onPick: (ref) => selectPart(ref),
+        camera: store.get(cameraKey, null),
+        onCamera: (camera) => store.set(cameraKey, camera),
+      }).then((view) => {
+        if (view) view.showWiring($('#board3d-wiring').checked);
         board3d = view;
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
@@ -1293,7 +1302,15 @@ async function openProgressFile(input) {
 }
 
 /** forge-project.json changed: read it again. A broken version keeps the previous project. */
+/** The live badge's "updated HH:MM": when the project file or a sheet last refreshed. */
+function markUpdated() {
+  const now = new Date();
+  state.updatedAt = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  showLive();
+}
+
 async function reloadProject() {
+  markUpdated();
   const next = await readProjectFile();
   if (next) state.project = next;
   showProjectName();
@@ -1335,6 +1352,7 @@ function updateSheetNote() {
  * browser fetches it again instead of reusing its copy.
  */
 async function refreshSheet(sheet, mtime) {
+  markUpdated();
   if (mtime !== undefined) sheet.mtime = mtime;
   const generation = (state.generations.get(sheet.id) || 0) + 1;
   state.generations.set(sheet.id, generation);
@@ -1457,9 +1475,15 @@ function onFileChange(path, mtime) {
 }
 
 let livePaused = false;
+let liveNow = 'live';
+function showLive() {
+  const badge = $('#live');
+  badge.textContent = `${liveNow === 'live' ? 'Auto-refresh on' : 'Auto-refresh paused'}${state.updatedAt ? ` · updated ${state.updatedAt}` : ''}`;
+}
 function onLiveStatus(live) {
   const badge = $('#live');
-  badge.textContent = live === 'live' ? 'Auto-refresh on' : 'Auto-refresh paused';
+  liveNow = live;
+  showLive();
   badge.classList.toggle('paused', live !== 'live');
   if (live !== 'live') {
     livePaused = true;
@@ -1485,6 +1509,7 @@ function renderTabs() {
 }
 
 function onKey(e) {
+  if (document.querySelector("dialog[open]#help")) return; // the help list handles its own keys (Esc closes it)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
@@ -1520,7 +1545,16 @@ function onKey(e) {
     N: () => find.prev(),
     f: () => toggleFlip(),
     Escape: () => (state.mode ? stopTapping() : clearPart()),
+    b: () => setBoard3D(!board3dOn),
+    '?': () => $('#help').showModal(),
+    t: () => board3d && board3dOn && board3d.view('top'),
+    u: () => board3d && board3dOn && board3d.view('bottom'),
   };
+  if (/^[1-9]$/.test(e.key) && state.sheets[Number(e.key) - 1]) {
+    e.preventDefault();
+    selectSheet(state.sheets[Number(e.key) - 1].id);
+    return;
+  }
   const action = actions[e.key];
   if (!action) return;
   e.preventDefault();
@@ -1540,8 +1574,13 @@ async function start() {
     renderMyBoardPanel();
   });
   viewer.onPointClick(onPhotoTap);
+  viewer.onView((v) => { $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`; });
+  $('#zoom-level').addEventListener('click', () => viewer.fit());
+  $('#help-done').addEventListener('click', () => $('#help').close());
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
+  $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());
+  $('#board3d-wiring').addEventListener('change', (e) => board3d && board3d.showWiring(e.target.checked));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
   for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());
   $('#stage2-sheet').addEventListener('change', (e) => showInSplit(e.target.value));
@@ -1586,7 +1625,8 @@ async function start() {
     setStatus(noDrawingsMessage(project.root));
     return;
   }
-  await selectSheet(state.sheets[0].id);
+  const remembered = store.get(`sheet:${projectName()}`, null);
+  await selectSheet((state.sheets.find((s) => s.id === remembered && !s.missing) || state.sheets[0]).id);
   // Read the other sheets in the background, so Find part can search all of them.
   await Promise.all(state.sheets.map(load));
   updateParts();

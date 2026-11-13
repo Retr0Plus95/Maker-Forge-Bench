@@ -28,7 +28,7 @@ describe('auto-refresh', () => {
     original = await readFile(sfe04Path, 'utf8');
     server = await startDevServer(dir);
     ({ browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 }));
-    await page.waitForFunction(() => document.querySelector('#live').textContent === 'Auto-refresh on');
+    await page.waitForFunction(() => document.querySelector('#live').textContent.startsWith('Auto-refresh on'));
     await tab(page, 'SFE-04').click();
     await shownTextIncludes(page, 'REV D');
   });
@@ -86,7 +86,7 @@ describe('auto-refresh', () => {
 
   test('stopping dev.py pauses auto-refresh', async () => {
     await server.stop();
-    await page.waitForFunction(() => document.querySelector('#live').textContent === 'Auto-refresh paused', null, { timeout: 5000 });
+    await page.waitForFunction(() => document.querySelector('#live').textContent.startsWith('Auto-refresh paused'), null, { timeout: 5000 });
   });
 });
 
@@ -146,10 +146,10 @@ describe('auto-refresh keeps up', () => {
       await tab(page, 'SFE-04').click();
       await shownTextIncludes(page, 'REV D');
       await server.stop();
-      await page.waitForFunction(() => document.querySelector('#live').textContent === 'Auto-refresh paused', null, { timeout: 5000 });
+      await page.waitForFunction(() => document.querySelector('#live').textContent.startsWith('Auto-refresh paused'), null, { timeout: 5000 });
       await writeFile(sfe04, (await readFile(sfe04, 'utf8')).replace('REV D', 'REV E'));
       server = await startDevServer(dir, port);
-      await page.waitForFunction(() => document.querySelector('#live').textContent === 'Auto-refresh on', null, { timeout: 10000 });
+      await page.waitForFunction(() => document.querySelector('#live').textContent.startsWith('Auto-refresh on'), null, { timeout: 10000 });
       await shownTextIncludes(page, 'REV E', 5000);
     } finally {
       await browser.close();

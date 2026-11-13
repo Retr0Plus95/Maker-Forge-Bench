@@ -315,3 +315,14 @@ export function guessParts(labels) {
   }
   return parts;
 }
+
+/**
+ * What the status line says when forge-project.json can't be used (0.4 improvement 29): the
+ * file's own problem, the server being down, or else what actually went wrong.
+ */
+export function projectProblemText(error, serverDown, serverDownText) {
+  if (error instanceof ProjectError) return error.message;
+  if (serverDown) return serverDownText;
+  const why = error && error.message ? error.message : String(error);
+  return `forge-project.json couldn't be used (${why}), so Bench is guessing the parts from the drawings.`;
+}

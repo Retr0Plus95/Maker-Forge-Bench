@@ -22,9 +22,11 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
   let fitted = false;
 
   const stageSize = () => ({ w: stage.clientWidth, h: stage.clientHeight });
+  const viewListeners = [];
   const apply = (next) => {
     view = { ...next };
     host.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    for (const fn of viewListeners) fn({ ...view });
   };
   /** Zoom limits for the sheet on screen: they follow its fitted scale (see scaleLimits). */
   const limits = () => {
@@ -233,7 +235,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
   }, { passive: false });
 
   stage.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || !size) return;
+    // a button on the stage (the zoom badge) gets its own click: capturing the pointer would steal it
+    if (e.button !== 0 || !size || (e.target instanceof Element && e.target.closest('button'))) return;
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
     stage.setPointerCapture(e.pointerId);
     stage.classList.add('dragging');
@@ -276,7 +279,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
   const pointListeners = [];
 
   stage.addEventListener('dblclick', (e) => {
-    if (!size) return;
+    if (!size || (e.target instanceof Element && e.target.closest('button'))) return;
     const [px, py] = stagePoint(e);
     setView(zoomAt(view, 2, px, py, limits()));
   });
@@ -298,6 +301,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     labelRect,
     ring,
     onLabelClick: (fn) => labelListeners.push(fn),
+    /** Told every time the view zooms or moves: { scale, x, y }. */
+    onView: (fn) => viewListeners.push(fn),
     /** A tap (a click that isn't a drag) on a photo, in the photo's own pixels. */
     onPointClick: (fn) => pointListeners.push(fn),
     setOverlay,

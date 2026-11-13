@@ -110,3 +110,12 @@ test('a label is done only when every part it names is ticked', () => {
   assert.equal(labelDone('PWMCTL', known, ticked(['R5'])), false);
   assert.equal(labelDone('R6', known, ticked([])), false);
 });
+
+test('an unexpected error reading forge-project.json says what went wrong', async () => {
+  const { projectProblemText, ProjectError: PE } = await import('../../src/project.js');
+  const down = 'server down';
+  assert.equal(projectProblemText(new PE('json', 'broken json'), false, down), 'broken json');
+  assert.equal(projectProblemText(new Error('x'), true, down), down);
+  assert.equal(projectProblemText(new TypeError('boom'), false, down),
+    "forge-project.json couldn't be used (boom), so Bench is guessing the parts from the drawings.");
+});

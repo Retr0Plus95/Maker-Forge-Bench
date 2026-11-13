@@ -475,3 +475,23 @@ h1 {
 /* ---- step progress and checks before power (0.4) ---- */
 .step-check { color: var(--good); font-weight: 700; }
 .checks-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+
+/* ---- moving around (0.4) ---- */
+#zoom-level {
+  position: absolute; right: 8px; top: 8px; z-index: 1; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: .8rem; cursor: pointer;
+}
+#zoom-level:empty { display: none; }
+.help-keys { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 8px 0 16px; }
+.help-keys dt { font-weight: 700; font-family: ui-monospace, Consolas, monospace; }
+.help-keys dd { margin: 0; }
+
+/* printing: the lists you work from, not the screen around them */
+@media print {
+  #top, #status, #sheet-note, #stage, #stage2, #part-card, #myboard, .checklist-actions, .wiring-actions button, .wire-show { display: none !important; }
+  #workspace { display: block; height: auto; }
+  #panel { width: auto !important; max-height: none; overflow: visible; border: 0; }
+  #panel section { break-inside: avoid-page; border: 0; background: none; }
+  .wire-group > *:not(summary) { display: block !important; }
+  body { background: #fff; color: #000; }
+}

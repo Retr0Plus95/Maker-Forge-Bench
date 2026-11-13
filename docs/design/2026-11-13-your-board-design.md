@@ -117,7 +117,7 @@ browser by `dev.py`.
 17. The selected part lifts a little and its label grows.
 18. "Wiring underneath" on/off.
 19. Double-click a part to turn the camera to it; "Reset view".
-20. Keys: T top, U underside, 3 turns the 3D board on and off.
+20. Keys: T top, U underside, B turns the 3D board on and off (the number keys pick sheets).
 21. Each insulated link is one mesh (faster on big boards).
 22. The camera is remembered per project.
 

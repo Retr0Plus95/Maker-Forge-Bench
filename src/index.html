@@ -42,10 +42,13 @@
       <div class="board3d-bar">
         <button id="board3d-top" class="tool" type="button">Top</button>
         <button id="board3d-under" class="tool" type="button">Underside</button>
-        <span class="hint">Sheet 4 positions · typical part sizes · drag to turn, wheel to zoom, click a part</span>
+        <button id="board3d-reset" class="tool" type="button">Reset view</button>
+        <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
+        <span class="hint">Sheet 4 positions · typical part sizes · drag to turn, wheel to zoom, click a part, double-click to go to it</span>
       </div>
       <p id="board3d-message" hidden></p>
     </div>
+    <button id="zoom-level" type="button" title="Zoom level: click to fit the sheet"></button>
     <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
     <p id="stage-message" hidden></p>
   </main>
@@ -64,6 +67,24 @@
     <section id="checklist" aria-label="Build checklist"></section>
   </aside>
 </div>
+<dialog id="help" aria-labelledby="help-title">
+  <h2 id="help-title">Keyboard shortcuts</h2>
+  <dl class="help-keys">
+    <dt>/</dt><dd>Find a part, a line (+5 V) or a value (100 nF)</dd>
+    <dt>Enter, Shift+Enter · n, N</dt><dd>Next and previous match</dd>
+    <dt>1–9</dt><dd>Pick a sheet</dd>
+    <dt>+ − 0</dt><dd>Zoom in, zoom out, fit the sheet</dd>
+    <dt>Arrow keys</dt><dd>Move the sheet</dd>
+    <dt>F</dt><dd>Flip a layout to the solder side</dd>
+    <dt>Space, Shift+Space</dt><dd>Next and previous build step</dd>
+    <dt>B</dt><dd>3D board on and off</dd>
+    <dt>T, U</dt><dd>3D board from the top, from underneath</dd>
+    <dt>Ctrl+Z, Ctrl+Y</dt><dd>Undo, redo</dd>
+    <dt>Esc</dt><dd>Close the part card, or stop tapping on your photo</dd>
+    <dt>?</dt><dd>This list</dd>
+  </dl>
+  <button id="help-done" class="primary" type="button">Done</button>
+</dialog>
 <dialog id="settings" aria-labelledby="settings-title">
   <h2 id="settings-title">Easy reading</h2>
   <fieldset>
