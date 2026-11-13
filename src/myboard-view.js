@@ -25,6 +25,8 @@ export function buildOverlay(size, pitch, pins, tags, more = {}) {
     '.bench-myboard .myboard-step{stroke:#28c4ff}',
     '.bench-myboard .myboard-selected{stroke:#ff2bd6;stroke-width:var(--wide)}',
     '.bench-myboard .myboard-pending{stroke:#ff2bd6;stroke-dasharray:4 3}',
+    '.bench-myboard circle.myboard-suggest{stroke:#28c4ff;stroke-width:var(--wide);stroke-dasharray:5 3;fill:rgba(40,196,255,.18)}',
+    '.bench-myboard text.myboard-suggest{fill:#9fe8ff}',
     '.bench-myboard .myboard-soldered{fill:rgba(61,220,132,.55)}',
     '.bench-myboard polyline{fill:none;stroke-width:var(--wire);stroke-linecap:round;stroke-linejoin:round;opacity:.9}',
     '.bench-myboard .w-power{stroke:#ff4d4f}.bench-myboard .w-ground{stroke:#9fb3c8}.bench-myboard .w-signal{stroke:#ffd84d}',

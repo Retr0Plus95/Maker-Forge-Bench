@@ -76,3 +76,11 @@ test("with hole names, findings and wires say where on your board", async () => 
   const legs = [{ key: 'U2:7', ref: 'U2', pin: '7', hole: [17, 13] }, { key: 'C10:p', ref: 'C10', pin: 'p', hole: [19, 14] }];
   assert.equal(wireText(suggestWires(legs)[0], name), 'U2 pin 7 (L15) to C10 + (K13): 2 holes across, 1 down');
 });
+
+test('an underside part soldered onto legs of its own line is not two legs in one hole', () => {
+  const U2 = board.parts.U2.pins;
+  const ok = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['8'] }, C9: { 1: U2['20'], 2: U2['22'] } }, 'U2');
+  assert.equal(ok.filter((x) => x.kind === 'clash').length, 0, JSON.stringify(ok.filter((x) => x.kind === 'clash')));
+  const wrong = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['9'] } }, 'U2'); // pin 9 is the crystal, not 0 V
+  assert.match(wrong.find((x) => x.kind === 'clash').text, /U2 pin 9 and C5 pin 2/);
+});

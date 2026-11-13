@@ -19,7 +19,7 @@ export function placedLegs(projectBoard, placed, anchor) {
 }
 
 /** A part's footprint on the board in mm: [x1, y1, x2, y2] of its body shapes (typical sizes). */
-function footprint(part, pitch, ref) {
+export function footprint(part, pitch, ref) {
   let box = null;
   const grow = (x1, y1, x2, y2) => {
     box = box ? [Math.min(box[0], x1), Math.min(box[1], y1), Math.max(box[2], x2), Math.max(box[3], y2)] : [x1, y1, x2, y2];
@@ -40,7 +40,7 @@ function footprint(part, pitch, ref) {
 
 /**
  * Findings for your placement: [{ kind, level: 'problem' | 'warning' | 'todo', refs, text }].
- * - clash: two legs in one hole
+ * - clash: two legs in one hole (not an underside part soldered onto a leg of its own line)
  * - overlap: two parts' bodies on top of each other (typical sizes)
  * - neighbours: legs of different lines on neighbouring holes (solder carefully)
  * - unplaced: parts not placed yet
@@ -60,8 +60,13 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
     if (!byHole.has(k)) byHole.set(k, []);
     byHole.get(k).push(l);
   }
+  const lineOf = new Map();
+  for (const [net, members] of Object.entries(projectBoard.nets || {})) for (const [ref, pin] of members) lineOf.set(`${ref}:${pin}`, net);
+  // underside parts soldered onto a leg of their own line (C5 across the chip's pins 7 and 8) are meant
+  const soldered = (group) => group.filter((l) => projectBoard.parts[l.ref].side !== 'bottom').length <= 1
+    && lineOf.get(group[0].key) && group.every((l) => lineOf.get(l.key) === lineOf.get(group[0].key));
   for (const group of byHole.values()) {
-    if (group.length < 2) continue;
+    if (group.length < 2 || soldered(group)) continue;
     findings.push({ kind: 'clash', level: 'problem', refs: [...new Set(group.map((l) => l.ref))],
       text: `Two legs in one hole${at(group[0].hole)}: ${group.map((l) => `${l.ref} ${pinText(l.pin)}`).join(' and ')}.` });
   }

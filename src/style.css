@@ -556,7 +556,9 @@ body.print-step #top, body.print-step #status, body.print-step #stage, body.prin
 #myboard-routes > li { margin: 6px 0; }
 #myboard-routes ul { margin: 2px 0 0 12px; padding: 0; font-size: .85rem; color: var(--muted); }
 
-/* ---- hole names (0.6) ---- */
+/* ---- hole names and suggested spots (0.6) ---- */
+.suggest-box { margin: 6px 0; padding: 6px 8px; border-left: 4px solid #28c4ff; background: var(--panel2); border-radius: 4px; }
+.suggest-box p { margin: 3px 0; }
 .hn-form { margin: 4px 0; }
 .hn-field { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
 .hn-field span { flex: 1; }

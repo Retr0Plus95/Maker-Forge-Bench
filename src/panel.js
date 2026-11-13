@@ -166,6 +166,11 @@ export function renderCard(container, part, o) {
       const place = el('button', { id: 'part-place', type: 'button', 'data-focus': 'place' }, m.placed ? 'Place again' : 'Place on my board');
       place.addEventListener('click', m.onPlace);
       buttons.append(place);
+      if (m.onSuggest) {
+        const suggest = el('button', { id: 'part-suggest', type: 'button', 'data-focus': 'suggest', title: 'Bench finds free holes close to what it connects to' }, 'Suggest a spot');
+        suggest.addEventListener('click', m.onSuggest);
+        buttons.append(suggest);
+      }
     }
     if (m.placed && !m.anchor) {
       const off = el('button', { id: 'part-unplace', type: 'button', 'data-focus': 'unplace' }, 'Take off my board');
@@ -396,12 +401,33 @@ export function renderMyBoard(container, o) {
     size.addEventListener('change', () => x.onSize(size.value));
     const next = el('button', { id: 'myboard-next', type: 'button', 'data-focus': 'next' }, 'Next part to place');
     next.addEventListener('click', x.onNext);
+    const suggest = el('button', { id: 'myboard-suggest-next', type: 'button', 'data-focus': 'suggest-next', title: 'For the open part if it is not placed, else the next one' }, 'Suggest a spot');
+    suggest.addEventListener('click', x.onSuggest);
     const clear = el('button', { id: 'myboard-clear', type: 'button', 'data-focus': 'clear' }, x.clearArmed ? 'Click again to clear' : 'Clear my board');
     clear.addEventListener('click', x.onClear);
     children.push(
       el('div', { className: 'myboard-actions' }, check('myboard-marks', 'Marks', x.marks, x.onMarks), size,
         check('myboard-linelabels', 'Line labels', x.lineLabels, x.onLineLabels), check('myboard-wires', 'Suggested wires', x.wires, x.onWires)),
-      el('div', { className: 'myboard-actions' }, next, clear));
+      el('div', { className: 'myboard-actions' }, next, suggest, clear));
+    if (x.suggest) {
+      const s = x.suggest;
+      const use = el('button', { id: 'suggest-use', type: 'button', className: 'primary', 'data-focus': 'suggest-use' }, 'Use this spot');
+      use.addEventListener('click', s.onUse);
+      const row = el('div', { className: 'myboard-actions' }, use);
+      if (s.more) {
+        const another = el('button', { id: 'suggest-another', type: 'button', 'data-focus': 'suggest-another' }, 'Another spot');
+        another.addEventListener('click', s.onAnother);
+        row.append(another);
+      }
+      const stop = el('button', { id: 'suggest-stop', type: 'button', 'data-focus': 'suggest-stop' }, 'Stop');
+      stop.addEventListener('click', s.onStop);
+      row.append(stop);
+      const box = el('div', { id: 'myboard-suggest', className: 'suggest-box' },
+        el('p', {}, el('strong', {}, s.title), s.reason ? `: ${s.reason}.` : '.'));
+      if (s.legs) box.append(el('p', { className: 'hint' }, s.legs));
+      box.append(row, el('p', { className: 'hint' }, 'Shown dashed on the photo. Esc stops.'));
+      children.push(box);
+    }
     if (x.stepTodo) children.push(el('p', { id: 'myboard-step-todo', className: 'hint' }, x.stepTodo));
     if (x.wires && x.routes.length) {
       const list = el('ul', { id: 'myboard-routes' });
