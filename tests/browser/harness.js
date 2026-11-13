@@ -22,8 +22,9 @@ export const PNG_16 = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGPQqPhPEmIY1TCqYfhqAADJNp8Qq0FQ5gAAAABJRU5ErkJggg==', 'base64');
 
 /** Starts dev.py on a folder; port 0 picks a free port. */
+/** dev.py serving `folder`, or the app alone (like the website) when folder is null. */
 export async function startDevServer(folder, port = 0) {
-  const proc = spawn('python', ['dev.py', folder, '--port', String(port)], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
+  const proc = spawn('python', ['dev.py', ...(folder === null ? [] : [folder]), '--port', String(port)], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
   const url = await new Promise((resolve, reject) => {
     let out = '';
     const timer = setTimeout(() => reject(new Error(`dev.py didn't start: ${out}`)), 10000);
@@ -75,9 +76,14 @@ async function launchBrowser(args = []) {
   throw new Error('No Chrome or Edge found. Set BENCH_BROWSER to the path of a Chromium-based browser.');
 }
 
+/**
+ * options: { args, reducedMotion, context: extra newPage options (hasTouch, isMobile…),
+ *            before(page): runs before the page loads, e.g. to answer for GitHub with page.route }
+ */
 export async function openPage(url, viewport, options = {}) {
   const browser = await launchBrowser(options.args);
-  const page = await browser.newPage({ viewport, reducedMotion: options.reducedMotion ?? 'reduce' }); // camera moves are instant, so tests see where they end
+  const page = await browser.newPage({ viewport, reducedMotion: options.reducedMotion ?? 'reduce', ...(options.context || {}) }); // camera moves are instant, so tests see where they end
+  if (options.before) await options.before(page);
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
   page.on('pageerror', (e) => problems.push(`page error: ${e.message}`));
