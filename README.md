@@ -9,8 +9,8 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.6 works on a PC, from a local folder. Phone and tablet, GitHub links and the
-website come later (see the roadmap).
+**Status:** release 0.7 works on PC, phone and tablet, from a local folder, a public GitHub repo,
+or a folder picked in the browser. The website comes with 1.0 (see the roadmap).
 
 ## Try it
 
@@ -20,7 +20,10 @@ You need Python 3.10 or newer. In this folder:
 python dev.py "path/to/your/project folder"
 ```
 
-Then open the address it prints (`http://127.0.0.1:8765/`).
+Then open the address it prints (`http://127.0.0.1:8765/`). Started without a folder
+(`python dev.py`), it opens a start screen: paste a GitHub link, open a folder on this computer,
+or try an example. A link like `http://127.0.0.1:8765/?repo=owner/name` opens a public GitHub
+repo straight away.
 
 - **Sheets:** every SVG, PNG and JPG drawing in the folder gets a tab. Zoom with the mouse wheel or
   `+` / `-`, drag to move around, and press `0` to fit.
@@ -93,6 +96,23 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
     Use this spot places it in one undo step.
   - **Save my board as file / Open a board file:** line-ups, placements, wire shapes and hole
     names in one file. The photos stay in your folder.
+- **Everywhere (0.7):**
+  - **From GitHub:** paste a public repo's link (`github.com/owner/name`, or a link to a folder in
+    it) and Bench reads its drawings and `forge-project.json` from GitHub. Links keep the repo:
+    `?repo=owner/name&sheet=SFE-04&part=R6`. The badge says "From GitHub"; click it to read the
+    repo again and reload only what changed. GitHub lets a browser open about 60 repos an hour
+    without signing in.
+  - **From a folder:** Open a folder reads one on this computer; nothing is uploaded. To see
+    changes, open it again (with Python, `dev.py` refreshes by itself).
+  - **Examples** on the start screen, starting with the Solder Fume Extractor.
+  - **Phones and tablets:** under 760 px wide the tools fold into a **Menu** (Undo, Redo and Find
+    stay), the sheets are a strip you swipe sideways, and the panel is a sheet at the bottom: tap
+    or swipe its handle for taller or shorter. Tap a part on the drawing to open its card.
+  - **Ask here:** in Easy reading, **AI help (optional)** connects your own Claude API key or a
+    model on this computer through Ollama. Then a part card's Ask box gets **Ask here**, and the
+    answer shows in the card. Your key stays in this browser: in memory, or in its storage if
+    you tick Remember. It's never put in a progress file, a board file or a link, and using it
+    is billed to your Anthropic account.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).
@@ -145,6 +165,7 @@ The browser checks use Chrome or Edge; set `BENCH_BROWSER` to a browser's path t
 
 - Design for release 1: [`docs/design/2026-11-12-maker-forge-bench-design.md`](docs/design/2026-11-12-maker-forge-bench-design.md)
 - Design for the board view, parts library and UI: [`docs/design/2026-11-12-board-view-parts-ui-design.md`](docs/design/2026-11-12-board-view-parts-ui-design.md)
+- Design for 0.7 Everywhere (GitHub, folders, phones, AI help): [`docs/design/2026-11-13-release-0.7-design.md`](docs/design/2026-11-13-release-0.7-design.md)
 - Roadmap, including ideas for future suite apps: [`ROADMAP.md`](ROADMAP.md)
 
 MIT licence: see [`LICENSE`](LICENSE). The Atkinson Hyperlegible font is under the SIL Open Font
