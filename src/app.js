@@ -28,6 +28,7 @@ import { indexSheet } from './search.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
 import { EXAMPLES } from './examples.js';
+import { wireMenu, wireSheetHandle } from './phone.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
@@ -2784,6 +2785,10 @@ async function start() {
     }
   });
   setPanelHidden(store.get('panelHidden', false) === true);
+  // phones: the header's tools fold into a menu, the panel is a sheet from the bottom (0.7 design §4)
+  wireMenu({ top: $('#top'), button: $('#menu-toggle') });
+  wireSheetHandle({ panel: $('#panel'), handle: $('#panel-handle'), onChange: (tall) => store.set('panelTall', tall) })
+    .restore(store.get('panelTall', false) === true);
   $('#panel-toggle').addEventListener('click', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
   $('#rotate').addEventListener('click', turnPhoto);
   $('#fullscreen').hidden = !document.fullscreenEnabled;

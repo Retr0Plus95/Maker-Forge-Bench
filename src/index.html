@@ -15,12 +15,13 @@
     <span id="live" aria-live="polite"></span>
     <span class="spacer"></span>
     <span id="saved" aria-live="polite"></span>
-    <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span> Undo</button>
-    <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span> Redo</button>
+    <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span><span class="tool-word"> Undo</span></button>
+    <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span><span class="tool-word"> Redo</span></button>
     <button id="calc-open" class="tool" type="button" title="Ohm's law, LED resistor, voltage divider">Calculators</button>
     <button id="wake" class="tool" type="button" aria-pressed="false" title="Stop the screen going dark while you solder">Keep screen on</button>
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="top">Menu</button>
   </div>
   <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
   <div class="bar">
@@ -93,6 +94,7 @@
   </section>
   <div id="panel-resize" role="separator" aria-orientation="vertical" aria-label="Drag to change the side panel's width" title="Drag to widen the panel"></div>
   <aside id="panel" aria-label="Part and build checklist">
+    <button id="panel-handle" type="button" aria-expanded="false" aria-label="Make the panel taller"><span aria-hidden="true"></span></button>
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
