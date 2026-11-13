@@ -1,11 +1,12 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
-import { wiringGroups, wiringText } from './wiring.js';
+import { renderCard, renderChecks, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
+import { findLines, findValues, nextInStep } from './lookup.js';
 import { pinText } from './wiring.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
@@ -55,6 +56,9 @@ const state = {
   photoSides: {}, // the side picked for photos not lined up yet
   brightUnlined: new Set(), // "Brighter" on photos not lined up yet
   myBoardStatus: '', // what the Your board section says
+  notes: {}, // your own note on each part (0.4 improvement 10)
+  checklistOpenOnly: false, // the checklist shows only parts not soldered yet
+  checks: new Set(), // ticked checks before power, and steps marked done by hand (0.4)
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -312,7 +316,8 @@ function renderPartCard() {
     connections: connectionsOf(board, part.ref),
     where: onBoard ? { pins: Object.entries(onBoard.pins), body: onBoard.body, mount: onBoard.mount, side: onBoard.side } : null,
     offBoard: Boolean(board) && !onBoard,
-    step: stepIndex >= 0 ? { number: stepIndex + 1, total: build.length, title: build[stepIndex].title } : null,
+    step: stepIndex >= 0 ? stepCardOptions(part.ref, stepIndex) : null,
+    ownNote: { text: state.notes[part.ref] || '', onSave: (text) => setNote(part.ref, text) },
     onPart: (ref) => selectPart(ref),
     wired: board ? state.wired : null,
     onWire: setWired,
@@ -342,6 +347,36 @@ function pinOptions(onBoard) {
     onSide: (value) => { store.set('pinSide', value); renderPartCard(); },
     onPin: (pin) => { state.pinSelected = pin; renderPartCard(); },
   };
+}
+
+function stepCardOptions(ref, stepIndex) {
+  const build = state.project.build;
+  const next = nextInStep(build[stepIndex], ref, state.ticked);
+  return {
+    number: stepIndex + 1, total: build.length, title: build[stepIndex].title,
+    next, onNext: next ? () => selectPart(next) : null,
+  };
+}
+
+/** Your own note on a part: saved with the progress, undoable. */
+function setNote(ref, text) {
+  const value = text.trim().slice(0, 2000);
+  const before = { ...state.notes };
+  if ((before[ref] || '') === value) return;
+  const after = { ...before };
+  if (value) after[ref] = value;
+  else delete after[ref];
+  history.do({ label: `Note on ${ref}`, apply: () => setProgress({ notes: after }), revert: () => setProgress({ notes: before }) });
+}
+
+/** A line found with Find: open it in What to wire and ring its parts. */
+function openLine(net) {
+  state.wiringExpanded.add(net);
+  state.shownNet = net;
+  updateNetRings();
+  renderWiringPanel();
+  const group = [...document.querySelectorAll('#wiring details')].find((d) => d.dataset.net === net);
+  if (group) group.scrollIntoView({ block: 'nearest' });
 }
 
 function selectPart(ref, labelEl) {
@@ -411,6 +446,7 @@ function buildContext() {
     part: fields,
     onSheets: part ? sheetsWithPart(part.ref).map((s) => s.label) : [],
     nearbyText: part ? nearbyText(part.ref) : [],
+    ownNote: part && state.notes[part.ref] ? state.notes[part.ref] : null,
   };
 }
 
@@ -540,6 +576,11 @@ const find = createFindBar({
     if (label.sheetId === state.current) viewer.ring(label.el);
   },
   setStatus,
+  extras: (query) => [
+    ...findLines(state.project ? state.project.board : null, query)
+      .map((l) => ({ cls: 'find-line', text: `Line ${l.label}: ${l.legs} legs`, onPick: () => openLine(l.net) })),
+    ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => selectPart(p.ref) })),
+  ],
 });
 
 // ---- the project file and its parts (design §6) ----
@@ -586,6 +627,7 @@ function updateParts() {
   renderChecklist();
   renderStepsPanel();
   renderWiringPanel();
+  renderChecksPanel();
 }
 
 // ---- the 3D board (board-view design §5), over the dimmed schematic ----
@@ -980,9 +1022,33 @@ function updateStepRings() {
   drawMyBoardMarks();
 }
 
+/** A step is done when all its parts are soldered, or, with nothing to tick, when you marked it done. */
+function stepDone(step) {
+  const found = step.parts.filter((r) => !step.missing.includes(r));
+  return found.length ? found.every((r) => state.ticked.has(r)) : state.checks.has(`step:${step.id}`);
+}
+
+function setCheck(id, on, label) {
+  if (on === state.checks.has(id)) return;
+  const before = [...state.checks];
+  const after = on ? [...before, id] : before.filter((c) => c !== id);
+  history.do({ label, apply: () => setProgress({ checks: after }), revert: () => setProgress({ checks: before }) });
+}
+
+function renderChecksPanel() {
+  renderChecks($('#checks'), {
+    checks: powerChecks(state.project ? state.project.board : null),
+    done: state.checks,
+    onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check before power`),
+  });
+}
+
 function renderStepsPanel() {
   renderSteps($('#steps'), stepsOf(), {
     current: state.openStep,
+    isDone: stepDone,
+    onMarkDone: (i, on) => setCheck(`step:${stepsOf()[i].id}`, on, `Step ${i + 1} ${on ? 'done' : 'not done'}`),
+    on3D: state.project && state.project.board ? () => setBoard3D(true) : null,
     doneIn: (step) => step.parts.filter((r) => state.ticked.has(r)).length,
     whatText: stepWhatText,
     onOpen: openStep,
@@ -1048,6 +1114,8 @@ function loadProgress() {
   state.tickPrints = data ? { ...data.sheetPrints } : currentPrints();
   state.wired = new Set(data ? data.wired : []);
   state.myBoard = data ? data.myBoard : { anchor: null, photos: {}, placed: {} };
+  state.notes = data ? data.notes : {};
+  state.checks = new Set(data ? data.checks : []);
   refreshNotes();
 }
 
@@ -1062,7 +1130,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] });
   if (saved) flashSaved();
 }
 
@@ -1077,6 +1145,7 @@ function checkProgressKey() {
   applyTickMarks();
   renderChecklist();
   renderWiringPanel();
+  renderChecksPanel();
   renderPartCard();
   updateMyBoard();
 }
@@ -1111,7 +1180,7 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks }) {
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -1125,6 +1194,8 @@ function setProgress({ ticked, flipped, prints, wired, myBoard }) {
   }
   if (wired) state.wired = new Set(wired);
   if (myBoard) state.myBoard = myBoard;
+  if (notes) state.notes = notes;
+  if (checks) state.checks = new Set(checks);
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -1135,6 +1206,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard }) {
   renderChecklist();
   renderStepsPanel();
   renderWiringPanel();
+  renderChecksPanel();
   renderPartCard();
   updateMyBoard();
 }
@@ -1163,11 +1235,17 @@ function renderChecklist() {
   bar.value = done;
   const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)),
     ...(state.checklistNotes.length ? [el('button', { id: 'notes-checked', type: 'button' }, 'Mark them checked')] : []));
-  const items = el('ul', { className: 'checklist-items' }, ...state.parts.map((part) => {
-    const box = el('input', { type: 'checkbox', 'data-ref': part.ref });
+  const shown = state.checklistOpenOnly ? state.parts.filter((p) => !state.ticked.has(p.ref)) : state.parts;
+  const items = el('ul', { className: 'checklist-items' }, ...shown.map((part) => {
+    const box = el('input', { type: 'checkbox', 'data-ref': part.ref, 'aria-label': `${part.ref} soldered` });
     box.checked = state.ticked.has(part.ref);
-    return el('li', {}, el('label', {}, box, ` ${part.ref}${part.value ? ` ${part.value}` : ''}`));
+    const name = el('button', { type: 'button', className: 'checklist-name', 'data-open': part.ref }, `${part.ref}${part.value ? ` ${part.value}` : ''}`);
+    const row = el('li', { 'data-ref': part.ref }, box, name);
+    if (part.polarized) row.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
+    return row;
   }));
+  const openOnly = el('input', { type: 'checkbox', id: 'checklist-open-only' });
+  openOnly.checked = state.checklistOpenOnly;
   const open = el('label', { className: 'button-like' }, 'Open progress file',
     el('input', { id: 'progress-open', type: 'file', accept: '.json,application/json', className: 'visually-hidden' }));
   $('#checklist').replaceChildren(
@@ -1176,6 +1254,7 @@ function renderChecklist() {
     bar,
     notes,
     el('div', { className: 'checklist-actions' }, el('button', { id: 'progress-save', type: 'button' }, 'Save progress as file'), open),
+    el('label', { className: 'check' }, openOnly, ' Only not soldered'),
     items,
   );
 }
@@ -1183,7 +1262,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks],
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -1208,8 +1287,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -1471,11 +1550,16 @@ async function start() {
   $('#checklist').addEventListener('change', (e) => {
     const t = e.target;
     if (t instanceof HTMLInputElement && t.type === 'checkbox' && t.dataset.ref) toggleTick(t.dataset.ref);
+    else if (t instanceof HTMLInputElement && t.id === 'checklist-open-only') {
+      state.checklistOpenOnly = t.checked;
+      renderChecklist();
+    }
     else if (t instanceof HTMLInputElement && t.id === 'progress-open') openProgressFile(t);
   });
   $('#checklist').addEventListener('click', (e) => {
     if (e.target instanceof HTMLElement && e.target.id === 'progress-save') saveProgressFile();
     if (e.target instanceof HTMLElement && e.target.id === 'notes-checked') acknowledgeNotes();
+    if (e.target instanceof HTMLElement && e.target.dataset.open) selectPart(e.target.dataset.open);
   });
   wireSettings($('#settings'), $('#settings-button'), $('#settings-done'), () => settings, (next, label) => {
     const before = settings;

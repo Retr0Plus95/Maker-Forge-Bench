@@ -460,3 +460,18 @@ h1 {
 #myboard-status { margin: 6px 0; padding: 6px 8px; border-left: 4px solid var(--accent); background: var(--accent-soft); }
 #myboard-status.busy { border-left-color: #ff2bd6; font-weight: 700; }
 .part-myboard { margin: 8px 0 4px; }
+
+/* ---- parts and checklist extras (0.4) ---- */
+.badge-polarity { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: .72rem; font-weight: 700; vertical-align: middle;
+  background: var(--warn); color: #1a1200; }
+.checklist-items li { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.checklist-name { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.checklist-name:hover, .checklist-name:focus-visible { color: var(--accent); text-decoration: underline; }
+#part-own-note { width: 100%; box-sizing: border-box; font: inherit; }
+.part-own-note-label { display: block; margin-top: 8px; font-weight: 700; }
+#find-results .find-line { border-color: #e5484d; }
+#find-results .find-value { border-color: var(--accent); }
+
+/* ---- step progress and checks before power (0.4) ---- */
+.step-check { color: var(--good); font-weight: 700; }
+.checks-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }

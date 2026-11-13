@@ -35,7 +35,7 @@ describe('the build checklist', () => {
   });
 
   test('every part is listed, none ticked yet', async () => {
-    assert.equal(await page.locator('#checklist input[type=checkbox]').count(), 37);
+    assert.equal(await page.locator('#checklist input[data-ref]').count(), 37);
     assert.equal(await progressText(page), '0 of 37 soldered');
   });
 

@@ -61,3 +61,20 @@ export function wiringText(groups, wired) {
 export function stillToWire(ref, connections, wired) {
   return connections.filter((c) => c.others.length && !wired.has(wireKey(ref, c.pin))).map((c) => c.pin);
 }
+
+/**
+ * Before power (0.4 improvement 30): from the project's own supply lines, a beep test from each
+ * supply to 0 V with the power off, then each supply measured with the chip out of its socket.
+ * [{ id, text }], or none when the project has no 0 V line.
+ */
+export function powerChecks(board) {
+  const groups = wiringGroups(board);
+  const ground = groups.find((g) => g.kind === 'ground');
+  if (!ground) return [];
+  const supplies = groups.filter((g) => g.kind === 'power');
+  const range = (v) => `${(v * 0.95).toFixed(2).replace(/\.?0+$/, '')} to ${(v * 1.05).toFixed(2).replace(/\.?0+$/, '')} V`;
+  return [
+    ...supplies.map((g) => ({ id: `short:${g.net}`, text: `Power off, meter on beep: ${g.label} to ${ground.label} must not beep.` })),
+    ...supplies.map((g) => ({ id: `measure:${g.net}`, text: `Power on, chip out of its socket: ${g.label} measures ${range(volts(g.label))}.` })),
+  ];
+}

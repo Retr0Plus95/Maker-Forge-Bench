@@ -62,3 +62,13 @@ test('progress files carry the wired ticks, and older files read as none', () =>
   const bad = JSON.stringify({ format: 'bench-progress', version: 1, ticked: [], sheetPrints: {}, flipped: [], wired: [5, 'x'.repeat(300)] });
   assert.deepEqual(importProgress(bad).wired, [], 'bad entries are dropped, not fatal');
 });
+
+test('before power: a beep test and a measurement for each supply, from the project itself', async () => {
+  const { powerChecks } = await import('../../src/wiring.js');
+  const checks = powerChecks(board);
+  assert.deepEqual(checks.map((c) => c.id), ['short:P12V', 'short:P5V', 'measure:P12V', 'measure:P5V']);
+  assert.match(checks[1].text, /power off.*\+5 V.*0 V.*must not beep/i);
+  assert.match(checks[3].text, /chip out.*\+5 V.*4\.75 to 5\.25 V/i);
+  assert.deepEqual(powerChecks(null), []);
+  assert.deepEqual(powerChecks({ nets: { A: [['R1', '1'], ['R2', '1']] }, netLabels: { A: '+5 V' } }), [], 'no 0 V line, no checks');
+});

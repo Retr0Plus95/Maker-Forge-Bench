@@ -44,6 +44,7 @@ export function renderHint(container) {
 export function renderCard(container, part, o) {
   const title = el('h2', {}, part.ref);
   if (part.value) title.append(' ', el('span', { className: 'part-value' }, part.value));
+  if (part.polarized) title.append(' ', el('span', { className: 'badge-polarity' }, 'Way round matters'));
   const children = [title];
 
   const meta = [part.type, part.package].filter(Boolean).join(' · ');
@@ -59,6 +60,11 @@ export function renderCard(container, part, o) {
   }
 
   if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
+  if (o.step && o.step.onNext) {
+    const next = el('button', { id: 'part-next-in-step', type: 'button', 'data-focus': 'next-in-step' }, `Next part in this step: ${o.step.next}`);
+    next.addEventListener('click', o.step.onNext);
+    children.push(next);
+  }
   if (o.where) {
     const pins = [...o.where.pins].sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }));
     const at = ([pin, [c, r]]) => `pin ${pin} at ${c},${r}`;
@@ -128,6 +134,13 @@ export function renderCard(container, part, o) {
     children.push(line, buttons);
   }
 
+  if (o.ownNote) {
+    const note = el('textarea', { id: 'part-own-note', rows: '2', placeholder: 'For example: used a 4.7k here', 'data-focus': 'own-note' });
+    note.value = o.ownNote.text;
+    note.addEventListener('change', () => o.ownNote.onSave(note.value));
+    children.push(el('label', { for: 'part-own-note', className: 'part-own-note-label' }, 'Your note'), note);
+  }
+
   const actions = el('div', { className: 'part-actions' });
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
@@ -183,15 +196,20 @@ export function renderSteps(container, steps, o) {
     return;
   }
   const list = el('ol', { className: 'steps-list' });
+  let doneCount = 0;
   steps.forEach((step, i) => {
     const open = el('button', { type: 'button', 'aria-current': String(i === o.current), 'data-focus': `step-${i}` }, step.title);
     open.addEventListener('click', () => o.onOpen(i));
     const item = el('li', {}, open);
+    if (o.isDone(step, i)) {
+      doneCount++;
+      item.append(' ', el('span', { className: 'step-check', 'aria-label': 'done' }, '✓'));
+    }
     const found = step.parts.filter((r) => !step.missing.includes(r)).length;
     if (found) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${found} soldered`));
     list.append(item);
   });
-  const children = [el('h2', {}, 'Build steps'), list];
+  const children = [el('h2', {}, 'Build steps'), el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done`), list];
   const step = o.current !== null ? steps[o.current] : null;
   if (step) {
     const box = el('div', { className: 'step-open' },
@@ -217,6 +235,17 @@ export function renderSteps(container, steps, o) {
     next.disabled = o.current === steps.length - 1;
     next.addEventListener('click', () => o.onOpen(o.current + 1));
     const nav = el('div', { className: 'step-nav' }, back, next);
+    if (!found.length) {
+      const doneBox = el('input', { type: 'checkbox', id: 'step-done', 'data-focus': 'step-done' });
+      doneBox.checked = o.isDone(step, o.current);
+      doneBox.addEventListener('change', () => o.onMarkDone(o.current, doneBox.checked));
+      nav.append(el('label', { className: 'check' }, doneBox, ' Done'));
+    }
+    if (o.on3D) {
+      const show = el('button', { type: 'button', id: 'step-3d', 'data-focus': 'step-3d' }, 'Show in 3D');
+      show.addEventListener('click', o.on3D);
+      nav.append(show);
+    }
     if (found.length) {
       const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all in this step');
       all.addEventListener('click', () => o.onTickAll(o.current));
@@ -262,6 +291,26 @@ export function renderMyBoard(container, o) {
     status,
     el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card.`),
   ), '#myboard-line');
+}
+
+/** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
+export function renderChecks(container, o) {
+  if (!o.checks.length) {
+    container.replaceChildren();
+    return;
+  }
+  const list = el('ul', { className: 'checks-list' });
+  for (const c of o.checks) {
+    const box = el('input', { type: 'checkbox', 'data-check': c.id, 'data-focus': `check-${c.id}` });
+    box.checked = o.done.has(c.id);
+    box.addEventListener('change', () => o.onCheck(c.id, box.checked));
+    list.append(el('li', {}, el('label', {}, box, ` ${c.text}`)));
+  }
+  keepFocus(container, () => container.replaceChildren(
+    el('h2', {}, 'Before power'),
+    el('p', { className: 'hint' }, 'Do these with a multimeter before the chip goes in its socket.'),
+    list,
+  ));
 }
 
 // ---- the pin view (0.4 design F2) ----
