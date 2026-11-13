@@ -1,5 +1,7 @@
-// The side panel: the selected part's card (design §7.4, board-view design §5).
+// The side panel: the selected part's card (design §7.4, board-view design §5), the build steps and
+// what to wire (0.4 design F1).
 // Everything is built with createElement and textContent: a project file's text is untrusted.
+import { isGroundLabel, isPowerLabel, pinText, stillToWire, wireKey } from './wiring.js';
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -9,6 +11,20 @@ function el(tag, props = {}, ...children) {
   }
   node.append(...children);
   return node;
+}
+
+/**
+ * Rebuilds a panel section with build(), then puts the keyboard focus back on the element with the
+ * same data-focus key (or a fallback inside the section) if the focus was in it.
+ */
+function keepFocus(container, build, fallbackSelector = 'button, input') {
+  const active = document.activeElement;
+  const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
+  build();
+  if (!focusKey) return;
+  const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
+  const fallback = container.querySelector(fallbackSelector);
+  (again && !again.disabled ? again : fallback)?.focus();
 }
 
 export function renderHint(container) {
@@ -26,8 +42,19 @@ export function renderHint(container) {
  *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
 export function renderCard(container, part, o) {
+  // text you're typing (your note before you leave it, a question for Claude) survives a redraw of the same card
+  // (your note only while you're in it: an undo must show the note it brings back)
+  const drafts = {};
+  if (container.dataset.ref === part.ref) {
+    const note = container.querySelector('#part-own-note');
+    if (note && document.activeElement === note) drafts['part-own-note'] = note.value;
+    const question = container.querySelector('#ask-question');
+    if (question) drafts['ask-question'] = question.value;
+  }
+  container.dataset.ref = part.ref;
   const title = el('h2', {}, part.ref);
   if (part.value) title.append(' ', el('span', { className: 'part-value' }, part.value));
+  if (part.polarized) title.append(' ', el('span', { className: 'badge-polarity' }, 'Way round matters'));
   const children = [title];
 
   const meta = [part.type, part.package].filter(Boolean).join(' · ');
@@ -43,6 +70,11 @@ export function renderCard(container, part, o) {
   }
 
   if (o.step) children.push(el('p', { className: 'part-step' }, `Step ${o.step.number} of ${o.step.total}: ${o.step.title}`));
+  if (o.step && o.step.onNext) {
+    const next = el('button', { id: 'part-next-in-step', type: 'button', 'data-focus': 'next-in-step' }, `Next part in this step: ${o.step.next}`);
+    next.addEventListener('click', o.step.onNext);
+    children.push(next);
+  }
   if (o.where) {
     const pins = [...o.where.pins].sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }));
     const at = ([pin, [c, r]]) => `pin ${pin} at ${c},${r}`;
@@ -56,7 +88,15 @@ export function renderCard(container, part, o) {
   if (o.connections && o.connections.length) {
     const list = el('ul', { className: 'part-connections' });
     for (const c of o.connections) {
-      const line = el('li', {}, `pin ${c.pin} → ${c.label}`);
+      const line = el('li', {});
+      if (o.wired && c.others.length) {
+        const key = wireKey(part.ref, c.pin);
+        const box = el('input', { type: 'checkbox', 'data-wire': key, 'data-focus': `wire-${key}`, 'aria-label': `pin ${c.pin} wired` });
+        box.checked = o.wired.has(key);
+        box.addEventListener('change', () => o.onWire(key, box.checked));
+        line.append(box); // spaced by CSS, so the line's text stays "pin 2 → …"
+      }
+      line.append(`pin ${c.pin} → ${c.label}`);
       if (!c.others.length) {
         line.append(' (nothing else)');
       } else {
@@ -72,6 +112,48 @@ export function renderCard(container, part, o) {
       list.append(line);
     }
     children.push(el('p', { className: 'part-sheets-label' }, 'Connects to:'), list);
+    if (o.pins) {
+      const show = el('button', { id: 'part-pins', type: 'button', 'aria-expanded': String(o.pins.open), 'data-focus': 'pins' },
+        o.pins.open ? 'Hide pins' : 'Show pins');
+      show.addEventListener('click', o.pins.onToggle);
+      children.push(show);
+      if (o.pins.open) children.push(renderPinView(part.ref, o.connections, o));
+    }
+    if (o.wired) {
+      const left = stillToWire(part.ref, o.connections, o.wired);
+      children.push(el('p', { className: 'part-unwired' }, left.length
+        ? `Still to wire: ${left.length === 1 ? 'pin' : 'pins'} ${left.join(', ')}`
+        : 'All its pins are wired.'));
+    }
+  }
+
+  if (o.myBoard && o.myBoard.lineUp) {
+    const lineUp = el('button', { id: 'part-line-up', type: 'button', 'data-focus': 'line-up' }, 'Line up a photo');
+    lineUp.addEventListener('click', o.myBoard.lineUp);
+    children.push(el('p', { className: 'part-myboard' }, 'Your board: this part lines up your photos. Open a photo of your board and tap its pins 1 and 14.'),
+      el('div', { className: 'part-actions' }, lineUp));
+  } else if (o.myBoard) {
+    const m = o.myBoard;
+    const line = el('p', { className: 'part-myboard' }, m.anchor ? 'Your board: this part lines up your photos.' : m.placed ? 'Placed on your board.' : "Not on your board's photos yet.");
+    const buttons = el('div', { className: 'part-actions' });
+    if (m.placed || m.anchor) {
+      const show = el('button', { id: 'part-show-photo', type: 'button', 'data-focus': 'show-photo' }, 'Show on photo');
+      show.addEventListener('click', m.onShow);
+      buttons.append(show);
+    }
+    if (!m.anchor) {
+      const place = el('button', { id: 'part-place', type: 'button', 'data-focus': 'place' }, m.placed ? 'Place again' : 'Place on my board');
+      place.addEventListener('click', m.onPlace);
+      buttons.append(place);
+    }
+    children.push(line, buttons);
+  }
+
+  if (o.ownNote) {
+    const note = el('textarea', { id: 'part-own-note', rows: '2', placeholder: 'For example: used a 4.7k here', 'data-focus': 'own-note' });
+    note.value = drafts['part-own-note'] ?? o.ownNote.text;
+    note.addEventListener('change', () => o.ownNote.onSave(note.value));
+    children.push(el('label', { for: 'part-own-note', className: 'part-own-note-label' }, 'Your note'), note);
   }
 
   const actions = el('div', { className: 'part-actions' });
@@ -87,6 +169,7 @@ export function renderCard(container, part, o) {
   let askBox = null;
   if (o.ask) {
     const question = el('textarea', { id: 'ask-question', rows: '2', placeholder: o.ask.placeholder });
+    question.value = drafts['ask-question'] ?? '';
     const done = el('span', { id: 'ask-done', 'aria-live': 'polite' });
     const say = (ok) => { done.textContent = ok ? 'Copied' : "Couldn't copy: allow the clipboard, or select the text and copy it."; };
     const copy = el('button', { id: 'ask-copy', type: 'button' }, 'Copy for Claude');
@@ -115,7 +198,7 @@ export function renderCard(container, part, o) {
     }
     children.push(el('p', { className: 'part-sheets-label' }, 'On sheets:'), list);
   }
-  container.replaceChildren(...children);
+  keepFocus(container, () => container.replaceChildren(...children), '#part-tick');
 }
 
 
@@ -128,19 +211,21 @@ export function renderSteps(container, steps, o) {
     container.replaceChildren();
     return;
   }
-  // the panel is rebuilt on every change: put the keyboard focus back where it was
-  const active = document.activeElement;
-  const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
   const list = el('ol', { className: 'steps-list' });
+  let doneCount = 0;
   steps.forEach((step, i) => {
     const open = el('button', { type: 'button', 'aria-current': String(i === o.current), 'data-focus': `step-${i}` }, step.title);
     open.addEventListener('click', () => o.onOpen(i));
     const item = el('li', {}, open);
+    if (o.isDone(step, i)) {
+      doneCount++;
+      item.append(' ', el('span', { className: 'step-check', 'aria-label': 'done' }, '✓'));
+    }
     const found = step.parts.filter((r) => !step.missing.includes(r)).length;
     if (found) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${found} soldered`));
     list.append(item);
   });
-  const children = [el('h2', {}, 'Build steps'), list];
+  const children = [el('h2', {}, 'Build steps'), el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done`), list];
   const step = o.current !== null ? steps[o.current] : null;
   if (step) {
     const box = el('div', { className: 'step-open' },
@@ -166,6 +251,17 @@ export function renderSteps(container, steps, o) {
     next.disabled = o.current === steps.length - 1;
     next.addEventListener('click', () => o.onOpen(o.current + 1));
     const nav = el('div', { className: 'step-nav' }, back, next);
+    if (!found.length) {
+      const doneBox = el('input', { type: 'checkbox', id: 'step-done', 'data-focus': 'step-done' });
+      doneBox.checked = o.isDone(step, o.current);
+      doneBox.addEventListener('change', () => o.onMarkDone(o.current, doneBox.checked));
+      nav.append(el('label', { className: 'check' }, doneBox, ' Done'));
+    }
+    if (o.on3D) {
+      const show = el('button', { type: 'button', id: 'step-3d', 'data-focus': 'step-3d' }, 'Show in 3D');
+      show.addEventListener('click', o.on3D);
+      nav.append(show);
+    }
     if (found.length) {
       const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all in this step');
       all.addEventListener('click', () => o.onTickAll(o.current));
@@ -174,10 +270,197 @@ export function renderSteps(container, steps, o) {
     box.append(nav, el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
     children.push(box);
   }
-  container.replaceChildren(...children);
-  if (focusKey) {
-    const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
-    const fallback = container.querySelector('#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"]');
-    (again && !again.disabled ? again : fallback || container.querySelector('button'))?.focus();
+  // the panel is rebuilt on every change: the keyboard focus goes back where it was
+  keepFocus(container, () => container.replaceChildren(...children),
+    '#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"], button');
+}
+
+/**
+ * Your board (0.4 design F3): which side the photo shows, lining it up, and what's happening now.
+ * o: { photoLabel, side, lined, status, busy, bright, placedCount, partCount, onSide(side), onLine(), onStop(), onBright(on) }
+ */
+export function renderMyBoard(container, o) {
+  const sideButton = (id, value, text) => {
+    const b = el('button', { id, type: 'button', 'aria-pressed': String(o.side === value), 'data-focus': id }, text);
+    b.addEventListener('click', () => o.onSide(value));
+    return b;
+  };
+  const line = el('button', { id: 'myboard-line', type: 'button', 'data-focus': 'line' }, o.lined ? 'Line up again' : 'Line it up');
+  line.addEventListener('click', o.onLine);
+  const actions = el('div', { className: 'myboard-actions' }, line);
+  if (o.busy) {
+    const stop = el('button', { id: 'myboard-stop', type: 'button', 'data-focus': 'stop' }, 'Stop');
+    stop.addEventListener('click', o.onStop);
+    actions.append(stop);
   }
+  const bright = el('input', { type: 'checkbox', id: 'myboard-bright', 'data-focus': 'bright' });
+  bright.checked = o.bright;
+  bright.addEventListener('change', () => o.onBright(bright.checked));
+  actions.append(el('label', { className: 'check' }, bright, ' Brighter'));
+  const status = el('p', { id: 'myboard-status', className: o.busy ? 'busy' : '', 'aria-live': 'polite' }, o.status);
+  keepFocus(container, () => container.replaceChildren(
+    el('h2', {}, 'Your board'),
+    el('p', { className: 'hint' }, `This photo: ${o.photoLabel}`),
+    el('div', { className: 'myboard-sides', role: 'group', 'aria-label': 'This photo shows' }, el('span', {}, 'It shows:'),
+      sideButton('myboard-top', 'top', 'Top'), sideButton('myboard-under', 'bottom', 'Underneath')),
+    actions,
+    status,
+    el('p', { className: 'hint' }, `${o.placedCount} of ${o.partCount} board parts placed. Place a part from its card.`),
+  ), '#myboard-line');
+}
+
+/** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
+export function renderChecks(container, o) {
+  if (!o.checks.length) {
+    container.replaceChildren();
+    return;
+  }
+  const list = el('ul', { className: 'checks-list' });
+  for (const c of o.checks) {
+    const box = el('input', { type: 'checkbox', 'data-check': c.id, 'data-focus': `check-${c.id}` });
+    box.checked = o.done.has(c.id);
+    box.addEventListener('change', () => o.onCheck(c.id, box.checked));
+    list.append(el('li', {}, el('label', {}, box, ` ${c.text}`)));
+  }
+  keepFocus(container, () => container.replaceChildren(
+    el('h2', {}, 'Before power'),
+    el('p', { className: 'hint' }, 'Do these with a multimeter before the chip goes in its socket.'),
+    list,
+  ));
+}
+
+// ---- the pin view (0.4 design F2) ----
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs = {}, text) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+const shorten = (s, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/** A chip or header drawn pin by pin, seen from the top or underneath; clicking a pin shows its line. */
+function renderPinView(ref, connections, o) {
+  const { layout, side, selected, onSide, onPin } = o.pins;
+  const byPin = new Map(connections.map((c) => [c.pin, c]));
+  const ROW = 22;
+  const top = 26;
+  const dip = layout.kind === 'dip';
+  const bodyX = dip ? 120 : 70;
+  const bodyW = dip ? 70 : 26;
+  const height = top + layout.rows * ROW + 8;
+  const drawing = svg('svg', { viewBox: `0 0 310 ${height}`, width: '100%', role: 'group', 'aria-label': `${ref} pins` });
+  drawing.append(svg('rect', { class: 'pin-body', x: bodyX, y: top - 10, width: bodyW, height: layout.rows * ROW + 4, rx: 4 }));
+  if (dip) drawing.append(svg('path', { class: 'pin-notch', d: `M ${bodyX + bodyW / 2 - 9} ${top - 10} a 9 9 0 0 0 18 0` }));
+  for (const p of layout.pins) {
+    const conn = byPin.get(p.pin);
+    const label = conn ? conn.label : '';
+    const kind = !conn ? 'none' : isGroundLabel(label, conn.net) ? 'ground' : isPowerLabel(label) ? 'power' : 'signal';
+    const key = wireKey(ref, p.pin);
+    const wired = Boolean(conn && o.wired && o.wired.has(key));
+    const x = p.col === 0 ? bodyX : bodyX + bodyW;
+    const y = top + p.row * ROW;
+    const g = svg('g', {
+      class: `pin pin-${kind}${selected === p.pin ? ' pin-selected' : ''}`, 'data-pin': p.pin, 'data-wired': String(wired),
+      tabindex: '0', role: 'button', 'data-focus': `pin-${p.pin}`,
+      'aria-label': `pin ${p.pin}${label ? `, ${label}` : ', not connected'}${conn && o.wired ? (wired ? ', wired' : ', not wired') : ''}`,
+    });
+    const outward = p.labelSide === 'left' ? -1 : 1;
+    // the whole row on its side is clickable, not just the thin leg and the text
+    const hitX = outward < 0 ? 0 : x - bodyW / 2;
+    g.append(svg('rect', { class: 'pin-hit', x: hitX, y: y - ROW / 2, width: outward < 0 ? x + bodyW / 2 : 310 - hitX, height: ROW }));
+    g.append(svg('line', { class: 'pin-leg', x1: x, y1: y, x2: x + outward * 14, y2: y }));
+    if (conn && o.wired) g.append(svg('circle', { class: 'pin-dot', cx: x + outward * 14, cy: y, r: 4, 'data-filled': String(wired) }));
+    g.append(svg('text', { class: 'pin-number', x: x - outward * 4, y: y + 4, 'text-anchor': outward < 0 ? 'start' : 'end' }, p.pin));
+    if (label) g.append(svg('text', { class: 'pin-label', x: x + outward * 22, y: y + 4, 'text-anchor': outward < 0 ? 'end' : 'start' }, shorten(label)));
+    const pick = () => onPin(p.pin);
+    g.addEventListener('click', pick);
+    g.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        pick();
+      }
+    });
+    drawing.append(g);
+  }
+  const sideButton = (id, value, text) => {
+    const b = el('button', { id, type: 'button', 'aria-pressed': String(side === value), 'data-focus': id }, text);
+    b.addEventListener('click', () => onSide(value));
+    return b;
+  };
+  const caption = side === 'bottom'
+    ? 'Seen from underneath: the two rows swap sides. Count from the notch end.'
+    : 'Seen from the top, notch at the top: pin 1 is top left.';
+  const box = el('div', { id: 'pin-view' },
+    el('div', { className: 'pin-sides' }, sideButton('pins-top', 'top', 'Top'), sideButton('pins-under', 'bottom', 'Underneath')),
+    el('p', { className: 'pin-caption hint' }, dip ? caption : (side === 'bottom' ? 'Seen from underneath.' : 'Seen from the top.')),
+    drawing);
+  const conn = selected ? byPin.get(selected) : null;
+  if (selected) {
+    const info = el('p', { id: 'pin-info' });
+    if (conn) {
+      info.append(`pin ${selected} → ${conn.label}: ${conn.others.length ? conn.others.map(([r, pin]) => `${r} ${pinText(pin)}`).join(', ') : 'nothing else'}`);
+      if (o.wired && conn.others.length) {
+        const key = wireKey(ref, selected);
+        const tick = el('input', { type: 'checkbox', 'data-wire': key, 'data-focus': `pininfo-${key}` });
+        tick.checked = o.wired.has(key);
+        tick.addEventListener('change', () => o.onWire(key, tick.checked));
+        info.append(' ', el('label', {}, tick, ' wired'));
+      }
+    } else {
+      info.append(`pin ${selected}: not connected to anything.`);
+    }
+    box.append(info);
+  }
+  return box;
+}
+
+/**
+ * What to wire (0.4 design F1): one group per line, each leg a tick box.
+ * o: { wired: Set, openOnly: boolean, expanded: Set, shown: string|null, onWire(key, on), onShow(net),
+ *      onCopy(), onOpenOnly(on), onExpand(net, open) }
+ */
+export function renderWiring(container, groups, o) {
+  if (!groups.length) {
+    container.replaceChildren();
+    return;
+  }
+  const total = groups.reduce((n, g) => n + g.members.length, 0);
+  const done = groups.reduce((n, g) => n + g.members.filter((m) => o.wired.has(m.key)).length, 0);
+  const only = el('input', { type: 'checkbox', id: 'wiring-open-only', 'data-focus': 'open-only' });
+  only.checked = o.openOnly;
+  only.addEventListener('change', () => o.onOpenOnly(only.checked));
+  const copy = el('button', { type: 'button', id: 'wiring-copy', 'data-focus': 'copy' }, 'Copy as text');
+  copy.addEventListener('click', o.onCopy);
+  const bar = el('progress', { max: String(Math.max(total, 1)) });
+  bar.value = done;
+  const children = [
+    el('h2', {}, 'What to wire'),
+    el('p', { className: 'progress-text' }, `${done} of ${total} legs wired`),
+    bar,
+    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy),
+  ];
+  for (const g of groups) {
+    const doneHere = g.members.filter((m) => o.wired.has(m.key)).length;
+    const details = el('details', { className: `wire-group wire-${g.kind}`, 'data-net': g.net });
+    details.open = o.expanded.has(g.net);
+    details.addEventListener('toggle', () => o.onExpand(g.net, details.open));
+    details.append(el('summary', { 'data-focus': `net-${g.net}` },
+      el('span', { className: 'wire-label' }, g.label), ' ',
+      el('span', { className: 'wire-count' }, `${doneHere} of ${g.members.length} wired`)));
+    const show = el('button', { type: 'button', className: 'wire-show', 'data-focus': `show-${g.net}`, 'aria-pressed': String(o.shown === g.net) },
+      o.shown === g.net ? 'Hide' : 'Show');
+    show.addEventListener('click', () => o.onShow(g.net));
+    const list = el('ul', { className: 'wire-members' });
+    for (const m of g.members) {
+      if (o.openOnly && o.wired.has(m.key)) continue;
+      const box = el('input', { type: 'checkbox', 'data-wire': m.key, 'data-focus': `wire-${m.key}` });
+      box.checked = o.wired.has(m.key);
+      box.addEventListener('change', () => o.onWire(m.key, box.checked));
+      list.append(el('li', {}, el('label', {}, box, ` ${m.text}`)));
+    }
+    details.append(show, list);
+    children.push(details);
+  }
+  keepFocus(container, () => container.replaceChildren(...children), '#wiring-copy');
 }

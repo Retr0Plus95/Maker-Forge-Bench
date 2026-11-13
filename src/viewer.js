@@ -22,9 +22,11 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
   let fitted = false;
 
   const stageSize = () => ({ w: stage.clientWidth, h: stage.clientHeight });
+  const viewListeners = [];
   const apply = (next) => {
     view = { ...next };
     host.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    for (const fn of viewListeners) fn({ ...view });
   };
   /** Zoom limits for the sheet on screen: they follow its fitted scale (see scaleLimits). */
   const limits = () => {
@@ -62,6 +64,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       next.img.style.display = 'block';
     }
     shadow.replaceChildren(ownStyle, next.kind === 'svg' ? next.root : next.img);
+    overlay = null;
     content = next;
     if (opts.keepView) apply(view);
     else fit();
@@ -69,8 +72,19 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
 
   function clear() {
     shadow.replaceChildren(ownStyle);
+    overlay = null;
     content = null;
     size = null;
+  }
+
+  // ---- photos: a layer of marks over the picture (0.4 design F3) ----
+  let overlay = null;
+  function setOverlay(layer) {
+    if (overlay) overlay.remove();
+    overlay = null;
+    if (!layer || !content || content.kind !== 'image') return;
+    overlay = layer;
+    shadow.append(layer);
   }
 
   // ---- labels: their box, and the ring around a found one ----
@@ -113,7 +127,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       const group = document.createElementNS(SVG_NS, 'g');
       group.setAttribute('class', 'bench-flip');
       group.setAttribute('transform', `translate(${2 * vb.x + vb.width} 0) scale(-1 1)`);
-      for (const child of Array.from(root.childNodes)) if (child !== ringLayer && child !== stepLayer) group.append(child);
+      for (const child of Array.from(root.childNodes)) if (child !== ringLayer && child !== stepLayer && child !== netLayer) group.append(child);
       root.insertBefore(group, root.firstChild); // the rings stay on top, unmirrored
       // Read every label's box first, then write: reading after a write makes the browser lay the
       // whole drawing out again, once per label (a minute on a big layout).
@@ -141,6 +155,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     }
     if (ringTarget) ring(ringTarget);
     if (stepTargets.length) stepRings(stepTargets);
+    if (netTargets.length) netRings(netTargets);
   }
 
   let ringTarget = null;
@@ -167,6 +182,30 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       stepLayer.append(rect);
     }
     content.root.append(stepLayer);
+  }
+
+  // ---- a whole line's parts (What to wire's Show): orange dashed rings in a third layer ----
+  let netLayer = null;
+  let netTargets = [];
+  function netRings(elements) {
+    if (netLayer) netLayer.remove();
+    netLayer = null;
+    netTargets = [];
+    if (!content || content.kind !== 'svg') return;
+    netTargets = elements.filter((el) => el && content.root.contains(el));
+    if (!netTargets.length) return;
+    netLayer = document.createElementNS(SVG_NS, 'g');
+    netLayer.setAttribute('class', 'bench-net');
+    for (const el of netTargets) {
+      const box = rootBox(el);
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      for (const [k, v] of Object.entries({
+        x: box.x - 5, y: box.y - 5, width: box.w + 10, height: box.h + 10, fill: 'none', stroke: '#ff9f1a',
+        'stroke-width': 3, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke',
+      })) rect.setAttribute(k, String(v));
+      netLayer.append(rect);
+    }
+    content.root.append(netLayer);
   }
 
   function ring(el) {
@@ -196,7 +235,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
   }, { passive: false });
 
   stage.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || !size) return;
+    // a button on the stage (the zoom badge) gets its own click: capturing the pointer would steal it
+    if (e.button !== 0 || !size || (e.target instanceof Element && e.target.closest('button'))) return;
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
     stage.setPointerCapture(e.pointerId);
     stage.classList.add('dragging');
@@ -229,10 +269,17 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     if (!start || Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 4 || !(start.target instanceof Element)) return;
     const label = start.target.closest('text');
     if (label) for (const fn of labelListeners) fn(label);
+    if (content && content.kind === 'image' && pointListeners.length) {
+      const [sx, sy] = stagePoint(e);
+      const x = (sx - view.x) / view.scale;
+      const y = (sy - view.y) / view.scale;
+      for (const fn of pointListeners) fn(x, y);
+    }
   });
+  const pointListeners = [];
 
   stage.addEventListener('dblclick', (e) => {
-    if (!size) return;
+    if (!size || (e.target instanceof Element && e.target.closest('button'))) return;
     const [px, py] = stagePoint(e);
     setView(zoomAt(view, 2, px, py, limits()));
   });
@@ -254,7 +301,15 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     labelRect,
     ring,
     onLabelClick: (fn) => labelListeners.push(fn),
+    /** Told every time the view zooms or moves: { scale, x, y }. */
+    onView: (fn) => viewListeners.push(fn),
+    /** A tap (a click that isn't a drag) on a photo, in the photo's own pixels. */
+    onPointClick: (fn) => pointListeners.push(fn),
+    setOverlay,
+    image: () => (content && content.kind === 'image' ? content.img : null),
+    imageSize: () => (content && content.kind === 'image' ? { ...size } : null),
     stepRings,
+    netRings,
     setFlipped,
     isFlipped,
     getView: () => ({ ...view }),

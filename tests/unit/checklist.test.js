@@ -8,7 +8,8 @@ test('progress round-trips through a file', () => {
   const text = exportProgress(sample);
   assert.equal(JSON.parse(text).format, 'bench-progress');
   assert.equal(JSON.parse(text).version, 1);
-  assert.deepEqual(importProgress(text), sample);
+  const back = importProgress(text);
+  for (const key of Object.keys(sample)) assert.deepEqual(back[key], sample[key], key); // later releases add optional fields
 });
 
 test('anything that is not Bench progress is refused in plain words', () => {

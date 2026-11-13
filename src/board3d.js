@@ -18,8 +18,11 @@ function webglAvailable() {
   }
 }
 
-/** Builds the view in `host`. Gives null when this browser can't draw 3D. */
-export async function createBoard3D(host, board, { onPick }) {
+/**
+ * Builds the view in `host`. Gives null when this browser can't draw 3D.
+ * camera: a saved camera ({ side, position, target }) to start from; onCamera(camera) is told whenever it moves.
+ */
+export async function createBoard3D(host, board, { onPick, camera: savedCamera = null, onCamera = () => {} }) {
   if (!webglAvailable()) return null;
   const THREE = await import('./three.module.js');
   const { OrbitControls } = await import('./three-orbit-controls.js');
@@ -90,23 +93,48 @@ export async function createBoard3D(host, board, { onPick }) {
   }
   scene.add(pads, drills);
 
-  // underneath: bare-wire buses, insulated links, solder bridges
+  // a run of straight pieces as one mesh: one draw call per link, however many bends it has
+  function polyline(points, radius, mat) {
+    const positions = [];
+    const normals = [];
+    for (let k = 1; k < points.length; k++) {
+      const piece = segment(points[k - 1], points[k], radius, mat);
+      if (!piece) continue;
+      piece.updateMatrix();
+      const geo = piece.geometry.toNonIndexed();
+      geo.applyMatrix4(piece.matrix);
+      positions.push(...geo.attributes.position.array);
+      normals.push(...geo.attributes.normal.array);
+      geo.dispose();
+      piece.geometry.dispose();
+    }
+    if (!positions.length) return null;
+    const merged = new THREE.BufferGeometry();
+    merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    return new THREE.Mesh(merged, mat);
+  }
+
+  // underneath: bare-wire buses, insulated links, solder bridges ("Wiring underneath" shows or hides them)
+  const wiring = [];
   const at = ([c, r], z) => v3((c - 1) * p, (r - 1) * p, z);
   for (const bus of board.buses) {
     const mesh = segment(at([bus.from, bus.row], -T - 0.35), at([bus.to, bus.row], -T - 0.35), 0.4, material(busColour(bus.label), { metal: 0.5 }));
-    if (mesh) scene.add(mesh);
+    if (mesh) wiring.push(mesh);
   }
+  let linkMeshes = 0;
   board.links.forEach((link, n) => {
-    const mat = material(LINK_COLOURS[n % LINK_COLOURS.length]);
-    for (let k = 1; k < link.path.length; k++) {
-      const mesh = segment(at(link.path[k - 1], -T - 1), at(link.path[k], -T - 1), 0.42, mat);
-      if (mesh) scene.add(mesh);
+    const mesh = polyline(link.path.map((h) => at(h, -T - 1)), 0.42, material(LINK_COLOURS[n % LINK_COLOURS.length]));
+    if (mesh) {
+      wiring.push(mesh);
+      linkMeshes++;
     }
   });
   for (const bridge of board.bridges) {
     const mesh = segment(at(bridge.holes[0], -T - 0.3), at(bridge.holes[1], -T - 0.3), 0.75, material('#d0d4d8', { metal: 0.7 }));
-    if (mesh) scene.add(mesh);
+    if (mesh) wiring.push(mesh);
   }
+  for (const mesh of wiring) scene.add(mesh);
 
   // the parts: one group each, with its own materials so it can be highlighted
   const groups = new Map();
@@ -176,6 +204,8 @@ export async function createBoard3D(host, board, { onPick }) {
     const ly = centre ? centre.y ?? (centre.y1 + centre.y2) / 2 : 0;
     tag.position.copy(part.side === 'bottom' ? v3(lx, ly, bottom - 3) : v3(lx, ly, top + 3));
     group.add(tag);
+    group.userData.tag = tag;
+    group.userData.side = part.side;
     groups.set(ref, group);
     scene.add(group);
   }
@@ -183,8 +213,36 @@ export async function createBoard3D(host, board, { onPick }) {
   let selected = null;
   let stepNow = new Set();
   let stepLater = new Set();
+  const LIFT = 1.2;
+  let lit = null; // the selected part's holes, lit on both faces of the board
+  const litMaterial = new THREE.MeshBasicMaterial({ color: '#ffe066' });
+  function lightHoles(ref) {
+    if (lit) {
+      scene.remove(lit);
+      lit.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+    }
+    lit = null;
+    const part = ref ? board.parts[ref] : null;
+    if (!part) return 0;
+    lit = new THREE.Group();
+    const ringGeo = new THREE.TorusGeometry(0.75, 0.16, 8, 20);
+    for (const [c, r] of Object.values(part.pins)) {
+      for (const y of [0.06, -T - 0.06]) {
+        const ring = new THREE.Mesh(ringGeo, litMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set((c - 1) * p, y, (r - 1) * p);
+        lit.add(ring);
+      }
+    }
+    scene.add(lit);
+    return Object.keys(part.pins).length;
+  }
+  let litHoles = 0;
   function restyle() {
     for (const [ref, group] of groups) {
+      const on = ref === selected;
+      group.position.y = on ? (group.userData.side === 'bottom' ? -LIFT : LIFT) : 0;
+      if (group.userData.tag) group.userData.tag.scale.set(on ? 11 : 8, on ? 4.1 : 3, 1);
       const glow = ref === selected ? SELECT : stepNow.has(ref) ? STEP : null;
       const faded = !glow && stepLater.has(ref);
       group.traverse((obj) => {
@@ -215,6 +273,8 @@ export async function createBoard3D(host, board, { onPick }) {
   sizer.observe(host);
 
   let side = 'top';
+  const cameraNow = () => ({ side, position: camera.position.toArray(), target: controls.target.toArray() });
+  controls.addEventListener('end', () => onCamera(cameraNow()));
   function view(name) {
     side = name === 'bottom' ? 'bottom' : 'top';
     const lift = span * 1.55;
@@ -225,6 +285,21 @@ export async function createBoard3D(host, board, { onPick }) {
     controls.target.set(cx, 0, cz);
     controls.update();
     render();
+    onCamera(cameraNow());
+  }
+
+  /** Turns the camera to a part, closer in. */
+  function focus(ref) {
+    const group = groups.get(ref);
+    if (!group) return;
+    const centre = new THREE.Vector3();
+    new THREE.Box3().setFromObject(group).getCenter(centre);
+    const away = camera.position.clone().sub(controls.target).normalize().multiplyScalar(span * 0.7);
+    controls.target.copy(centre);
+    camera.position.copy(centre).add(away);
+    controls.update();
+    render();
+    onCamera(cameraNow());
   }
 
   // a main-button click (not a drag) on a part you can see selects it: the board hides what's behind it
@@ -232,23 +307,58 @@ export async function createBoard3D(host, board, { onPick }) {
   const blockers = [boardMesh, ...pickable];
   let downAt = null;
   renderer.domElement.addEventListener('pointerdown', (e) => { downAt = e.button === 0 ? [e.clientX, e.clientY] : null; });
-  renderer.domElement.addEventListener('pointerup', (e) => {
-    if (e.button !== 0 || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
-    downAt = null;
+  function partAt(e) {
     const rect = renderer.domElement.getBoundingClientRect();
     ray.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
     const hit = ray.intersectObjects(blockers, false)[0];
-    if (hit && hit.object !== boardMesh) onPick(hit.object.userData.ref);
+    return hit && hit.object !== boardMesh ? hit.object.userData.ref : null;
+  }
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    if (e.button !== 0 || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+    downAt = null;
+    const ref = partAt(e);
+    if (ref) onPick(ref);
+  });
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    const ref = partAt(e);
+    if (!ref) return;
+    focus(ref);
+    onPick(ref);
   });
 
   resize();
-  view('top');
+  view(savedCamera && savedCamera.side === 'bottom' ? 'bottom' : 'top');
+  if (savedCamera && Array.isArray(savedCamera.position) && Array.isArray(savedCamera.target) &&
+      [...savedCamera.position, ...savedCamera.target].every((n) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) < 1e5)) {
+    camera.position.fromArray(savedCamera.position);
+    controls.target.fromArray(savedCamera.target);
+    controls.update();
+    render();
+    onCamera(cameraNow()); // view() above saved the default: save the restored camera over it
+  }
 
   return {
     select(ref) {
       selected = ref && groups.has(ref) ? ref : null;
+      litHoles = lightHoles(selected);
       restyle();
     },
+    focus,
+    resetView: () => view(side),
+    showWiring(on) {
+      for (const mesh of wiring) mesh.visible = on;
+      render();
+    },
+    /** What the view shows, for tests and the Claude app. */
+    info: () => ({
+      selected,
+      litHoles,
+      lift: selected ? Math.abs(groups.get(selected).position.y) : 0,
+      wiring: wiring.length ? wiring[0].visible : true,
+      target: controls.target.toArray(),
+      links: board.links.length,
+      linkMeshes,
+    }),
     setStep(now, later) {
       stepNow = new Set(now);
       stepLater = new Set(later);

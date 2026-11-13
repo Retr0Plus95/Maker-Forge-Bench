@@ -10,8 +10,9 @@ import { search } from './search.js';
  * @param {() => void} o.clearRing
  * @param {(label: object) => void} o.ringIfShown  rings a label without moving the view, if its sheet is showing
  * @param {(text: string) => void} o.setStatus
+ * @param {(query: string) => { cls: string, text: string, onPick(): void }[]} [o.extras]  lines and values matching the query
  */
-export function createFindBar({ input, results, entries, goTo, clearRing, ringIfShown, setStatus }) {
+export function createFindBar({ input, results, entries, goTo, clearRing, ringIfShown, setStatus, extras = () => [] }) {
   let query = '';
   let matches = [];
   let index = -1;
@@ -40,6 +41,15 @@ export function createFindBar({ input, results, entries, goTo, clearRing, ringIf
       results.append(note('Reading sheets…'));
       return;
     }
+    const more = extras(query);
+    for (const x of more) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = x.cls;
+      button.textContent = x.text;
+      button.addEventListener('click', x.onPick);
+      results.append(button);
+    }
     const found = search(list.filter((e) => e.kind === 'svg').flatMap((e) => e.labels), query);
     matches = [...found.bySheet.values()].flat();
     for (const [id, labels] of found.bySheet) {
@@ -49,7 +59,7 @@ export function createFindBar({ input, results, entries, goTo, clearRing, ringIf
       button.addEventListener('click', () => jump(matches.indexOf(labels[0])));
       results.append(button);
     }
-    setStatus(found.total ? '' : `No “${query}” on any sheet.`);
+    setStatus(found.total || more.length ? '' : `No “${query}” on any sheet.`);
     const pictures = list.filter((e) => e.kind === 'image').map((e) => e.sheet.label);
     if (pictures.length) results.append(note(`Pictures can't be searched: ${pictures.join(', ')}`));
     for (const e of list) {

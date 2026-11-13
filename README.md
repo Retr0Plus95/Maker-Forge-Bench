@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.3 works on a PC, from a local folder. Phone and tablet, GitHub links and the
+**Status:** release 0.4 works on a PC, from a local folder. Phone and tablet, GitHub links and the
 website come later (see the roadmap).
 
 ## Try it
@@ -25,17 +25,35 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
 - **Sheets:** every SVG, PNG and JPG drawing in the folder gets a tab. Zoom with the mouse wheel or
   `+` / `-`, drag to move around, and press `0` to fit.
 - **Find part** (`/`): type a part, a net or a hole (`R6`, `PWMCTL`, `28,12`), then Enter or `n` / `N`
-  to go from match to match. Finding a part opens its card.
+  to go from match to match. Finding a part opens its card. It also knows **lines** (`+5 V`, `0 V`)
+  and **values** (`100 nF`, `10k`).
 - **Part cards:** click a part's label on a drawing. The card says what it is, why it's there and
   which way round it goes, opens its datasheet, and lists every sheet it's on. With a board in the
   project file it also says **what each pin connects to** (`pin 2 → TACHA_F: J2 3, R12 1`, each
   part one click away), **which holes it goes in** on sheet 4, and **which build step** it's in.
 - **Build steps:** the build order, one step at a time, with why, what to do, and that step's parts
   ringed on the drawing. Space / Shift+Space to move, and "Tick all in this step".
-- **3D board:** the perfboard in 3D over the dimmed schematic, every part labelled, the wiring
-  underneath. Click a part to open its card; the open step's parts glow blue.
+- **3D board** (`b`): the perfboard in 3D over the dimmed schematic, every part labelled, the wiring
+  underneath (which you can hide). Click a part to open its card: its holes light up and it lifts.
+  Double-click to turn to it. The open step's parts glow blue. `t` and `u` show the top and the
+  underside, and the camera is remembered.
 - **Build checklist:** tick parts as you solder them, and their labels turn green on every sheet.
-  Progress saves itself, and **Save progress as file** moves it to another device.
+  Progress saves itself, and **Save progress as file** moves it to another device. "Only not
+  soldered" hides what's done; polarised parts say "Way round matters".
+- **What to wire:** every connection the circuit needs, one group per line (`+5 V: buck module OUT+,
+  C2 +, chip pin 7, chip pin 20, …`). Tick each leg as it's soldered to its line, on the list or on
+  the part card. It doesn't depend on where your parts sit, so it works on a board you laid out
+  yourself. **Show** rings a line's parts; **Copy as text** and printing give you the list on paper.
+- **Chip pins:** "Show pins" on a chip's or header's card draws it pin by pin with each pin's line,
+  seen from the **top** or from **underneath** (where the two rows swap sides).
+- **Your board, from your photos:** put photos of your own board in the project folder (for
+  example `my-board/`). On a photo, **My board** lines it up: tap the chip's pin 1 and pin 14, and
+  Bench marks every chip pin, green when it's wired and orange when not. Place any part by tapping
+  its holes from its card; it then shows on the top and underside photos alike.
+- **Before power:** meter checks from the project's own supplies (a beep test to 0 V, each supply
+  measured with the chip out) to tick before the chip goes in.
+- **Your notes:** a note on any part ("used a 4.7k here"), kept with your progress, and Claude
+  sees it too.
 - **Ask Claude:** in the part card, Copy for Claude or Open claude.ai. In the Claude app, Claude reads
   the part you've selected straight from the page.
 - **Flip** (`f`) shows a layout from the solder side. **Side by side** shows two sheets at once on a
@@ -44,6 +62,8 @@ Then open the address it prints (`http://127.0.0.1:8765/`).
   less motion.
 - **Undo everything:** `Ctrl+Z` and `Ctrl+Y`, or the Undo and Redo buttons. A sheet reloads by itself
   when its drawing changes, keeping your zoom.
+- **Moving around:** `1`–`9` pick sheets, the zoom badge fits the sheet when clicked, Bench opens on
+  the sheet you last looked at, and `?` lists every shortcut.
 
 ## Describe your project: `forge-project.json`
 
