@@ -9,8 +9,9 @@ import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from 
 import { buildOverlay } from './myboard-view.js';
 import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
 import { libraryFor as libraryForPart } from './library.js';
-import { findLines, findValues, nextInStep } from './lookup.js';
-import { shoppingCsv, shoppingList, shoppingText } from './bom.js';
+import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
+import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
+import { groupByType, shoppingCsv, shoppingList, shoppingText } from './bom.js';
 import { addVersion, buildReport, clock, cleanVersions, day, duration, logAdd, logText, solderedAt, timeSpent } from './buildlog.js';
 import { capacitorCode, resistorBands } from './markings.js';
 import { libraryFor } from './library.js';
@@ -75,7 +76,14 @@ const state = {
   clearAt: 0, // when Clear my board was first clicked
   log: [], // the build log: [{ t, text }] (0.5 big improvement B10)
   versionDeleteAt: { name: null, t: 0 }, // a version's Delete asks twice
+  trail: [], // the parts you opened, for Alt+← and Alt+→
+  trailAt: -1,
+  checklistQuery: '',
+  checklistGroup: false,
+  checklistSort: 'list',
+  wiringFilter: '',
 };
+const APP_VERSION = '0.5.0';
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
@@ -166,10 +174,13 @@ function setStatus(text) {
   $('#status').textContent = text || state.projectProblem;
 }
 
-function setStageMessage(text) {
+let retrySheet = null;
+function setStageMessage(text, retryId = null) {
   const box = $('#stage-message');
   box.textContent = text;
   box.hidden = !text;
+  retrySheet = text ? retryId : null;
+  $('#stage-retry').hidden = !retrySheet;
 }
 
 async function prepare(sheet) {
@@ -233,14 +244,15 @@ async function selectSheet(id) {
   if (entry.kind === 'error') {
     viewer.clear();
     updateMyBoard();
-    setStageMessage(entry.message);
+    setStageMessage(entry.message, sheet.missing ? null : id); // a missing file comes back by itself when it appears
     setStatus(entry.message);
     updateFlip();
     return false;
   }
   setStageMessage('');
   setStatus('');
-  const saved = state.views.get(id);
+  const kept = store.get(`views:${projectName()}`, {})[id];
+  const saved = state.views.get(id) || (kept && ['scale', 'x', 'y'].every((k) => Number.isFinite(kept[k])) && kept.scale > 0 ? kept : null);
   viewer.show(entry, { keepView: Boolean(saved), turn: store.get(`turn:${projectName()}:${id}`, 0) });
   if (saved) viewer.setView(saved);
   const wantFlip = state.flipped.has(id) && isLayout(id);
@@ -303,7 +315,10 @@ function toggleFlip() {
 /** Find part: show the label's sheet, zoom to the label and ring it. A query that is a part's ref opens its card. */
 async function goTo(label, query) {
   const ref = query ? findRef(query) : null;
-  if (ref) state.selected = ref;
+  if (ref) {
+    pushTrail(ref);
+    state.selected = ref;
+  }
   if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
   viewer.zoomToRect(viewer.labelRect(label.el));
   viewer.ring(label.el);
@@ -448,6 +463,7 @@ function cardExtras(part, board) {
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
     library: lib,
     onCopy: () => copyText(`${part.ref}${part.value ? ` ${part.value}` : ''}`, `Copied ${part.ref}.`),
+    onLink: () => copyText(`${window.location.origin}${window.location.pathname}?sheet=${encodeURIComponent(state.current)}&part=${encodeURIComponent(part.ref)}`, 'Link to this part copied.'),
     sameValue: same.length >= 2 ? { count: same.length, value: part.value, onTick: () => tickParts(same, `Tick all ${part.value}`) } : null,
     onWireAll: left.length ? () => wireMany(left.map((pin) => `${part.ref}:${pin}`), `Wired all of ${part.ref}`) : null,
     onPrev: () => stepPart(-1),
@@ -486,8 +502,26 @@ function openLine(net) {
   if (group) group.scrollIntoView({ block: 'nearest' });
 }
 
+let walkingTrail = false;
+function walkTrail(delta) {
+  const at = state.trailAt + delta;
+  if (at < 0 || at >= state.trail.length) return;
+  state.trailAt = at;
+  walkingTrail = true;
+  selectPart(state.trail[at]);
+  walkingTrail = false;
+}
+
+/** Remembers a part you opened, for Alt+← and Alt+→. */
+function pushTrail(ref) {
+  if (walkingTrail || !ref || state.trail[state.trailAt] === ref) return;
+  state.trail = [...state.trail.slice(0, state.trailAt + 1), ref].slice(-50);
+  state.trailAt = state.trail.length - 1;
+}
+
 function selectPart(ref, labelEl) {
   if (ref !== state.selected) state.pinSelected = null;
+  pushTrail(ref);
   state.selected = ref;
   const label = labelEl || (firstLabelFor(state.current, ref) || {}).el || null;
   viewer.ring(label);
@@ -1511,6 +1545,155 @@ function startOver() {
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
 
+// ---- moving around and the app (0.5 improvements 1-8, 44-52) ----
+function stepSheet(delta) {
+  const i = state.sheets.findIndex((s) => s.id === state.current);
+  const next = state.sheets[(i + delta + state.sheets.length) % state.sheets.length];
+  if (next) selectSheet(next.id);
+}
+
+/** Everything the palette can find, each with what it does. */
+function paletteItems() {
+  const items = [];
+  for (const p of state.parts) items.push({ label: `${p.ref}${p.value ? ` ${p.value}` : ''}`, hint: 'part', run: () => selectPart(p.ref) });
+  for (const g of currentGroups()) items.push({ label: `Line ${g.label}`, hint: 'line', run: () => openLine(g.net) });
+  for (const s of state.sheets) items.push({ label: s.label, hint: 'sheet', run: () => selectSheet(s.id) });
+  stepsOf().forEach((s, i) => items.push({ label: `Step ${i + 1}: ${s.title}`, hint: 'step', run: () => openStep(i) }));
+  const act = (label, run) => items.push({ label, hint: 'action', run });
+  if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
+  act('Shopping list', openShopping);
+  act('Build log', openLog);
+  act('Versions', openVersions);
+  act('Build report', saveReport);
+  act('Calculators', openCalc);
+  act('Keyboard shortcuts', () => $('#help').showModal());
+  act('Easy reading', () => $('#settings-button').click());
+  act('Save progress as file', saveProgressFile);
+  act('Full screen', toggleFullscreen);
+  act('Hide or show the side panel', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
+  act('Side by side', () => $('#split').click());
+  act('Flip to solder side', () => toggleFlip());
+  act('Fit the sheet', () => viewer.fit());
+  return items;
+}
+
+let paletteAll = [];
+let paletteShown = [];
+let paletteAt = 0;
+function renderPalette() {
+  paletteShown = paletteMatch(paletteAll, $('#palette-input').value);
+  paletteAt = Math.min(paletteAt, Math.max(0, paletteShown.length - 1));
+  $('#palette-list').replaceChildren(...paletteShown.map((item, i) => {
+    const li = el('li', { role: 'option', 'aria-selected': String(i === paletteAt) }, el('span', {}, item.label), el('span', { className: 'hint' }, item.hint));
+    li.addEventListener('click', () => runPalette(i));
+    return li;
+  }));
+}
+function openPalette() {
+  paletteAll = paletteItems();
+  paletteAt = 0;
+  $('#palette-input').value = '';
+  renderPalette();
+  if (!$('#palette').open) $('#palette').showModal();
+  $('#palette-input').focus();
+}
+function runPalette(i) {
+  const item = paletteShown[i];
+  $('#palette').close();
+  if (item) item.run();
+}
+
+function openCalc() {
+  $('#calc').showModal();
+  updateCalc();
+}
+function updateCalc() {
+  const num = (id) => {
+    const v = parseFloat($(id).value);
+    return Number.isFinite(v) ? v : undefined;
+  };
+  const led = ledResistor(num('#calc-led-supply'), num('#calc-led-vf'), num('#calc-led-ma'));
+  $('#calc-led-out').textContent = led ? `${Math.round(led.r)} Ω: use ${ohmsText(led.e12)} Ω, about ${led.mA.toFixed(1)} mA (${(led.w * 1000).toFixed(0)} mW in the resistor)` : 'Supply must be above the LED voltage.';
+  const ma = num('#calc-ohm-ma');
+  const o = ohmsLaw({ v: num('#calc-ohm-v'), i: ma === undefined ? undefined : ma / 1000, r: num('#calc-ohm-r') });
+  $('#calc-ohm-out').textContent = o ? `${+o.v.toFixed(3)} V · ${+(o.i * 1000).toFixed(3)} mA · ${ohmsText(o.r)} Ω · ${+(o.w * 1000).toFixed(1)} mW` : 'Fill in any two.';
+  const d = divider(num('#calc-div-vin'), num('#calc-div-r1'), num('#calc-div-r2'));
+  $('#calc-div-out').textContent = d ? `Out: ${d.vout.toFixed(2)} V, ${d.mA.toFixed(3)} mA through the pair` : 'Fill in all three.';
+}
+
+function renderRecentFinds() {
+  const recent = store.get('recentFinds', []);
+  $('#find-recent').replaceChildren(...(Array.isArray(recent) ? recent : []).filter((q) => typeof q === 'string').map((q) => el('option', { value: q })));
+}
+function rememberFind(query) {
+  const q = query.trim().slice(0, 60);
+  if (!q) return;
+  const recent = (store.get('recentFinds', []) || []).filter((x) => typeof x === 'string' && x !== q);
+  store.set('recentFinds', [q, ...recent].slice(0, 8));
+  renderRecentFinds();
+}
+
+/** Hovering a part's label on a drawing names it (0.5 improvement 7). */
+let labelTipFrame = 0;
+function onStageHover(e) {
+  // the event's path is only there while it's being handled: read it now, draw on the next frame
+  const target = e.composedPath()[0];
+  const { clientX, clientY } = e;
+  if (labelTipFrame) cancelAnimationFrame(labelTipFrame);
+  labelTipFrame = requestAnimationFrame(() => {
+    labelTipFrame = 0;
+    const tip = $('#label-tip');
+    const text = target instanceof Element ? target.closest('text') : null;
+    const ref = text ? refOfLabel(labelText(text), isKnownRef) : null;
+    const part = ref ? state.partsByRef.get(ref) : null;
+    if (!part) {
+      tip.hidden = true;
+      return;
+    }
+    const r = $('#stage').getBoundingClientRect();
+    tip.textContent = [part.ref, part.value].filter(Boolean).join(' · ') + (part.role ? ` · ${part.role.split(/[.:]/)[0]}` : '');
+    tip.style.left = `${clientX - r.left + 14}px`;
+    tip.style.top = `${clientY - r.top + 12}px`;
+    tip.hidden = false;
+  });
+}
+
+function wirePanelResize() {
+  const handle = $('#panel-resize');
+  const set = (w) => {
+    const width = Math.round(Math.min(760, Math.max(260, w)));
+    $('#panel').style.width = `${width}px`;
+    return width;
+  };
+  const savedWidth = store.get('panelWidth', null);
+  if (Number.isFinite(savedWidth)) set(savedWidth);
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    handle.classList.add('active');
+    try { handle.setPointerCapture(e.pointerId); } catch { /* not tracked */ }
+    const right = $('#workspace').getBoundingClientRect().right;
+    const move = (ev) => set(right - ev.clientX);
+    const up = (ev) => {
+      store.set('panelWidth', set(right - ev.clientX));
+      handle.classList.remove('active');
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', up);
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', up);
+  });
+}
+
+function showWhatsNew() {
+  const seen = store.get('seenVersion', null);
+  if (seen === null) {
+    store.set('seenVersion', APP_VERSION); // a first visit: nothing to call new
+    return;
+  }
+  if (seen !== APP_VERSION) $('#whats-new').hidden = false;
+}
+
 // ---- what to wire (0.4 design F1) ----
 function setWired(key, on) {
   const before = [...state.wired];
@@ -1555,6 +1738,19 @@ function renderWiringPanel() {
     onCopy: copyWiring,
     onOpenOnly: (on) => { state.wiringOpenOnly = on; renderWiringPanel(); },
     onExpand: (net, open) => { if (open) state.wiringExpanded.add(net); else state.wiringExpanded.delete(net); },
+    filter: state.wiringFilter,
+    onFilter: (text) => { state.wiringFilter = text; renderWiringPanel(); },
+    onWireAll: (g) => wireMany(g.members.map((m) => m.key), `Wired all of ${g.label}`),
+    onNextLine: () => {
+      const g = currentGroups().find((x) => x.members.some((m) => !state.wired.has(m.key)));
+      if (!g) {
+        setStatus('Every line is wired.');
+        return;
+      }
+      state.wiringExpanded = new Set([g.net]);
+      renderWiringPanel();
+      [...document.querySelectorAll('#wiring details')].find((d) => d.dataset.net === g.net)?.scrollIntoView({ block: 'nearest' });
+    },
     onExpandAll: (open) => {
       state.wiringExpanded = new Set(open ? currentGroups().map((g) => g.net) : []);
       renderWiringPanel();
@@ -1853,6 +2049,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   renderContinuityPanel();
   renderPartCard();
   updateMyBoard();
+  updateTabCounts();
   autoNextStep(stepWasDone);
 }
 
@@ -1880,15 +2077,43 @@ function renderChecklist() {
   bar.value = done;
   const notes = el('div', { id: 'checklist-notes' }, ...state.checklistNotes.map((n) => el('p', {}, n)),
     ...(state.checklistNotes.length ? [el('button', { id: 'notes-checked', type: 'button' }, 'Mark them checked')] : []));
-  const shown = state.checklistOpenOnly ? state.parts.filter((p) => !state.ticked.has(p.ref)) : state.parts;
-  const items = el('ul', { className: 'checklist-items' }, ...shown.map((part) => {
+  const stepOf = new Map();
+  stepsOf().forEach((s, i) => s.parts.forEach((ref) => { if (!stepOf.has(ref)) stepOf.set(ref, i); }));
+  const q = state.checklistQuery.trim().toLowerCase();
+  let shown = state.parts.filter((p) => (!state.checklistOpenOnly || !state.ticked.has(p.ref)) &&
+    (!q || `${p.ref} ${p.value || ''} ${p.type || ''}`.toLowerCase().includes(q)));
+  if (state.checklistSort === 'name') shown = [...shown].sort((a, b) => a.ref.localeCompare(b.ref, 'en', { numeric: true }));
+  if (state.checklistSort === 'step') shown = [...shown].sort((a, b) => (stepOf.get(a.ref) ?? 999) - (stepOf.get(b.ref) ?? 999));
+  const row = (part) => {
     const box = el('input', { type: 'checkbox', 'data-ref': part.ref, 'aria-label': `${part.ref} soldered` });
     box.checked = state.ticked.has(part.ref);
     const name = el('button', { type: 'button', className: 'checklist-name', 'data-open': part.ref }, `${part.ref}${part.value ? ` ${part.value}` : ''}`);
-    const row = el('li', { 'data-ref': part.ref }, box, name);
-    if (part.polarized) row.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
-    return row;
-  }));
+    const li = el('li', { 'data-ref': part.ref }, box, name);
+    if (stepOf.has(part.ref)) li.append(el('span', { className: 'step-no', title: `Build step ${stepOf.get(part.ref) + 1}` }, `S${stepOf.get(part.ref) + 1}`));
+    if (part.polarized) li.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
+    return li;
+  };
+  const items = el('div', { className: 'checklist-list' });
+  if (state.checklistGroup) {
+    for (const g of groupByType(shown)) {
+      const all = state.parts.filter((p) => groupByType([p])[0].label === g.label);
+      items.append(el('h3', {}, `${g.label} (${all.filter((p) => state.ticked.has(p.ref)).length}/${all.length})`),
+        el('ul', { className: 'checklist-items' }, ...g.parts.map(row)));
+    }
+  } else {
+    items.append(el('ul', { className: 'checklist-items' }, ...shown.map(row)));
+  }
+  const search = el('input', { type: 'search', id: 'checklist-search', placeholder: 'Search parts', 'aria-label': 'Search the checklist' });
+  search.value = state.checklistQuery;
+  const group = el('input', { type: 'checkbox', id: 'checklist-group' });
+  group.checked = state.checklistGroup;
+  const sort = el('select', { id: 'checklist-sort', 'aria-label': 'Order' });
+  for (const [value, text] of [['list', 'Project order'], ['name', 'By name'], ['step', 'By build step']]) {
+    const opt = el('option', { value }, text);
+    opt.selected = value === state.checklistSort;
+    sort.append(opt);
+  }
+  const tools = el('div', { id: 'checklist-tools' }, search, el('label', { className: 'check' }, group, ' By type'), sort);
   const openOnly = el('input', { type: 'checkbox', id: 'checklist-open-only' });
   openOnly.checked = state.checklistOpenOnly;
   const open = el('label', { className: 'button-like' }, 'Open progress file',
@@ -1906,6 +2131,7 @@ function renderChecklist() {
       el('button', { id: 'start-over', type: 'button', title: 'Clear the soldered, wired and done ticks (undo brings them back)' },
         Date.now() - state.startOverAt < 5000 ? 'Click again to start over' : 'Start over')),
     el('label', { className: 'check' }, openOnly, ' Only not soldered'),
+    tools,
     items,
   );
 }
@@ -1995,6 +2221,13 @@ function updateSheetNote() {
  */
 async function refreshSheet(sheet, mtime) {
   markUpdated();
+  const tab = [...$('#tabs').children].find((t) => t.dataset.id === sheet.id);
+  if (tab) {
+    tab.classList.remove('flash');
+    void tab.offsetWidth; // restart the flash
+    tab.classList.add('flash');
+    setTimeout(() => tab.classList.remove('flash'), 2600);
+  }
   if (mtime !== undefined) sheet.mtime = mtime;
   const generation = (state.generations.get(sheet.id) || 0) + 1;
   state.generations.set(sheet.id, generation);
@@ -2147,13 +2380,38 @@ function renderTabs() {
     return tab;
   }));
   updatePartDots();
+  updateTabCounts();
   if (split.on) fillSplitChoices();
 }
 
+/** Each tab says how many of the parts on its sheet are soldered (0.5 improvement 6). */
+function updateTabCounts() {
+  for (const tab of $('#tabs').children) {
+    const on = state.parts.filter((p) => sheetsWithPart(p.ref).some((s) => s.id === tab.dataset.id));
+    if (on.length) tab.setAttribute('data-count', `${on.filter((p) => state.ticked.has(p.ref)).length}/${on.length}`);
+    else tab.removeAttribute('data-count');
+  }
+}
+
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
+    e.preventDefault();
+    openPalette();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    saveProgressFile();
+    return;
+  }
+  if (e.altKey && !e.ctrlKey && !typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault();
+    walkTrail(e.key === 'ArrowLeft' ? -1 : 1);
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
     const key = e.key.toLowerCase();
     if (key === 'z' && !e.shiftKey) {
@@ -2188,6 +2446,9 @@ function onKey(e) {
     f: () => toggleFlip(),
     Escape: () => (state.mode ? stopTapping() : clearPart()),
     b: () => setBoard3D(!board3dOn),
+    '[': () => stepSheet(-1),
+    ']': () => stepSheet(1),
+    w: () => viewer.fitWidth(),
     s: () => state.selected && state.partsByRef.has(state.selected) && toggleTick(state.selected),
     ',': () => stepPart(-1),
     '.': () => stepPart(1),
@@ -2222,7 +2483,18 @@ async function start() {
   });
   viewer.onPointClick(onPhotoTap);
   viewer.setDragHandler(onPhotoDrag);
-  viewer.onView((v) => { $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`; });
+  let viewSave = 0;
+  viewer.onView((v) => {
+    $('#zoom-level').textContent = `${Math.round(v.scale * 100)} %`;
+    clearTimeout(viewSave);
+    const id = state.current;
+    viewSave = setTimeout(() => {
+      if (!id || id !== state.current) return;
+      const all = store.get(`views:${projectName()}`, {}) || {};
+      all[id] = { scale: v.scale, x: v.x, y: v.y };
+      store.set(`views:${projectName()}`, all);
+    }, 400);
+  });
   $('#zoom-level').addEventListener('click', () => viewer.fit());
   $('#help-done').addEventListener('click', () => $('#help').close());
   state.folded = new Set((store.get('folded', []) || []).filter((id) => FOLDABLE.includes(id)));
@@ -2258,6 +2530,46 @@ async function start() {
   darkScheme.addEventListener('change', () => applySettings(document.documentElement, settings, darkScheme.matches));
   $('#shopping-copy').addEventListener('click', copyShopping);
   $('#log-filter').addEventListener('input', renderLog);
+  $('#palette-input').addEventListener('input', () => { paletteAt = 0; renderPalette(); });
+  $('#palette-input').addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      paletteAt = Math.max(0, Math.min(paletteShown.length - 1, paletteAt + (e.key === 'ArrowDown' ? 1 : -1)));
+      renderPalette();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      runPalette(paletteAt);
+    }
+  });
+  $('#calc-open').addEventListener('click', openCalc);
+  $('#stage-retry').addEventListener('click', () => {
+    const id = retrySheet;
+    if (!id) return;
+    state.cache.delete(id);
+    state.loaded.delete(id);
+    selectSheet(id);
+  });
+  $('#calc').addEventListener('input', updateCalc);
+  $('#calc-done').addEventListener('click', () => $('#calc').close());
+  renderRecentFinds();
+  $('#find').addEventListener('keydown', (e) => { if (e.key === 'Enter') rememberFind($('#find').value); });
+  $('#stage').addEventListener('pointermove', onStageHover);
+  $('#stage').addEventListener('pointerleave', () => { $('#label-tip').hidden = true; });
+  wirePanelResize();
+  showWhatsNew();
+  $('#whats-new-close').addEventListener('click', () => {
+    store.set('seenVersion', APP_VERSION);
+    $('#whats-new').hidden = true;
+  });
+  $('#checklist').addEventListener('input', (e) => {
+    if (!(e.target instanceof HTMLInputElement) || e.target.id !== 'checklist-search') return;
+    state.checklistQuery = e.target.value;
+    const caret = [e.target.selectionStart, e.target.selectionEnd];
+    renderChecklist();
+    const again = $('#checklist-search');
+    again.focus();
+    again.setSelectionRange(...caret);
+  });
   $('#log-copy').addEventListener('click', () => copyText(logText(state.log), 'Build log copied.'));
   $('#log-done').addEventListener('click', () => $('#log').close());
   $('#version-save').addEventListener('click', saveVersion);
@@ -2304,6 +2616,12 @@ async function start() {
     else if (t instanceof HTMLInputElement && t.id === 'checklist-open-only') {
       state.checklistOpenOnly = t.checked;
       renderChecklist();
+    } else if (t instanceof HTMLInputElement && t.id === 'checklist-group') {
+      state.checklistGroup = t.checked;
+      renderChecklist();
+    } else if (t instanceof HTMLSelectElement && t.id === 'checklist-sort') {
+      state.checklistSort = t.value;
+      renderChecklist();
     }
     else if (t instanceof HTMLInputElement && t.id === 'progress-open') openProgressFile(t);
   });
@@ -2347,7 +2665,19 @@ async function start() {
   // Read the other sheets in the background, so Find part can search all of them.
   await Promise.all(state.sheets.map(load));
   updateParts();
+  updateTabCounts();
   find.refresh();
+  openFromLink();
+}
+
+/** A link with ?sheet=…&part=… opens there (0.5 improvement 1). */
+async function openFromLink() {
+  const q = new URLSearchParams(window.location.search);
+  const sheet = q.get('sheet');
+  const part = q.get('part');
+  if (sheet && state.sheets.some((s) => s.id === sheet)) await selectSheet(sheet);
+  if (part && state.partsByRef.has(part)) selectPart(part);
+  if (sheet || part) window.history.replaceState(null, '', window.location.pathname); // once: a reload stays where you are
 }
 
 start();

@@ -17,6 +17,7 @@
     <span id="saved" aria-live="polite"></span>
     <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span> Undo</button>
     <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span> Redo</button>
+    <button id="calc-open" class="tool" type="button" title="Ohm's law, LED resistor, voltage divider">Calculators</button>
     <button id="wake" class="tool" type="button" aria-pressed="false" title="Stop the screen going dark while you solder">Keep screen on</button>
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
@@ -25,7 +26,8 @@
   <div class="bar">
     <div id="findbar" role="search">
       <label for="find">Find part</label>
-      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12" title="Find a part, a line or a value (/)">
+      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="R6, PWMCTL, 28,12" title="Find a part, a line or a value (/) · Ctrl+K finds anything" list="find-recent">
+      <datalist id="find-recent"></datalist>
     </div>
     <button id="flip" class="tool" type="button" disabled title="Only layout sheets can be flipped.">Flip to solder side</button>
     <button id="split" class="tool" type="button" aria-pressed="false" title="Two sheets at once, on a wide screen">Side by side</button>
@@ -36,6 +38,7 @@
   </div>
   <div id="find-results"></div>
 </header>
+<p id="whats-new" role="status" hidden><strong>New in Bench 0.5:</strong> a much better 3D board (datasheet sizes, view cube, tools), the parts library, a continuity test, Check my board, suggested wires, versions and a build log. Ctrl+K finds anything. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <p id="sheet-note" aria-live="polite" hidden></p>
 <div id="workspace">
@@ -77,13 +80,16 @@
       <p id="board3d-message" hidden></p>
     </div>
     <button id="zoom-level" type="button" title="Zoom level: click to fit the sheet"></button>
+    <div id="label-tip" hidden></div>
     <p id="flip-banner" role="status" hidden>SOLDER SIDE – seen from underneath</p>
     <p id="stage-message" hidden></p>
+    <button id="stage-retry" type="button" hidden>Try again</button>
   </main>
   <section id="stage2" aria-label="Second sheet" hidden>
     <label class="stage2-pick">Second sheet <select id="stage2-sheet"></select></label>
     <div id="stage2-view"><div id="sheet-host2"></div><p id="stage2-message" hidden></p></div>
   </section>
+  <div id="panel-resize" role="separator" aria-orientation="vertical" aria-label="Drag to change the side panel's width" title="Drag to widen the panel"></div>
   <aside id="panel" aria-label="Part and build checklist">
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
@@ -108,11 +114,50 @@
     <dt>Space, Shift+Space</dt><dd>Next and previous build step</dd>
     <dt>B</dt><dd>3D board on and off</dd>
     <dt>T, U</dt><dd>3D board from the top, from underneath</dd>
+    <dt>Ctrl+K</dt><dd>Find anything: parts, lines, sheets, steps, actions</dd>
+    <dt>[ ]</dt><dd>Previous and next sheet</dd>
+    <dt>W</dt><dd>Fit the sheet's width</dd>
+    <dt>, .</dt><dd>Previous and next part</dd>
+    <dt>Alt+← Alt+→</dt><dd>Back and forward through the parts you opened</dd>
+    <dt>S</dt><dd>Mark the open part soldered</dd>
+    <dt>P</dt><dd>Hide or show the side panel</dd>
+    <dt>R</dt><dd>Turn a photo a quarter</dd>
+    <dt>Ctrl+S</dt><dd>Save your progress as a file</dd>
     <dt>Ctrl+Z, Ctrl+Y</dt><dd>Undo, redo</dd>
     <dt>Esc</dt><dd>Close the part card, or stop tapping on your photo</dd>
     <dt>?</dt><dd>This list</dd>
   </dl>
   <button id="help-done" class="primary" type="button">Done</button>
+</dialog>
+<dialog id="palette" aria-label="Find anything">
+  <input id="palette-input" type="search" placeholder="A part, a line, a sheet, a step, or something to do…" aria-label="Find anything" autocomplete="off">
+  <ul id="palette-list" role="listbox"></ul>
+  <p class="hint">↑ ↓ to choose · Enter to go · Esc to close</p>
+</dialog>
+<dialog id="calc" aria-labelledby="calc-title">
+  <h2 id="calc-title">Calculators</h2>
+  <fieldset>
+    <legend>LED resistor</legend>
+    <label>Supply <input id="calc-led-supply" type="number" step="any" value="5"> V</label>
+    <label>LED <input id="calc-led-vf" type="number" step="any" value="2"> V</label>
+    <label>Current <input id="calc-led-ma" type="number" step="any" value="10"> mA</label>
+    <p id="calc-led-out" class="calc-out" aria-live="polite"></p>
+  </fieldset>
+  <fieldset>
+    <legend>Ohm's law: fill in two</legend>
+    <label>Volts <input id="calc-ohm-v" type="number" step="any"></label>
+    <label>Milliamps <input id="calc-ohm-ma" type="number" step="any"></label>
+    <label>Ohms <input id="calc-ohm-r" type="number" step="any"></label>
+    <p id="calc-ohm-out" class="calc-out" aria-live="polite"></p>
+  </fieldset>
+  <fieldset>
+    <legend>Voltage divider</legend>
+    <label>In <input id="calc-div-vin" type="number" step="any"> V</label>
+    <label>R1 (top) <input id="calc-div-r1" type="number" step="any"> Ω</label>
+    <label>R2 (bottom) <input id="calc-div-r2" type="number" step="any"> Ω</label>
+    <p id="calc-div-out" class="calc-out" aria-live="polite"></p>
+  </fieldset>
+  <div class="dialog-actions"><button id="calc-done" class="primary" type="button">Done</button></div>
 </dialog>
 <dialog id="log" aria-labelledby="log-title">
   <h2 id="log-title">Build log</h2>
@@ -165,6 +210,7 @@
     <label><input type="radio" name="textSize" value="175"> 175 %</label>
   </fieldset>
   <label class="check"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
+  <label class="check"><input type="checkbox" name="compact"> Compact (more on screen)</label>
   <p class="hint">Every change here can be undone with Ctrl+Z.</p>
   <button id="settings-done" class="primary" type="button">Done</button>
 </dialog>

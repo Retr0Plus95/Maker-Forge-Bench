@@ -88,10 +88,28 @@ The owner asked for "any basic missing feature along the way":
 - Take a part off your board, and open or close every wiring line at once.
 - A theme that follows the system, and shortcut keys in the button tooltips.
 
-### 0.5 Make it yours
-From the board-view design: drag parts in 3D (with a JS port of pcb.py's checks), suggested wire
-routes with options, and named versions. Also: the parts library with verified sizes, pin function
-names (PD2, AVCC) on the chip pin view, and naming holes by a board's printed labels.
+### 0.5 Make it yours — done 2026-11-13
+Asked for as "50 basic and medium improvements and 10 big ones", with the 3D "much better: more
+accurate models, easier to use and much more functions" (design `docs/design/2026-11-13-release-0.5-design.md`).
+- **The 10 big ones:**
+  - B1 move parts by dragging on your photo;
+  - B2 Check my board;
+  - B3 suggested wires;
+  - B4 your board in 3D;
+  - B5 the parts library;
+  - B6 the guided continuity test;
+  - B7 datasheet-accurate 3D models;
+  - B8 the 3D look and controls (view cube, smooth camera, hover);
+  - B9 3D tools (explode, X-ray, cut-away, measure, step playback, PNG and STL);
+  - B10 history (build log, named versions).
+- **50 improvements, plus touch and a command palette:**
+  - links to parts;
+  - colour bands and capacitor codes;
+  - calculators, shopping and report extras;
+  - checklist and wiring filters;
+  - compact mode, a resizable panel, "what's new" and Try again.
+- Still to come: naming holes by a board's printed labels, a JS port of pcb.py's full checks, and
+  verified sizes for every library part.
 
 ### 0.6 Everywhere (was 0.3)
 - Phone and tablet layouts: pinch, two-finger pan, a sheet menu.

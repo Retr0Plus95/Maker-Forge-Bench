@@ -21,11 +21,14 @@ function el(tag, props = {}, ...children) {
 function keepFocus(container, build, fallbackSelector = 'button, input') {
   const active = document.activeElement;
   const focusKey = active && container.contains(active) ? active.getAttribute('data-focus') : null;
+  const caret = focusKey && typeof active.selectionStart === 'number' ? [active.selectionStart, active.selectionEnd] : null;
   build();
   if (!focusKey) return;
   const again = [...container.querySelectorAll('[data-focus]')].find((b) => b.getAttribute('data-focus') === focusKey);
   const fallback = container.querySelector(fallbackSelector);
-  (again && !again.disabled ? again : fallback)?.focus();
+  const target = again && !again.disabled ? again : fallback;
+  target?.focus();
+  if (caret && target === again && typeof again.setSelectionRange === 'function') again.setSelectionRange(...caret);
 }
 
 export function renderHint(container) {
@@ -189,6 +192,11 @@ export function renderCard(container, part, o) {
     const copy = el('button', { id: 'part-copy', type: 'button', 'data-focus': 'copy', title: 'Copy the part and its value' }, 'Copy');
     copy.addEventListener('click', x.onCopy);
     actions.append(copy);
+  }
+  if (x.onLink) {
+    const link = el('button', { id: 'part-link', type: 'button', 'data-focus': 'link', title: 'A link that opens Bench right at this part' }, 'Copy link');
+    link.addEventListener('click', x.onLink);
+    actions.append(link);
   }
   if (x.searchHref) {
     actions.append(el('a', { id: 'part-search', className: 'button-link', href: x.searchHref, target: '_blank', rel: 'noopener noreferrer',
@@ -647,13 +655,26 @@ export function renderWiring(container, groups, o) {
   closeAll.addEventListener('click', () => o.onExpandAll(false));
   const bar = el('progress', { max: String(Math.max(total, 1)) });
   bar.value = done;
+  const kinds = ['power', 'ground', 'signal'].map((k) => {
+    const legs = groups.filter((g) => g.kind === k).flatMap((g) => g.members);
+    return `${{ power: 'Supplies', ground: '0 V', signal: 'Signals' }[k]} ${legs.filter((m) => o.wired.has(m.key)).length}/${legs.length}`;
+  }).join(' · ');
+  const filter = el('input', { type: 'search', id: 'wiring-filter', placeholder: 'Filter lines, e.g. TACH', 'aria-label': 'Filter lines', 'data-focus': 'filter' });
+  filter.value = o.filter || '';
+  filter.addEventListener('input', () => o.onFilter(filter.value));
+  const nextLine = el('button', { type: 'button', id: 'wiring-next', 'data-focus': 'next-line' }, 'Next line not finished');
+  nextLine.addEventListener('click', o.onNextLine);
   const children = [
     el('h2', {}, 'What to wire'),
     el('p', { className: 'progress-text' }, `${done} of ${total} legs wired`),
     bar,
-    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy, openAll, closeAll),
+    el('p', { id: 'wiring-kinds', className: 'hint' }, kinds),
+    el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not wired'), copy, openAll, closeAll, nextLine),
+    filter,
   ];
+  const q = (o.filter || '').trim().toLowerCase();
   for (const g of groups) {
+    if (q && !g.label.toLowerCase().includes(q) && !g.net.toLowerCase().includes(q)) continue;
     const doneHere = g.members.filter((m) => o.wired.has(m.key)).length;
     const details = el('details', { className: `wire-group wire-${g.kind}`, 'data-net': g.net });
     details.open = o.expanded.has(g.net);
@@ -664,6 +685,8 @@ export function renderWiring(container, groups, o) {
     const show = el('button', { type: 'button', className: 'wire-show', 'data-focus': `show-${g.net}`, 'aria-pressed': String(o.shown === g.net) },
       o.shown === g.net ? 'Hide' : 'Show');
     show.addEventListener('click', () => o.onShow(g.net));
+    const all = el('button', { type: 'button', className: 'wire-all', 'data-focus': `all-${g.net}` }, 'Mark all wired');
+    all.addEventListener('click', () => o.onWireAll(g));
     const list = el('ul', { className: 'wire-members' });
     for (const m of g.members) {
       if (o.openOnly && o.wired.has(m.key)) continue;
@@ -672,7 +695,7 @@ export function renderWiring(container, groups, o) {
       box.addEventListener('change', () => o.onWire(m.key, box.checked));
       list.append(el('li', {}, el('label', {}, box, ` ${m.text}`)));
     }
-    details.append(show, list);
+    details.append(show, ' ', all, list);
     children.push(details);
   }
   keepFocus(container, () => container.replaceChildren(...children), '#wiring-copy');

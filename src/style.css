@@ -567,3 +567,42 @@ body.print-step #top, body.print-step #status, body.print-step #stage, body.prin
 #versions-list li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
 #versions-list .version-when { color: var(--muted); font-size: .85rem; margin-right: auto; }
 .part-soldered-at { color: var(--good); font-weight: 700; }
+
+/* ---- moving around, lists, app extras (0.5) ---- */
+[role=tab][data-count]::after { content: " " attr(data-count); font-size: .75em; color: var(--muted); margin-left: 4px; }
+[role=tab].flash { animation: tab-flash 2.4s ease-out; }
+@keyframes tab-flash { 0%, 30% { background: var(--accent); color: var(--accent-ink); } 100% { } }
+html[data-motion="reduce"] [role=tab].flash { animation: none; outline: 2px solid var(--accent); }
+#label-tip { position: absolute; z-index: 4; pointer-events: none; max-width: 320px; padding: 4px 8px; border-radius: 6px; background: rgba(10,12,16,.92); color: #fff; font-size: .85rem; }
+#label-tip[hidden] { display: none; }
+#stage-retry { margin-top: 10px; }
+#whats-new { margin: 0; padding: 6px 12px; background: var(--accent-soft); border-bottom: 1px solid var(--accent); }
+#whats-new[hidden] { display: none; }
+#panel-resize { flex: none; width: 6px; cursor: col-resize; background: var(--line); touch-action: none; }
+#panel-resize:hover, #panel-resize.active { background: var(--accent); }
+@media (max-width: 899px) { #panel-resize { display: none; } }
+#palette { width: min(620px, 92vw); padding: 10px; }
+#palette-input { width: 100%; box-sizing: border-box; font: inherit; font-size: 1.05rem; padding: 6px 10px; }
+#palette-list { list-style: none; padding: 0; margin: 8px 0; max-height: 55vh; overflow: auto; }
+#palette-list li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+#palette-list li .hint { font-size: .8rem; }
+#palette-list li[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+#palette-list li[aria-selected="true"] .hint { color: var(--accent-ink); }
+#calc fieldset { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+#calc input { width: 90px; font: inherit; }
+.calc-out { flex-basis: 100%; margin: 4px 0 0; font-weight: 700; }
+#checklist-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+#checklist-search, #wiring-filter { font: inherit; padding: 3px 8px; }
+#wiring-filter { width: 100%; box-sizing: border-box; margin: 4px 0; }
+#checklist h3 { margin: 8px 0 2px; font-size: .9rem; }
+.step-no { font-size: .75rem; color: var(--muted); }
+html[data-compact] #panel { padding: 6px; gap: 6px; }
+html[data-compact] #panel section { padding: 6px 8px; }
+html[data-compact] #panel h2 { font-size: .95rem; margin-bottom: 2px; }
+html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
+@media (pointer: coarse) {
+  .tool, #panel button, [role=tab] { min-height: 40px; padding-left: 12px; padding-right: 12px; }
+  #checklist input[type=checkbox], #wiring input[type=checkbox] { width: 22px; height: 22px; }
+}
+#stage-retry { position: absolute; left: 50%; top: calc(50% + 48px); transform: translateX(-50%); z-index: 1; }
+#stage-retry[hidden] { display: none; }
