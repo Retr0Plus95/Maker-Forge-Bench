@@ -7,7 +7,9 @@ import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
-import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
+import { checkPlacement, placedLegs, suggestAll, wireText } from './boardcheck.js';
+import { acrossPin, edgeName, holeName, labelsMap, solveLabels } from './holenames.js';
+import { suggestSpots } from './suggest.js';
 import { libraryFor as libraryForPart } from './library.js';
 import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
 import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
@@ -27,7 +29,7 @@ import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
-import { ProgressError, changedSince, exportProgress, importProgress, sheetPrint } from './checklist.js';
+import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
@@ -74,6 +76,9 @@ const state = {
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
   clearAt: 0, // when Clear my board was first clicked
+  labelsEditing: false, // the hole names form is open (0.6 design §1)
+  labelsWhy: '', // why the typed hole names don't fit
+  suggest: null, // a suggested spot on show: { ref, spots, index, sheet } (0.6 design §2)
   log: [], // the build log: [{ t, text }] (0.5 big improvement B10)
   versionDeleteAt: { name: null, t: 0 }, // a version's Delete asks twice
   trail: [], // the parts you opened, for Alt+← and Alt+→
@@ -83,7 +88,7 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.5.0';
+const APP_VERSION = '0.6.0';
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
@@ -837,7 +842,21 @@ function myBoardFor3D() {
   if (!board || !Object.keys(state.myBoard.photos).length) return null;
   const wires = store.get('showWires', false) === true
     ? suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => w.path)) : [];
-  return boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
+  const mine = boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
+  const map = holeMap();
+  if (mine && map) {
+    const [dc, dr] = mine.shift;
+    mine.edgeLabels = [];
+    for (let c = 2; c < mine.cols; c++) {
+      const text = edgeName(map, 0, c - dc);
+      if (text) mine.edgeLabels.push({ at: [c, 0.5], text });
+    }
+    for (let r = 2; r < mine.rows; r++) {
+      const text = edgeName(map, 1, r - dr);
+      if (text) mine.edgeLabels.push({ at: [0.5, r], text });
+    }
+  }
+  return mine;
 }
 
 /** The board the 3D view draws now. */
@@ -952,6 +971,18 @@ function transformFor(id) {
   return photoTransform(pins[photo.a.pin], pins[photo.b.pin], [photo.a.x, photo.a.y], [photo.b.x, photo.b.y], photo.side);
 }
 
+/** Your board's hole names, solved from what you typed (0.6 design §1), or null. */
+function holeMap() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  return board && anchor ? labelsMap(state.myBoard.labels, board.parts[anchor]) : null;
+}
+
+/** A hole's printed name on your board, or null. */
+function nameOfHole(hole) {
+  return holeName(holeMap(), hole);
+}
+
 const photoSide = (id) => (state.myBoard.photos[id] ? state.myBoard.photos[id].side : state.photoSides[id] || 'top');
 const photoBright = (id) => (state.myBoard.photos[id] ? state.myBoard.photos[id].bright : state.brightUnlined.has(id));
 
@@ -1010,6 +1041,12 @@ function drawMyBoardMarks() {
     }
     if (state.mode && state.mode.kind === 'place') {
       for (const [pin, hole] of Object.entries(state.mode.taps)) pins.push({ ref: state.mode.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-pending' });
+    }
+    const sg = suggestionOnShow();
+    if (sg) {
+      const entries = Object.entries(sg.spot.pins);
+      for (const [pin, hole] of entries) pins.push({ ref: sg.ref, pin, at: t.toPixel(hole), state: 'none', cls: 'myboard-suggest' });
+      tags.push({ ref: sg.ref, at: t.toPixel(entries[0][1]), cls: 'myboard-suggest' });
     }
     // line labels beside the chip's pins, out from the chip's middle
     if (store.get('lineLabels', false) === true) {
@@ -1091,14 +1128,22 @@ function myBoardMore() {
   const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
   const unplacedInStep = step ? step.parts.filter((ref) => board.parts[ref] && ref !== anchor && !state.myBoard.placed[ref]) : [];
   const routes = store.get('showWires', false) === true ? suggestAll(board, state.myBoard.placed, anchor, state.myBoard.routes || {})
-    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map(wireText) })) : [];
+    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map((w) => wireText(w, nameOfHole)) })) : [];
   return {
     marks: store.get('marksHidden', false) !== true,
     size: store.get('markSize', 'medium'),
     lineLabels: store.get('lineLabels', false) === true,
     wires: store.get('showWires', false) === true,
     routes,
-    findings: checkPlacement(board, state.myBoard.placed, anchor),
+    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole),
+    labels: holeLabelsOptions(),
+    suggest: suggestOptions(),
+    onSuggest: () => {
+      const sel = state.selected;
+      const ref = sel && board.parts[sel] && sel !== anchor && !state.myBoard.placed[sel] ? sel : placingOrder().find((r) => !state.myBoard.placed[r]);
+      if (ref) suggestSpot(ref);
+      else say('Every part is placed.');
+    },
     stepTodo: step && unplacedInStep.length ? `Step ${state.openStep + 1}, not placed yet: ${unplacedInStep.join(', ')}` : '',
     clearArmed: Date.now() - state.clearAt < 5000,
     onMarks: (on) => { store.set('marksHidden', !on); updateMyBoard(); },
@@ -1130,6 +1175,139 @@ function myBoardMore() {
   };
 }
 
+/** The suggested spot on show on this photo, if any. */
+function suggestionOnShow() {
+  const sg = state.suggest;
+  if (!sg || sg.sheet !== state.current || !transformFor(state.current)) return null;
+  return { ref: sg.ref, spot: sg.spots[sg.index], index: sg.index, count: sg.spots.length };
+}
+
+/** Suggest a spot for a part (0.6 design §2): the best three, shown one at a time as dashed marks. */
+async function suggestSpot(ref) {
+  const id = linedPhoto();
+  if (!id) {
+    const photo = state.sheets.find((s) => !s.missing && (s.type === 'png' || s.type === 'jpg'));
+    if (photo && photo.id !== state.current) await selectSheet(photo.id);
+    state.myBoardOpen = true;
+    say('Line up this photo first: press "Line it up" and tap the two pins it asks for.');
+    return;
+  }
+  if (id !== state.current) await selectSheet(id);
+  state.myBoardOpen = true;
+  if (state.mode) stopTapping('');
+  const r = suggestSpots(boardOf(), state.myBoard.placed, anchorRef(), ref, { name: nameOfHole });
+  state.suggest = r.spots.length ? { ref, spots: r.spots, index: 0, sheet: state.current } : null;
+  state.myBoardStatus = r.spots.length ? '' : r.why;
+  state.myBoardStatusSheet = state.current;
+  drawMyBoardMarks();
+  renderMyBoardPanel();
+  const use = $('#suggest-use');
+  if (use) use.focus();
+}
+
+function stopSuggest(text = '') {
+  state.suggest = null;
+  state.myBoardStatus = text;
+  drawMyBoardMarks();
+  renderMyBoardPanel();
+}
+
+function suggestOptions() {
+  const sg = suggestionOnShow();
+  if (!sg) return null;
+  const legs = Object.entries(sg.spot.pins).map(([pin, hole]) => {
+    const n = nameOfHole(hole);
+    return n ? `${pinText(pin)} in ${n}` : '';
+  }).filter(Boolean);
+  return {
+    title: `Suggested spot for ${sg.ref} (${sg.index + 1} of ${sg.count})`,
+    reason: sg.spot.reason,
+    legs: legs.length ? `Its legs: ${legs.join(', ')}` : '',
+    more: sg.count > 1,
+    onUse: () => {
+      const { ref } = sg;
+      const { pins, reason } = sg.spot;
+      const again = Boolean(state.myBoard.placed[ref]);
+      changeMyBoard(`${again ? 'Move' : 'Place'} ${ref}`, (b) => { b.placed[ref] = structuredClone(pins); });
+      say(`${ref} ${again ? 'moved' : 'placed'}${reason ? `: ${reason}` : ''}. Undo (Ctrl+Z) takes it back.`);
+    },
+    onAnother: () => {
+      state.suggest = { ...state.suggest, index: (state.suggest.index + 1) % state.suggest.spots.length };
+      drawMyBoardMarks();
+      renderMyBoardPanel();
+    },
+    onStop: () => stopSuggest('Stopped.'),
+  };
+}
+
+/** The hole names form in Your board: what's printed by three of the anchor's pins. */
+function holeLabelsOptions() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  const part = board.parts[anchor];
+  const { a, b } = anchorPins(part);
+  const c = acrossPin(part, a, b);
+  if (!c) return { unavailable: `Hole names need ${anchor} to have two rows of pins.` };
+  const saved = state.myBoard.labels;
+  const map = holeMap();
+  const same = saved && saved.a.pin === a && saved.b.pin === b && saved.c.pin === c;
+  return {
+    anchor,
+    pins: [a, b, c].map((pin) => `${anchor} ${pinText(pin)}`),
+    values: same ? [saved.a.text, saved.b.text, saved.c.text] : ['', '', ''],
+    skip: saved ? saved.skip : '',
+    on: Boolean(map),
+    editing: state.labelsEditing,
+    why: state.labelsWhy,
+    summary: map ? `Hole names like your board's: ${anchor} ${pinText(a)} is at ${holeName(map, part.pins[a])}.` : '',
+    onEdit: () => {
+      state.labelsEditing = true;
+      state.labelsWhy = '';
+      renderMyBoardPanel();
+      const first = $('#hn-a');
+      if (first) first.focus();
+    },
+    onCancel: () => {
+      state.labelsEditing = false;
+      state.labelsWhy = '';
+      renderMyBoardPanel();
+    },
+    onUse: (texts, skip) => {
+      const r = solveLabels(part.pins[a], part.pins[b], part.pins[c], texts[0], texts[1], texts[2], skip);
+      if (!r.ok) {
+        state.labelsWhy = r.why;
+        renderMyBoardPanel();
+        return;
+      }
+      state.labelsEditing = false;
+      state.labelsWhy = '';
+      const tidy = (t) => t.trim().toUpperCase().replace(/\s+/g, '');
+      changeMyBoard('Hole names', (bd) => {
+        bd.labels = { a: { pin: a, text: tidy(texts[0]) }, b: { pin: b, text: tidy(texts[1]) }, c: { pin: c, text: tidy(texts[2]) }, skip: skip.toUpperCase().replace(/[^A-Z]/g, '') };
+      });
+      say(`Hole names on: ${anchor} ${pinText(a)} is at ${tidy(texts[0])}. Cards, checks and wires now say where on your board.`);
+    },
+    onOff: () => {
+      changeMyBoard('Hole names off', (bd) => { delete bd.labels; });
+      say('Hole names off. Ctrl+Z brings them back.');
+    },
+  };
+}
+
+/** Hovering a lined-up photo with hole names: the hole's name and what's in it. */
+function holeTipText(point) {
+  const t = transformFor(state.current);
+  const map = holeMap();
+  if (!t || !map) return '';
+  const f = t.toBoard(point);
+  const hole = snap(f);
+  if (Math.hypot(f[0] - hole[0], f[1] - hole[1]) > 0.42) return '';
+  const name = holeName(map, hole);
+  if (!name) return '';
+  const legs = placedLegs(boardOf(), placedNow(), anchorRef()).filter((l) => l.hole[0] === hole[0] && l.hole[1] === hole[1]);
+  return [name, ...legs.map((l) => `${l.ref} ${pinText(l.pin)}`)].join(' · ');
+}
+
 function myBoardIdleStatus() {
   if (!boardOf()) return 'This project has no board data, so there is nothing to line up.';
   const anchor = anchorRef();
@@ -1158,11 +1336,49 @@ function renderMyBoardPanel() {
     placedCount: Object.keys(state.myBoard.placed).filter((r) => board.parts[r]).length + (transformFor(state.current) ? 1 : 0),
     partCount: Object.keys(board.parts).length,
     onSide: setPhotoSide,
+    onSaveFile: saveBoardFile,
+    onOpenFile: openBoardFile,
     onLine: startLining,
     onStop: stopTapping,
     onBright: setBright,
     more: transformFor(state.current) ? myBoardMore() : null,
   });
+}
+
+/** Save my board as a file (0.6 design §3): line-ups, placements, wire shapes, hole names. */
+function saveBoardFile() {
+  if (!Object.keys(state.myBoard.photos).length) {
+    say('Nothing to save yet: line up a photo first.');
+    return;
+  }
+  const text = exportBoard({ project: projectName(), revision: state.project ? state.project.revision : null, myBoard: state.myBoard });
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  download(url, `${fileSafe(projectName())}-my-board.json`);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  say('Saved your board as a file. The photos stay in your my-board folder.');
+}
+
+async function openBoardFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  let data;
+  try {
+    data = importBoard(await file.text());
+  } catch (error) {
+    say(error instanceof BoardFileError ? error.message : new BoardFileError().message);
+    return;
+  }
+  if (data.project && data.project !== projectName()) {
+    say(`That board file is for ${data.project}, not ${projectName()}.`);
+    return;
+  }
+  const before = state.myBoard;
+  const after = data.myBoard;
+  history.do({ label: 'Open a board file', apply: () => setProgress({ myBoard: after }), revert: () => setProgress({ myBoard: before }) });
+  const missing = Object.keys(after.photos).filter((id) => !state.sheets.some((s) => s.id === id && !s.missing));
+  const placed = Object.keys(after.placed).length;
+  say(`Opened: ${placed} ${placed === 1 ? 'part' : 'parts'} placed.${missing.length ? ` Not in this folder: ${missing.join(', ')}.` : ''} Ctrl+Z goes back.`);
 }
 
 /** Everything that shows your board: the marks, the section, the photo's brightness. */
@@ -1222,6 +1438,7 @@ function setBright(on) {
 function startLining() {
   const anchor = anchorRef();
   if (!anchor) return;
+  state.suggest = null;
   state.mode = { kind: 'line', sheet: state.current, taps: [] };
   const { a } = anchorPins(boardOf().parts[anchor]);
   say(`Tap ${anchor} ${pinText(a)} on the photo (the pin by the notch). Esc stops.`);
@@ -1313,6 +1530,7 @@ async function placeOnBoard(ref) {
   state.myBoardOpen = true;
   const names = Object.keys(boardOf().parts[ref].pins);
   const pins = names.every((n) => /^\d+$/.test(n)) ? [...names].sort((a, b) => Number(a) - Number(b)) : names;
+  state.suggest = null;
   state.mode = { kind: 'place', sheet: state.current, ref, pins, taps: {} };
   say(`Placing ${ref}: tap the ${pinText(pins[0])} hole (1 of ${pins.length}). Esc stops.`);
   drawMyBoardMarks();
@@ -1337,10 +1555,23 @@ async function lineUpFromCard() {
 function myBoardCardOptions(ref, onBoard) {
   if (!onBoard || !hasPhotos()) return null;
   if (ref === anchorRef() && !linedPhoto()) return { lineUp: lineUpFromCard };
+  const map = holeMap();
+  const holes = ref === anchorRef() ? boardOf().parts[ref].pins : state.myBoard.placed[ref];
+  let where = '';
+  if (map && holes) {
+    let entries = Object.entries(holes);
+    if (entries.length > 4) {
+      const { a, b } = anchorPins({ pins: holes });
+      entries = [[a, holes[a]], [b, holes[b]]];
+    }
+    where = `On your board: ${entries.map(([pin, h]) => `${pinText(pin)} at ${holeName(map, h) || 'off the labels'}`).join(', ')}`;
+  }
   return {
+    where,
     anchor: ref === anchorRef(),
     placed: Boolean(state.myBoard.placed[ref]) && Boolean(linedPhoto()),
     onPlace: () => placeOnBoard(ref),
+    onSuggest: () => suggestSpot(ref),
     onShow: () => showOnPhoto(ref),
     onUnplace: () => changeMyBoard(`Take ${ref} off your board`, (b) => { delete b.placed[ref]; }),
   };
@@ -1639,10 +1870,20 @@ function onStageHover(e) {
   // the event's path is only there while it's being handled: read it now, draw on the next frame
   const target = e.composedPath()[0];
   const { clientX, clientY } = e;
+  const point = viewer.photoPointAt(e);
   if (labelTipFrame) cancelAnimationFrame(labelTipFrame);
   labelTipFrame = requestAnimationFrame(() => {
     labelTipFrame = 0;
     const tip = $('#label-tip');
+    const holeText = point ? holeTipText(point) : '';
+    if (holeText) {
+      const r = $('#stage').getBoundingClientRect();
+      tip.textContent = holeText;
+      tip.style.left = `${clientX - r.left + 14}px`;
+      tip.style.top = `${clientY - r.top + 12}px`;
+      tip.hidden = false;
+      return;
+    }
     const text = target instanceof Element ? target.closest('text') : null;
     const ref = text ? refOfLabel(labelText(text), isKnownRef) : null;
     const part = ref ? state.partsByRef.get(ref) : null;
@@ -1799,7 +2040,19 @@ function setCheck(id, on, label) {
 }
 
 // ---- the guided continuity test (0.5 big improvement B6) ----
-const currentTests = () => continuityTests(state.project ? state.project.board : null);
+function currentTests() {
+  const tests = continuityTests(state.project ? state.project.board : null);
+  const map = holeMap();
+  if (!map || !tests.length) return tests;
+  // with hole names on, each leg that's on your board says where (0.6)
+  const holes = new Map(placedLegs(boardOf(), state.myBoard.placed, anchorRef()).map((l) => [l.key, l.hole]));
+  const named = (leg) => {
+    const hole = holes.get(`${leg.ref}:${leg.pin}`);
+    const name = hole ? holeName(map, hole) : null;
+    return name ? { ...leg, text: `${leg.text} (${name})` } : leg;
+  };
+  return tests.map((t) => ({ ...t, a: named(t.a), b: named(t.b) }));
+}
 
 function setContinuity(next, label) {
   const before = state.continuity;
@@ -2031,7 +2284,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
     }
   }
   if (wired) state.wired = new Set(wired);
-  if (myBoard) state.myBoard = myBoard;
+  if (myBoard) {
+    state.myBoard = myBoard;
+    state.suggest = null; // worked out for the board as it was
+  }
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
   if (continuity) state.continuity = continuity;
@@ -2446,7 +2702,7 @@ function onKey(e) {
     n: () => find.next(),
     N: () => find.prev(),
     f: () => toggleFlip(),
-    Escape: () => (state.mode ? stopTapping() : clearPart()),
+    Escape: () => (state.mode ? stopTapping() : state.suggest ? stopSuggest('Stopped.') : clearPart()),
     b: () => setBoard3D(!board3dOn),
     '[': () => stepSheet(-1),
     ']': () => stepSheet(1),

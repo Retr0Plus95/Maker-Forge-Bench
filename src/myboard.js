@@ -78,6 +78,18 @@ const isName = (v) => typeof v === 'string' && v.length > 0 && v.length <= 40;
 const isPixel = (n) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= LIMITS.pixel;
 const isHole = (h) => Array.isArray(h) && h.length === 2 && h.every((n) => Number.isInteger(n) && Math.abs(n) <= LIMITS.coord);
 const tap = (t) => (isObject(t) && isName(t.pin) && isPixel(t.x) && isPixel(t.y) ? { pin: t.pin, x: t.x, y: t.y } : null);
+const printed = (t) => (isObject(t) && isName(t.pin) && typeof t.text === 'string' && /^[A-Za-z0-9 ]{1,8}$/.test(t.text) ? { pin: t.pin, text: t.text } : null);
+
+/** Hole names (0.6 design §1): what's printed by three of the anchor's pins, and letters the board skips. */
+function cleanLabels(raw) {
+  if (!isObject(raw)) return null;
+  const a = printed(raw.a);
+  const b = printed(raw.b);
+  const c = printed(raw.c);
+  if (!a || !b || !c) return null;
+  const skip = typeof raw.skip === 'string' ? raw.skip.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) : '';
+  return { a, b, c, skip };
+}
 
 /** Saved or imported board data, checked: anything odd is dropped, never fatal. */
 export function cleanMyBoard(raw, isRef) {
@@ -89,6 +101,8 @@ export function cleanMyBoard(raw, isRef) {
     }
   }
   if (typeof raw.anchor === 'string' && isRef(raw.anchor)) out.anchor = raw.anchor;
+  const labels = cleanLabels(raw.labels);
+  if (labels) out.labels = labels;
   if (isObject(raw.photos)) {
     for (const [id, p] of Object.entries(raw.photos).slice(0, LIMITS.photos)) {
       if (typeof id !== 'string' || !id || id.length > 100 || !isObject(p) || (p.side !== 'top' && p.side !== 'bottom')) continue;
@@ -147,5 +161,6 @@ export function boardFromPlacement(projectBoard, placed, anchor, wirePaths = [])
     nets: projectBoard.nets,
     netLabels: projectBoard.netLabels,
     placedCount,
+    shift: [dc, dr], // the project's hole [c, r] is [c + dc, r + dr] here
   };
 }

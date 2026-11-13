@@ -63,3 +63,30 @@ test('the chosen wire shapes are kept with your board, checked', () => {
   const clean = cleanMyBoard({ anchor: 'U2', photos: {}, placed: {}, routes: { P5V: 'rows', GND: 'zigzag', ['x'.repeat(50)]: 'cols' } }, isRef);
   assert.deepEqual(clean.routes, { P5V: 'rows' });
 });
+
+test("with hole names, findings and wires say where on your board", async () => {
+  const { labelsMap, holeName } = await import('../../src/holenames.js');
+  const map = labelsMap({ a: { pin: '1', text: 'L21' }, b: { pin: '14', text: 'L8' }, c: { pin: '28', text: 'O21' } }, board.parts.U2);
+  const name = (h) => holeName(map, h);
+  const clash = checkPlacement(board, { R8: { 1: [11, 13], 2: [11, 15] } }, 'U2', name).find((x) => x.kind === 'clash');
+  assert.match(clash.text, /^Two legs in one hole \(L21\): /);
+  const near = checkPlacement(board, { R8: { 1: [10, 13], 2: [10, 16] } }, 'U2', name).find((x) => x.kind === 'neighbours');
+  assert.match(near.text, /\(L22\)/);
+  assert.match(near.text, /\(L21\)/);
+  const legs = [{ key: 'U2:7', ref: 'U2', pin: '7', hole: [17, 13] }, { key: 'C10:p', ref: 'C10', pin: 'p', hole: [19, 14] }];
+  assert.equal(wireText(suggestWires(legs)[0], name), 'U2 pin 7 (L15) to C10 + (K13): 2 holes across, 1 down');
+});
+
+test('an underside part soldered onto legs of its own line is not two legs in one hole', () => {
+  const U2 = board.parts.U2.pins;
+  const ok = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['8'] }, C9: { 1: U2['20'], 2: U2['22'] } }, 'U2');
+  assert.equal(ok.filter((x) => x.kind === 'clash').length, 0, JSON.stringify(ok.filter((x) => x.kind === 'clash')));
+  const wrong = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['9'] } }, 'U2'); // pin 9 is the crystal, not 0 V
+  assert.match(wrong.find((x) => x.kind === 'clash').text, /U2 pin 9 and C5 pin 2/);
+});
+
+test("an underside part on the chip's legs brings no new neighbour warnings", () => {
+  const U2 = board.parts.U2.pins;
+  const f = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['8'] } }, 'U2');
+  assert.equal(f.filter((x) => x.kind === 'neighbours' && x.refs.includes('C5')).length, 0, JSON.stringify(f.filter((x) => x.kind === 'neighbours')));
+});

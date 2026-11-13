@@ -346,6 +346,13 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
     groups.set(ref, group);
     scene.add(group);
   }
+  // what's printed along your board's edges (0.6 design §1), shown and hidden with the labels
+  for (const e of board.edgeLabels || []) {
+    const tag = label(e.text, '#a8d8ff');
+    tag.position.copy(at(e.at, 0.4));
+    scene.add(tag);
+    labels.push(tag);
+  }
   // every leg's solder joint under the board: one instanced mesh
   const jointMat = material('#d6d9dc', { metal: 0.9 });
   const joints = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.95, 0.32, 0.9, 16), jointMat, Math.max(1, jointSpots.length));
@@ -851,6 +858,7 @@ export async function createBoard3D(host, board, { onPick, onHover = () => {}, c
         camera: camera.position.toArray(),
         cube: { x: rect.left + r.left, y: rect.top + r.top, size: r.size },
         links: board.links.length,
+        edgeNames: (board.edgeLabels || []).map((e) => e.text),
         linkMeshes,
         parts: groups.size,
       };

@@ -19,7 +19,7 @@ export function placedLegs(projectBoard, placed, anchor) {
 }
 
 /** A part's footprint on the board in mm: [x1, y1, x2, y2] of its body shapes (typical sizes). */
-function footprint(part, pitch, ref) {
+export function footprint(part, pitch, ref) {
   let box = null;
   const grow = (x1, y1, x2, y2) => {
     box = box ? [Math.min(box[0], x1), Math.min(box[1], y1), Math.max(box[2], x2), Math.max(box[3], y2)] : [x1, y1, x2, y2];
@@ -40,12 +40,17 @@ function footprint(part, pitch, ref) {
 
 /**
  * Findings for your placement: [{ kind, level: 'problem' | 'warning' | 'todo', refs, text }].
- * - clash: two legs in one hole
+ * - clash: two legs in one hole (not an underside part soldered onto a leg of its own line)
  * - overlap: two parts' bodies on top of each other (typical sizes)
  * - neighbours: legs of different lines on neighbouring holes (solder carefully)
  * - unplaced: parts not placed yet
+ * name(hole): the hole's printed name on your board, if known (0.6 design §1), added to the texts.
  */
-export function checkPlacement(projectBoard, placed, anchor) {
+export function checkPlacement(projectBoard, placed, anchor, name = () => null) {
+  const at = (hole) => {
+    const n = name(hole);
+    return n ? ` (${n})` : '';
+  };
   if (!projectBoard || !anchor) return [];
   const legs = placedLegs(projectBoard, placed, anchor);
   const findings = [];
@@ -55,10 +60,20 @@ export function checkPlacement(projectBoard, placed, anchor) {
     if (!byHole.has(k)) byHole.set(k, []);
     byHole.get(k).push(l);
   }
+  const lineOf = new Map();
+  for (const [net, members] of Object.entries(projectBoard.nets || {})) for (const [ref, pin] of members) lineOf.set(`${ref}:${pin}`, net);
+  // underside parts soldered onto a leg of their own line (C5 across the chip's pins 7 and 8) are meant
+  const soldered = (group) => group.filter((l) => projectBoard.parts[l.ref].side !== 'bottom').length <= 1
+    && lineOf.get(group[0].key) && group.every((l) => lineOf.get(l.key) === lineOf.get(group[0].key));
+  // an underside leg soldered onto another part's leg: its neighbours are that leg's, already checked
+  const riding = (l) => {
+    const group = byHole.get(`${l.hole[0]},${l.hole[1]}`);
+    return projectBoard.parts[l.ref].side === 'bottom' && group.length > 1 && soldered(group);
+  };
   for (const group of byHole.values()) {
-    if (group.length < 2) continue;
+    if (group.length < 2 || soldered(group)) continue;
     findings.push({ kind: 'clash', level: 'problem', refs: [...new Set(group.map((l) => l.ref))],
-      text: `Two legs in one hole: ${group.map((l) => `${l.ref} ${pinText(l.pin)}`).join(' and ')}.` });
+      text: `Two legs in one hole${at(group[0].hole)}: ${group.map((l) => `${l.ref} ${pinText(l.pin)}`).join(' and ')}.` });
   }
   // bodies on top of each other, same side of the board
   const parts = Object.entries({ ...Object.fromEntries((placed && Object.keys(placed)) ? Object.keys(placed).map((r) => [r, true]) : []), [anchor]: true })
@@ -89,7 +104,7 @@ export function checkPlacement(projectBoard, placed, anchor) {
     for (const [dc, dr] of [[1, 0], [0, 1]]) {
       const others = byHole.get(`${l.hole[0] + dc},${l.hole[1] + dr}`) || [];
       for (const o of others) {
-        if (o.ref === l.ref) continue;
+        if (o.ref === l.ref || riding(l) || riding(o)) continue;
         const n1 = netOf.get(l.key);
         const n2 = netOf.get(o.key);
         if (!n1 || !n2 || n1 === n2) continue;
@@ -97,7 +112,7 @@ export function checkPlacement(projectBoard, placed, anchor) {
         if (seen.has(id)) continue;
         seen.add(id);
         findings.push({ kind: 'neighbours', level: 'warning', refs: [l.ref, o.ref],
-          text: `${l.ref} ${pinText(l.pin)} (${n1}) is next to ${o.ref} ${pinText(o.pin)} (${n2}): solder these carefully, no bridge.` });
+          text: `${l.ref} ${pinText(l.pin)}${at(l.hole)} on ${n1} is next to ${o.ref} ${pinText(o.pin)}${at(o.hole)} on ${n2}: solder these carefully, no bridge.` });
       }
     }
   }
@@ -146,10 +161,14 @@ export function suggestAll(projectBoard, placed, anchor, shapes = {}) {
     .map((g) => ({ net: g.net, label: g.label, kind: g.kind, shape: shapes[g.net] || 'cols', wires: suggestWires(g.legs, shapes[g.net] || 'cols') }));
 }
 
-/** "U2 pin 7 to C10 +: 3 holes across, 6 down" */
-export function wireText(w) {
+/** "U2 pin 7 to C10 +: 3 holes across, 6 down", or with hole names "U2 pin 7 (L15) to C10 + (K13): …" */
+export function wireText(w, name = () => null) {
   const parts = [];
   if (w.across) parts.push(`${w.across} ${w.across === 1 ? 'hole' : 'holes'} across`);
   if (w.down) parts.push(`${w.down} down`);
-  return `${w.from.ref} ${pinText(w.from.pin)} to ${w.to.ref} ${pinText(w.to.pin)}: ${parts.join(', ') || 'next to each other'}`;
+  const end = (leg) => {
+    const n = name(leg.hole);
+    return `${leg.ref} ${pinText(leg.pin)}${n ? ` (${n})` : ''}`;
+  };
+  return `${end(w.from)} to ${end(w.to)}: ${parts.join(', ') || 'next to each other'}`;
 }

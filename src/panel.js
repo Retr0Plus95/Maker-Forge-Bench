@@ -166,13 +166,20 @@ export function renderCard(container, part, o) {
       const place = el('button', { id: 'part-place', type: 'button', 'data-focus': 'place' }, m.placed ? 'Place again' : 'Place on my board');
       place.addEventListener('click', m.onPlace);
       buttons.append(place);
+      if (m.onSuggest) {
+        const suggest = el('button', { id: 'part-suggest', type: 'button', 'data-focus': 'suggest', title: 'Bench finds free holes close to what it connects to' }, 'Suggest a spot');
+        suggest.addEventListener('click', m.onSuggest);
+        buttons.append(suggest);
+      }
     }
     if (m.placed && !m.anchor) {
       const off = el('button', { id: 'part-unplace', type: 'button', 'data-focus': 'unplace' }, 'Take off my board');
       off.addEventListener('click', m.onUnplace);
       buttons.append(off);
     }
-    children.push(line, buttons);
+    children.push(line);
+    if (m.where) children.push(el('p', { id: 'part-where', className: 'part-myboard' }, m.where));
+    children.push(buttons);
   }
 
   if (o.ownNote) {
@@ -394,12 +401,33 @@ export function renderMyBoard(container, o) {
     size.addEventListener('change', () => x.onSize(size.value));
     const next = el('button', { id: 'myboard-next', type: 'button', 'data-focus': 'next' }, 'Next part to place');
     next.addEventListener('click', x.onNext);
+    const suggest = el('button', { id: 'myboard-suggest-next', type: 'button', 'data-focus': 'suggest-next', title: 'For the open part if it is not placed, else the next one' }, 'Suggest a spot');
+    suggest.addEventListener('click', x.onSuggest);
     const clear = el('button', { id: 'myboard-clear', type: 'button', 'data-focus': 'clear' }, x.clearArmed ? 'Click again to clear' : 'Clear my board');
     clear.addEventListener('click', x.onClear);
     children.push(
       el('div', { className: 'myboard-actions' }, check('myboard-marks', 'Marks', x.marks, x.onMarks), size,
         check('myboard-linelabels', 'Line labels', x.lineLabels, x.onLineLabels), check('myboard-wires', 'Suggested wires', x.wires, x.onWires)),
-      el('div', { className: 'myboard-actions' }, next, clear));
+      el('div', { className: 'myboard-actions' }, next, suggest, clear));
+    if (x.suggest) {
+      const s = x.suggest;
+      const use = el('button', { id: 'suggest-use', type: 'button', className: 'primary', 'data-focus': 'suggest-use' }, 'Use this spot');
+      use.addEventListener('click', s.onUse);
+      const row = el('div', { className: 'myboard-actions' }, use);
+      if (s.more) {
+        const another = el('button', { id: 'suggest-another', type: 'button', 'data-focus': 'suggest-another' }, 'Another spot');
+        another.addEventListener('click', s.onAnother);
+        row.append(another);
+      }
+      const stop = el('button', { id: 'suggest-stop', type: 'button', 'data-focus': 'suggest-stop' }, 'Stop');
+      stop.addEventListener('click', s.onStop);
+      row.append(stop);
+      const box = el('div', { id: 'myboard-suggest', className: 'suggest-box' },
+        el('p', {}, el('strong', {}, s.title), s.reason ? `: ${s.reason}.` : '.'));
+      if (s.legs) box.append(el('p', { className: 'hint' }, s.legs));
+      box.append(row, el('p', { className: 'hint' }, 'Shown dashed on the photo. Esc stops.'));
+      children.push(box);
+    }
     if (x.stepTodo) children.push(el('p', { id: 'myboard-step-todo', className: 'hint' }, x.stepTodo));
     if (x.wires && x.routes.length) {
       const list = el('ul', { id: 'myboard-routes' });
@@ -423,8 +451,63 @@ export function renderMyBoard(container, o) {
       findings.append(el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show));
     }
     children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
+    if (x.labels) children.push(...holeNamesBlock(container, x.labels));
+  }
+  if (o.onSaveFile) {
+    const save = el('button', { id: 'myboard-save', type: 'button', 'data-focus': 'myboard-save', title: 'Line-ups, placements, wire shapes and hole names. The photos stay in your folder.' }, 'Save my board as file');
+    save.addEventListener('click', o.onSaveFile);
+    const input = el('input', { id: 'myboard-open', type: 'file', accept: '.json,application/json', className: 'visually-hidden' });
+    input.addEventListener('change', () => o.onOpenFile(input));
+    children.push(el('div', { className: 'myboard-actions myboard-file' }, save, el('label', { className: 'button-like' }, 'Open a board file', input)));
   }
   keepFocus(container, () => container.replaceChildren(...children), '#myboard-line');
+}
+
+/**
+ * Hole names like your board's (0.6 design §1): a form for what's printed by three of the anchor's
+ * pins. What's typed survives the panel being redrawn while the form is open.
+ */
+function holeNamesBlock(container, h) {
+  const heading = el('h3', {}, 'Hole names');
+  if (h.unavailable) return [heading, el('p', { className: 'hint' }, h.unavailable)];
+  if (!h.editing) {
+    const edit = el('button', { id: 'hn-edit', type: 'button', 'data-focus': 'hn-edit' }, h.on ? 'Change hole names' : 'Name the holes like my board');
+    edit.addEventListener('click', h.onEdit);
+    const row = el('div', { className: 'myboard-actions' }, edit);
+    if (h.on) {
+      const off = el('button', { id: 'hn-off', type: 'button', 'data-focus': 'hn-off' }, 'Turn hole names off');
+      off.addEventListener('click', h.onOff);
+      row.append(off);
+    }
+    return [heading, el('p', { id: 'hn-summary', className: 'hint' }, h.on ? h.summary
+      : 'Boards print a letter and a number by each hole, like L21. Type three and Bench names every hole.'), row];
+  }
+  const typed = (id, fallback) => {
+    const old = container.querySelector(`#${id}`);
+    return old ? old.value : fallback;
+  };
+  const field = (id, label, value, placeholder) => {
+    const input = el('input', { id, type: 'text', maxlength: '8', autocomplete: 'off', spellcheck: 'false', placeholder, 'data-focus': id });
+    input.value = typed(id, value);
+    return el('label', { className: 'hn-field', for: id }, el('span', {}, label), input);
+  };
+  const form = el('form', { id: 'hn-form', className: 'hn-form' },
+    el('p', { className: 'hint' }, `Look at your board and type what's printed by these three holes. ${h.pins[0]} is the pin by the notch.`),
+    field('hn-a', h.pins[0], h.values[0], 'L21'),
+    field('hn-b', h.pins[1], h.values[1], 'L8'),
+    field('hn-c', h.pins[2], h.values[2], 'O21'),
+    field('hn-skip', 'Letters it skips (if any)', h.skip, 'like I'));
+  const use = el('button', { id: 'hn-use', type: 'submit', className: 'primary', 'data-focus': 'hn-use' }, 'Use these names');
+  const cancel = el('button', { id: 'hn-cancel', type: 'button', 'data-focus': 'hn-cancel' }, 'Cancel');
+  cancel.addEventListener('click', h.onCancel);
+  form.append(el('div', { className: 'myboard-actions' }, use, cancel));
+  if (h.why) form.append(el('p', { id: 'hn-why', className: 'finding-problem', role: 'alert' }, h.why));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = (id) => form.querySelector(`#${id}`).value;
+    h.onUse([value('hn-a'), value('hn-b'), value('hn-c')], value('hn-skip'));
+  });
+  return [heading, form];
 }
 
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
