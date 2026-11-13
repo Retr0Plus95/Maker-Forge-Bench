@@ -279,6 +279,8 @@ h1 {
 
 /* ---- Easy reading settings ---- */
 #settings {
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   width: min(420px, calc(100vw - 32px));
   padding: 18px;
   border: 1px solid var(--line);
@@ -616,3 +618,84 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
 }
 #stage-retry { position: absolute; left: 50%; top: calc(50% + 48px); transform: translateX(-50%); z-index: 1; }
 #stage-retry[hidden] { display: none; }
+
+/* ---- the start screen and where the files come from (0.7) ---- */
+#start { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 16px; }
+#start[hidden], body[data-start] #workspace, body[data-start] #tabs, body[data-start] #top > .bar:nth-of-type(2) { display: none; }
+.start-box { max-width: 620px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; }
+.start-box h2 { margin: 0 0 6px; font-size: 1.3rem; }
+.start-box h3 { margin: 18px 0 6px; font-size: 1rem; }
+.start-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.start-row label[for="start-repo"] { flex-basis: 100%; font-weight: 700; }
+#start-repo { flex: 1; min-width: 0; font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.start-why { margin: 10px 0 0; padding: 8px 10px; border-left: 4px solid var(--danger); background: var(--panel2); color: var(--ink); }
+.start-why[hidden] { display: none; }
+.start-examples { list-style: none; padding: 0; margin: 0; }
+.start-examples li { margin: 6px 0 12px; }
+.start-examples .hint { margin-top: 4px; }
+.source-badge { font: inherit; font-size: .85rem; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel2); color: var(--good); cursor: pointer; }
+.source-badge:hover { border-color: var(--accent); }
+
+
+/* ---- phones and tablets (0.7 design §4) ---- */
+#menu-toggle, #panel-handle { display: none; }
+@media (max-width: 899px) {
+  #panel { width: auto !important; } /* a width dragged on a wide screen doesn't apply here */
+}
+@media (max-width: 759px) {
+  #top { padding: 6px 8px; gap: 4px; }
+  #top h1 { flex: 1 1 0; min-width: 0; }
+  #top h1:has(#project-name:not(:empty)) .app-name { display: none; }
+  .tool-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  #menu-toggle {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px;
+    border: 1px solid var(--accent); border-radius: 8px; background: var(--panel2); color: var(--ink); cursor: pointer; font-weight: 700;
+  }
+  /* the tools fold into the menu; Undo, Redo and Find stay out */
+  #top:not([data-menu-open]) .bar > .tool:not(#undo):not(#redo),
+  #top:not([data-menu-open]) #live, #top:not([data-menu-open]) #saved, #top .spacer, #split { display: none; }
+  /* open: the title, Undo, Redo and Menu stay on the top row, the tools go two by two under them */
+  #top[data-menu-open] .bar > .tool:not(#undo):not(#redo) { order: 2; flex: 1 1 calc(50% - 10px); min-height: 44px; }
+  #top[data-menu-open] #live, #top[data-menu-open] #saved { order: 3; flex-basis: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #findbar { flex: 1 1 100%; }
+  #findbar label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  #find { flex: 1; width: auto; max-width: none; min-width: 0; }
+  .source-badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* the panel is a sheet from the bottom, with a handle: short, or tall */
+  #stage { flex: 1 1 auto; height: auto; min-height: 140px; }
+  #panel {
+    flex: none; height: 42%; padding-top: 0; border-top: 0;
+    border-radius: 16px 16px 0 0; box-shadow: 0 -6px 18px rgba(0, 0, 0, .35);
+  }
+  #panel[data-tall] { height: 82%; }
+  #panel #panel-handle {
+    display: flex; flex: none; justify-content: center; align-items: center; position: sticky; top: 0; z-index: 2;
+    width: calc(100% + 24px); min-height: 30px; margin: 0 -12px -6px; padding: 8px 0;
+    border: 0; border-radius: 16px 16px 0 0; background: var(--panel); cursor: grab; touch-action: none;
+  }
+  #panel-handle > span { width: 44px; height: 5px; border-radius: 3px; background: var(--muted); }
+  #panel-handle:focus-visible > span { background: var(--accent); }
+  /* the 3D board's controls scroll instead of covering the board */
+  .board3d-bar { max-height: 45%; overflow-y: auto; }
+  .board3d-bar > .hint { display: none; }
+  #start { padding: 12px 8px; }
+  .start-box { padding: 14px; }
+}
+
+/* ---- AI help (0.7) ---- */
+#settings .settings-sub { margin: 14px 0 6px; font-size: 1rem; }
+#settings .ai-fields { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; }
+#settings .ai-fields > label:not(.check) { min-height: 0; cursor: default; color: var(--muted); }
+#settings .ai-fields input[type=text], #settings .ai-fields input[type=password] {
+  width: 100%; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--ink); font: inherit;
+}
+#settings .ai-fields .hint { margin: 4px 0 0; }
+#settings code { overflow-wrap: anywhere; }
+.ai-test { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+.ai-test[hidden], .ai-fields[hidden] { display: none !important; }
+#ai-test-result { color: var(--good); overflow-wrap: anywhere; }
+.ai-bad, #ai-test-result.ai-bad { color: var(--warn); }
+.ask-answer { margin: 4px 0 0; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--panel); border-radius: 0 8px 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ask-answer.ai-bad { border-left-color: var(--warn); }
+.ask-who { font-weight: 700; color: var(--accent); }
+#panel .link-button { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
