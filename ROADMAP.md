@@ -63,13 +63,29 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 - Still to come from the board-view design: the parts library with verified sizes, pinout drawings,
   and the owner's own placement in `board.py`.
 
-The board-view design (`docs/design/2026-11-12-board-view-parts-ui-design.md` §10) puts two
-releases before "Everywhere": **0.3 Board view** (the 3D perfboard with the schematic behind, part
-cards with where and why, step-by-step building, and the parts library) and **0.4 Make it yours**
-(drag parts, suggested wire routes with options, live checks, named versions). "Everywhere" below
-becomes 0.5.
+### 0.4 Your board — done 2026-11-13
+Asked for while building the fume extractor on a board laid out by hand (design
+`docs/design/2026-11-13-your-board-design.md`):
+- **What to wire:** every connection, one group per line, each leg ticked as it's soldered.
+- **Chip pins:** chips and headers drawn pin by pin, from the top or underneath.
+- **Your board, from your photos:** two taps line a photo up; the chip's pins are marked wired or
+  not; parts are placed by tapping their holes and show on the top and underside photos alike.
+- **30 improvements:**
+  - Find by line and value, a "Show" for each line, and the wiring list as text and in print.
+  - Checklist: a filter, a polarity badge, and names that open the card.
+  - Your notes on parts, and "next part in this step".
+  - Step progress, "Show in 3D", and checks before power.
+  - 3D: lit holes, the part lifting, a wiring toggle, double-click to focus, keys, merged links and
+    the camera remembered.
+  - Help on `?`, number keys for sheets, a zoom badge, the last sheet remembered, "updated HH:MM",
+    "Brighter" photos, and clearer errors.
 
-### 0.5 Everywhere (was 0.3)
+### 0.5 Make it yours
+From the board-view design: drag parts in 3D (with a JS port of pcb.py's checks), suggested wire
+routes with options, and named versions. Also: the parts library with verified sizes, pin function
+names (PD2, AVCC) on the chip pin view, and naming holes by a board's printed labels.
+
+### 0.6 Everywhere (was 0.3)
 - Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
 - **★ New: Keep screen on** at the bench. (Easy reading and themes arrived in 0.2.)
 - Open a public GitHub repo by pasting its link.
