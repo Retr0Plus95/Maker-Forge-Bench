@@ -495,3 +495,16 @@ h1 {
   .wire-group > *:not(summary) { display: block !important; }
   body { background: #fff; color: #000; }
 }
+
+/* ---- basics (0.4.1) ---- */
+#panel section[data-folded] > :not(h2) { display: none !important; }
+#panel section > h2[role="button"] { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+#panel section > h2[role="button"]::before { content: "▾"; font-size: .8em; color: var(--muted); }
+#panel section[data-folded] > h2[role="button"]::before { content: "▸"; }
+#workspace[data-panel-hidden] #panel { display: none; }
+#panel-toggle[aria-pressed="true"], #wake[aria-pressed="true"], #fullscreen[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+#shopping { max-width: min(760px, 92vw); }
+#shopping table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+#shopping th, #shopping td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+#shopping td:first-child { font-weight: 700; white-space: nowrap; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }

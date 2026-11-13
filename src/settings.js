@@ -7,7 +7,7 @@ const SIZES = [100, 125, 150, 175];
 export function cleanSettings(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
   return {
-    theme: s.theme === 'light' ? 'light' : 'dark',
+    theme: ['light', 'system'].includes(s.theme) ? s.theme : 'dark',
     contrast: s.contrast === true,
     clearFont: s.clearFont === true,
     textSize: SIZES.includes(s.textSize) ? s.textSize : 100,
@@ -15,8 +15,11 @@ export function cleanSettings(raw) {
   };
 }
 
-export function applySettings(root, s) {
-  root.dataset.theme = s.theme;
+/** The theme to show: 'system' follows the computer's light or dark setting. */
+export const themeFor = (s, prefersDark) => (s.theme === 'system' ? (prefersDark ? 'dark' : 'light') : s.theme);
+
+export function applySettings(root, s, prefersDark = true) {
+  root.dataset.theme = themeFor(s, prefersDark);
   const flag = (name, on, value) => {
     if (on) root.setAttribute(name, value);
     else root.removeAttribute(name);

@@ -56,10 +56,10 @@ describe('the Maker Forge family look and Easy reading', () => {
     await page.locator('#stage').click();
     await page.keyboard.press('Control+z'); // text size back to 100 %
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize), '16px');
-    assert.equal(await page.locator('#redo').getAttribute('title'), 'Redo Text size: 150%');
+    assert.equal(await page.locator('#redo').getAttribute('title'), 'Redo Text size: 150% (Ctrl+Y)');
     await page.keyboard.press('Control+y');
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize), '24px');
-    assert.equal(await page.locator('#undo').getAttribute('title'), 'Undo Text size: 150%');
+    assert.equal(await page.locator('#undo').getAttribute('title'), 'Undo Text size: 150% (Ctrl+Z)');
     await page.locator('#undo').click();
     await page.locator('#undo').click();
     await page.locator('#undo').click();
@@ -72,7 +72,7 @@ describe('the Maker Forge family look and Easy reading', () => {
     await page.waitForFunction(() => !document.querySelector('#flip').disabled);
     await page.locator('#flip').click();
     assert.equal(await page.locator('#flip-banner').isVisible(), true);
-    assert.equal(await page.locator('#undo').getAttribute('title'), 'Undo Flip SFE-04 Perfboard Layout');
+    assert.equal(await page.locator('#undo').getAttribute('title'), 'Undo Flip SFE-04 Perfboard Layout (Ctrl+Z)');
     await page.locator('#stage').click();
     await page.keyboard.press('Control+z');
     assert.equal(await page.locator('#flip-banner').isVisible(), false);

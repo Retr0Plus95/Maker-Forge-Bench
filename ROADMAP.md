@@ -80,6 +80,14 @@ Asked for while building the fume extractor on a board laid out by hand (design
   - Help on `?`, number keys for sheets, a zoom badge, the last sheet remembered, "updated HH:MM",
     "Brighter" photos, and clearer errors.
 
+### 0.4.1 Basics — done 2026-11-13
+The owner asked for "any basic missing feature along the way":
+- Panel sections fold away, the side panel hides (`p`), Full screen, and Keep screen on.
+- Turn a photo (`r`); its marks turn with it.
+- Shopping list (copy or CSV), Start over (asks twice, undoable), and `s` to mark the open part soldered.
+- Take a part off your board, and open or close every wiring line at once.
+- A theme that follows the system, and shortcut keys in the button tooltips.
+
 ### 0.5 Make it yours
 From the board-view design: drag parts in 3D (with a JS port of pcb.py's checks), suggested wire
 routes with options, and named versions. Also: the parts library with verified sizes, pin function
