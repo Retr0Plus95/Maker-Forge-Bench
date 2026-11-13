@@ -215,7 +215,32 @@
   </fieldset>
   <label class="check"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
   <label class="check"><input type="checkbox" name="compact"> Compact (more on screen)</label>
-  <p class="hint">Every change here can be undone with Ctrl+Z.</p>
+  <p class="hint">Every change above can be undone with Ctrl+Z.</p>
+  <h3 id="ai-title" class="settings-sub">AI help (optional)</h3>
+  <fieldset id="ai-provider">
+    <legend>Ask about a part from its card, with</legend>
+    <label><input type="radio" name="aiProvider" value="off"> Off</label>
+    <label><input type="radio" name="aiProvider" value="claude"> Claude (your API key)</label>
+    <label><input type="radio" name="aiProvider" value="ollama"> On this computer (Ollama)</label>
+  </fieldset>
+  <div id="ai-claude" class="ai-fields" hidden>
+    <label for="ai-key">Claude API key</label>
+    <input id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+    <label class="check"><input id="ai-remember" type="checkbox"> Remember the key in this browser</label>
+    <label for="ai-model">Model</label>
+    <input id="ai-model" type="text" autocomplete="off" spellcheck="false" placeholder="claude-opus-5-5">
+    <p class="hint">Get a key at console.anthropic.com; using it is billed to your account. The key goes only from this page to Anthropic, and is never put in a progress file, a board file or a link. Unless you tick Remember, it is forgotten when you close the page.</p>
+  </div>
+  <div id="ai-ollama" class="ai-fields" hidden>
+    <label for="ai-ollama-address">Ollama address</label>
+    <input id="ai-ollama-address" type="text" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434">
+    <p id="ai-ollama-why" class="ai-bad" role="alert" hidden></p>
+    <label for="ai-ollama-model">Model</label>
+    <input id="ai-ollama-model" type="text" autocomplete="off" spellcheck="false" placeholder="llama3.2">
+    <p class="hint">Ollama runs models on your own computer, free and offline. Install it from ollama.com, run <code id="ai-pull">ollama pull llama3.2</code>, and let this page talk to it: set <code>OLLAMA_ORIGINS</code> to <code id="ai-origin"></code> and restart Ollama. Small models make more mistakes.</p>
+  </div>
+  <div id="ai-test-row" class="ai-test" hidden><button id="ai-test" class="tool" type="button">Test it</button> <span id="ai-test-result" aria-live="polite"></span></div>
+  <p class="hint">What is sent: your question and the part's details from the project, the same text "Copy for Claude" copies. Never drawings, photos or files.</p>
   <button id="settings-done" class="primary" type="button">Done</button>
 </dialog>
 </body>

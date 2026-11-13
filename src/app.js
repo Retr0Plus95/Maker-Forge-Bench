@@ -29,6 +29,8 @@ import { ServerError, SourceError, folderFiles, folderSource, githubSource, loca
 import { renderStart } from './start.js';
 import { EXAMPLES } from './examples.js';
 import { wireMenu, wireSheetHandle } from './phone.js';
+import { SYSTEM, aiForStorage, aiName, aiReady, askAi, cleanAi } from './ai.js';
+import { wireAiSettings } from './ai-settings.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
@@ -399,7 +401,20 @@ function renderPartCard() {
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
     onTick: () => toggleTick(part.ref),
-    ask: { placeholder: DEFAULT_QUESTION, onCopy: copyForClaude, onOpen: openClaude },
+    ask: {
+      placeholder: DEFAULT_QUESTION,
+      onCopy: copyForClaude,
+      onOpen: openClaude,
+      here: aiReady(ai) ? {
+        name: aiName(ai),
+        onAsk: askHere,
+        asking: asked.asking,
+        waiting: asked.asking && asked.ref === part.ref,
+        answer: asked.ref === part.ref ? asked.answer : '',
+        failed: asked.ref === part.ref && asked.failed,
+      } : null,
+      onSetUp: openAiSettings,
+    },
     onSheet: (id) => showPartOn(id, part.ref),
     onClose: clearPart,
   });
@@ -617,6 +632,40 @@ async function copyForClaude(question) {
   } catch {
     return false;
   }
+}
+
+// ---- AI help: ask Claude with your own key, or Ollama on this computer (0.7 design §5) ----
+let ai = cleanAi(store.get('ai', null));
+const asked = { ref: null, asking: false, answer: '', failed: false };
+let aiSettings = null;
+
+function setAi(next) {
+  ai = next;
+  store.set('ai', aiForStorage(ai)); // the key only when Remember is ticked
+  if (state.selected) renderPartCard();
+}
+
+/** The card's Ask here: the same context Copy for Claude copies goes to the AI; the answer shows as plain text. */
+async function askHere(question) {
+  const ref = state.selected;
+  if (!ref || asked.asking) return;
+  const prompt = contextText(buildContext(), question);
+  Object.assign(asked, { ref, asking: true, answer: '', failed: false });
+  renderPartCard();
+  try {
+    asked.answer = await askAi(ai, SYSTEM, prompt, { origin: window.location.origin });
+  } catch (error) {
+    asked.answer = error.message;
+    asked.failed = true;
+  }
+  asked.asking = false;
+  if (state.selected) renderPartCard();
+}
+
+function openAiSettings() {
+  $('#settings-button').click();
+  $('#ai-title').scrollIntoView({ block: 'start' });
+  $('#settings input[name=aiProvider][value=claude]').focus();
 }
 
 /** Starts the copy, then opens claude.ai at once: opening after a wait would be blocked as a popup. */
@@ -2916,6 +2965,13 @@ async function start() {
     const before = settings;
     history.do({ label, apply: () => setSettings(next), revert: () => setSettings(before) });
   });
+  aiSettings = wireAiSettings({
+    dialog: $('#settings'),
+    get: () => ai,
+    set: setAi,
+    test: () => askAi(ai, 'Answer in one short, friendly sentence.', 'Say hello to someone soldering at their bench.', { origin: window.location.origin }),
+  });
+  $('#settings-button').addEventListener('click', () => aiSettings.show());
   $('#source-folder').addEventListener('change', (e) => {
     const picked = folderFiles(e.target.files);
     e.target.value = '';

@@ -45,6 +45,7 @@ const LABELS = {
 /** Shows the settings in the dialog's controls. */
 export function fillSettings(dialog, s) {
   for (const input of dialog.querySelectorAll('input')) {
+    if (!(input.name in LABELS)) continue; // AI help fills its own
     if (input.type === 'checkbox') input.checked = Boolean(s[input.name]);
     else input.checked = String(s[input.name]) === input.value;
   }
