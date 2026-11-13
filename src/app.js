@@ -1,7 +1,9 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderHint, renderSteps } from './panel.js';
+import { renderCard, renderHint, renderSteps, renderWiring } from './panel.js';
+import { wiringGroups, wiringText } from './wiring.js';
+import { pinLayout } from './pinout.js';
 import { DEFAULT_QUESTION, contextText } from './ask.js';
 import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
@@ -38,6 +40,12 @@ const state = {
   tickPrints: {}, // each sheet's fingerprint when its ticks were last confirmed (design §7.7)
   progressKey: null, // where the progress on screen is saved (per project and revision)
   openStep: null, // the build step on screen (index), or null
+  wired: new Set(), // legs ticked as wired, as "REF:PIN" (0.4 design F1)
+  wiringOpenOnly: false, // What to wire shows only the legs not wired yet
+  wiringExpanded: new Set(), // the lines opened in What to wire
+  shownNet: null, // the line whose parts are ringed on the drawing
+  pinsOpen: false, // the part card's pin view is open (0.4 design F2)
+  pinSelected: null, // the pin picked in the pin view
 };
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
@@ -182,6 +190,7 @@ async function selectSheet(id) {
     viewer.ring(label ? label.el : null);
   }
   updateStepRings();
+  updateNetRings();
   return true;
 }
 
@@ -293,6 +302,9 @@ function renderPartCard() {
     offBoard: Boolean(board) && !onBoard,
     step: stepIndex >= 0 ? { number: stepIndex + 1, total: build.length, title: build[stepIndex].title } : null,
     onPart: (ref) => selectPart(ref),
+    wired: board ? state.wired : null,
+    onWire: setWired,
+    pins: pinOptions(onBoard),
     sheetsWithPart: sheetsWithPart(part.ref),
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
@@ -303,7 +315,24 @@ function renderPartCard() {
   });
 }
 
+/** The pin view's options for a board part with three or more pins (0.4 design F2), else null. */
+function pinOptions(onBoard) {
+  const side = store.get('pinSide', 'top') === 'bottom' ? 'bottom' : 'top';
+  const layout = onBoard ? pinLayout(onBoard, side) : null;
+  if (!layout) return null;
+  return {
+    layout,
+    side,
+    open: state.pinsOpen,
+    selected: state.pinSelected,
+    onToggle: () => { state.pinsOpen = !state.pinsOpen; renderPartCard(); },
+    onSide: (value) => { store.set('pinSide', value); renderPartCard(); },
+    onPin: (pin) => { state.pinSelected = pin; renderPartCard(); },
+  };
+}
+
 function selectPart(ref, labelEl) {
+  if (ref !== state.selected) state.pinSelected = null;
   state.selected = ref;
   const label = labelEl || (firstLabelFor(state.current, ref) || {}).el || null;
   viewer.ring(label);
@@ -543,6 +572,7 @@ function updateParts() {
   applyTickMarks();
   renderChecklist();
   renderStepsPanel();
+  renderWiringPanel();
 }
 
 // ---- the 3D board (board-view design §5), over the dimmed schematic ----
@@ -607,6 +637,52 @@ async function resetBoard3D() {
   board3d = null;
   board3dBoard = '';
   if (board3dOn) setBoard3D(true);
+}
+
+// ---- what to wire (0.4 design F1) ----
+function setWired(key, on) {
+  const before = [...state.wired];
+  if (on === state.wired.has(key)) return;
+  const after = on ? [...before, key] : before.filter((k) => k !== key);
+  const [ref, pin] = key.split(/:(.*)/s);
+  history.do({ label: `${on ? 'Wired' : 'Unwired'} ${ref} ${pin}`, apply: () => setProgress({ wired: after }), revert: () => setProgress({ wired: before }) });
+}
+
+const currentGroups = () => wiringGroups(state.project ? state.project.board : null);
+
+function updateNetRings() {
+  const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
+  const refs = group ? [...new Set(group.members.map((m) => m.ref))] : [];
+  viewer.netRings(refs.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean));
+}
+
+function showNet(net) {
+  state.shownNet = state.shownNet === net ? null : net;
+  updateNetRings();
+  renderWiringPanel();
+}
+
+async function copyWiring() {
+  try {
+    await navigator.clipboard.writeText(wiringText(currentGroups(), state.wired));
+    setStatus('Wiring list copied.');
+  } catch {
+    setStatus("Couldn't copy: allow the clipboard for this page.");
+  }
+}
+
+function renderWiringPanel() {
+  renderWiring($('#wiring'), currentGroups(), {
+    wired: state.wired,
+    openOnly: state.wiringOpenOnly,
+    expanded: state.wiringExpanded,
+    shown: state.shownNet,
+    onWire: setWired,
+    onShow: showNet,
+    onCopy: copyWiring,
+    onOpenOnly: (on) => { state.wiringOpenOnly = on; renderWiringPanel(); },
+    onExpand: (net, open) => { if (open) state.wiringExpanded.add(net); else state.wiringExpanded.delete(net); },
+  });
 }
 
 // ---- build steps (board-view design §5), one at a time ----
@@ -700,6 +776,7 @@ function loadProgress() {
   state.ticked = new Set(data ? data.ticked : []);
   state.flipped = new Set((data ? data.flipped : []).filter(isLayout));
   state.tickPrints = data ? { ...data.sheetPrints } : currentPrints();
+  state.wired = new Set(data ? data.wired : []);
   refreshNotes();
 }
 
@@ -714,7 +791,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped] });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired] });
   if (saved) flashSaved();
 }
 
@@ -728,6 +805,7 @@ function checkProgressKey() {
   syncFlip();
   applyTickMarks();
   renderChecklist();
+  renderWiringPanel();
   renderPartCard();
 }
 
@@ -761,16 +839,19 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints }) {
-  const wasEmpty = state.ticked.size === 0;
-  state.ticked = new Set(ticked);
-  if (prints) {
-    state.tickPrints = { ...prints };
-  } else if (wasEmpty && state.ticked.size) {
-    state.tickPrints = currentPrints(); // the first tick starts from the drawings as they are now
-  } else {
-    for (const [id, print] of Object.entries(currentPrints())) if (!(id in state.tickPrints)) state.tickPrints[id] = print;
+function setProgress({ ticked, flipped, prints, wired }) {
+  if (ticked) {
+    const wasEmpty = state.ticked.size === 0;
+    state.ticked = new Set(ticked);
+    if (prints) {
+      state.tickPrints = { ...prints };
+    } else if (wasEmpty && state.ticked.size) {
+      state.tickPrints = currentPrints(); // the first tick starts from the drawings as they are now
+    } else {
+      for (const [id, print] of Object.entries(currentPrints())) if (!(id in state.tickPrints)) state.tickPrints[id] = print;
+    }
   }
+  if (wired) state.wired = new Set(wired);
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -780,6 +861,7 @@ function setProgress({ ticked, flipped, prints }) {
   saveProgress();
   renderChecklist();
   renderStepsPanel();
+  renderWiringPanel();
   renderPartCard();
 }
 
@@ -827,7 +909,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -852,8 +934,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints } };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 

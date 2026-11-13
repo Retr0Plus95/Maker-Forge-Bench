@@ -113,7 +113,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       const group = document.createElementNS(SVG_NS, 'g');
       group.setAttribute('class', 'bench-flip');
       group.setAttribute('transform', `translate(${2 * vb.x + vb.width} 0) scale(-1 1)`);
-      for (const child of Array.from(root.childNodes)) if (child !== ringLayer && child !== stepLayer) group.append(child);
+      for (const child of Array.from(root.childNodes)) if (child !== ringLayer && child !== stepLayer && child !== netLayer) group.append(child);
       root.insertBefore(group, root.firstChild); // the rings stay on top, unmirrored
       // Read every label's box first, then write: reading after a write makes the browser lay the
       // whole drawing out again, once per label (a minute on a big layout).
@@ -141,6 +141,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     }
     if (ringTarget) ring(ringTarget);
     if (stepTargets.length) stepRings(stepTargets);
+    if (netTargets.length) netRings(netTargets);
   }
 
   let ringTarget = null;
@@ -167,6 +168,30 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
       stepLayer.append(rect);
     }
     content.root.append(stepLayer);
+  }
+
+  // ---- a whole line's parts (What to wire's Show): orange dashed rings in a third layer ----
+  let netLayer = null;
+  let netTargets = [];
+  function netRings(elements) {
+    if (netLayer) netLayer.remove();
+    netLayer = null;
+    netTargets = [];
+    if (!content || content.kind !== 'svg') return;
+    netTargets = elements.filter((el) => el && content.root.contains(el));
+    if (!netTargets.length) return;
+    netLayer = document.createElementNS(SVG_NS, 'g');
+    netLayer.setAttribute('class', 'bench-net');
+    for (const el of netTargets) {
+      const box = rootBox(el);
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      for (const [k, v] of Object.entries({
+        x: box.x - 5, y: box.y - 5, width: box.w + 10, height: box.h + 10, fill: 'none', stroke: '#ff9f1a',
+        'stroke-width': 3, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke',
+      })) rect.setAttribute(k, String(v));
+      netLayer.append(rect);
+    }
+    content.root.append(netLayer);
   }
 
   function ring(el) {
@@ -255,6 +280,7 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     ring,
     onLabelClick: (fn) => labelListeners.push(fn),
     stepRings,
+    netRings,
     setFlipped,
     isFlipped,
     getView: () => ({ ...view }),

@@ -18,9 +18,13 @@ export function sheetPrint(sheet) {
   return `${sheet.size}:${sheet.mtime}`;
 }
 
-export function exportProgress({ project, revision, ticked, sheetPrints, flipped }) {
-  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped }, null, 2);
+export function exportProgress({ project, revision, ticked, sheetPrints, flipped, wired = [] }) {
+  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped, wired }, null, 2);
 }
+
+// Fields added after 0.3 are optional: a file without them, or with bad entries, still opens.
+const MAX_WIRED = 20000;
+const wiredList = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.length > 0 && x.length <= 100).slice(0, MAX_WIRED) : []);
 
 export function importProgress(text) {
   if (typeof text !== 'string' || text.length > MAX_BYTES) throw new ProgressError();
@@ -46,6 +50,7 @@ export function importProgress(text) {
     ticked: [...data.ticked],
     sheetPrints: { ...prints },
     flipped: [...data.flipped],
+    wired: wiredList(data.wired),
   };
 }
 

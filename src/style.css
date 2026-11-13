@@ -414,3 +414,41 @@ h1 {
 #board3d-message { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--warn); background: var(--panel); }
 #board3d-message[hidden] { display: none; }
 #board3d-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+/* ---- what to wire (0.4) ---- */
+#wiring progress { width: 100%; height: 10px; accent-color: var(--good); }
+.wiring-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.wire-group { border-left: 4px solid var(--line); padding: 2px 0 2px 8px; margin: 6px 0; }
+.wire-group.wire-power { border-left-color: #e5484d; }
+.wire-group.wire-ground { border-left-color: var(--muted); }
+.wire-group.wire-signal { border-left-color: var(--accent); }
+.wire-group summary { cursor: pointer; font-weight: 700; }
+.wire-group .wire-count { font-weight: 400; color: var(--muted); }
+.wire-members { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; }
+.wire-show { margin: 6px 0 0; }
+.part-unwired { font-weight: 700; color: var(--warn); }
+
+/* ---- the pin view (0.4) ---- */
+#pin-view { margin: 8px 0; }
+.pin-sides { display: flex; gap: 6px; }
+.pin-sides button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+#pin-view svg { display: block; max-width: 340px; font: 12px/1 inherit; }
+.pin-body { fill: #1b1b1b; stroke: var(--muted); }
+.pin-notch { fill: var(--panel2); stroke: var(--muted); }
+.pin { cursor: pointer; }
+.pin:focus { outline: none; }
+.pin:focus .pin-label, .pin-selected .pin-label { text-decoration: underline; font-weight: 700; }
+.pin-leg { stroke: #c0c4c8; stroke-width: 3; }
+.pin-number { fill: #e6e6e6; font-size: 10px; }
+.pin-label { fill: var(--ink); font-size: 12px; }
+.pin-power .pin-label { fill: #ff6b6f; }
+.pin-ground .pin-label { fill: var(--muted); }
+.pin-signal .pin-label { fill: var(--accent); }
+.pin-none .pin-leg { stroke: var(--line); }
+.pin-dot { fill: var(--panel2); stroke: var(--warn); stroke-width: 2; }
+.pin-dot[data-filled="true"] { fill: var(--good); stroke: var(--good); }
+.pin-selected .pin-leg { stroke: #ff2bd6; }
+#pin-info { margin: 6px 0; padding: 6px 8px; border-left: 4px solid var(--accent); background: var(--accent-soft); }
+.pin-hit { fill: transparent; pointer-events: all; }
+.pin:hover .pin-hit, .pin-selected .pin-hit { fill: var(--accent-soft); }
+.part-connections input[type=checkbox] { margin: 0 6px 0 0; vertical-align: middle; }
