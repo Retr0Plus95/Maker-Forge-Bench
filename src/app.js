@@ -712,7 +712,45 @@ function syncStep3D() {
   const open = state.openStep !== null && steps[state.openStep] ? state.openStep : null;
   const now = open !== null ? steps[open].parts : [];
   const later = open !== null ? steps.slice(open + 1).flatMap((s) => s.parts) : [];
-  board3d.setStep(now, later);
+  board3d.setStep(now, later, { hideLater: open !== null && ($('#board3d-upto').checked || Boolean(stepPlayer)) });
+}
+
+/** What the 3D view prints and names: each part's value. */
+const partDetails = () => Object.fromEntries(state.parts.map((p) => [p.ref, { value: p.value || '' }]));
+
+function download(href, name) {
+  const link = el('a', { href, download: name });
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+const fileSafe = (s) => s.replace(/[\\/:*?"<>|]/g, '_');
+
+/** Play the steps: the 3D board builds up one step at a time (0.5 big improvement B9). */
+let stepPlayer = null;
+function playSteps() {
+  if (stepPlayer) {
+    clearInterval(stepPlayer);
+    stepPlayer = null;
+    $('#board3d-play').setAttribute('aria-pressed', 'false');
+    $('#board3d-play').textContent = 'Play the steps';
+    syncStep3D();
+    return;
+  }
+  const steps = stepsOf();
+  if (!steps.length) return;
+  let i = 0;
+  $('#board3d-play').setAttribute('aria-pressed', 'true');
+  $('#board3d-play').textContent = 'Stop';
+  stepPlayer = setInterval(() => {
+    i++;
+    if (i >= steps.length) {
+      playSteps();
+      return;
+    }
+    openStep(i);
+  }, 1400);
+  openStep(0);
 }
 
 let board3dBuilding = null; // the build in progress, so two quick toggles build one view
@@ -723,6 +761,7 @@ async function setBoard3D(on) {
   $('#board3d').hidden = !board3dOn;
   $('#board3d-toggle').setAttribute('aria-pressed', String(board3dOn));
   $('#sheet-host').style.opacity = board3dOn ? '0.35' : '';
+  $('#zoom-level').hidden = board3dOn; // the sheet's zoom; the 3D view has its own cube there
   if (!board3dOn) return;
   const schematic = state.sheets.find((s) => s.kind === 'schematic' && !s.missing);
   const shown = state.sheets.find((s) => s.id === state.current);
@@ -737,8 +776,16 @@ async function setBoard3D(on) {
         onPick: (ref) => selectPart(ref),
         camera: store.get(cameraKey, null),
         onCamera: (camera) => store.set(cameraKey, camera),
+        details: partDetails(),
       }).then((view) => {
-        if (view) view.showWiring($('#board3d-wiring').checked);
+        if (view) {
+          view.showWiring($('#board3d-wiring').checked);
+          view.showLabels($('#board3d-labels').checked);
+          view.setXray($('#board3d-xray').checked);
+          view.setExplode(Number($('#board3d-explode').value));
+          const cut = Number($('#board3d-clip').value);
+          view.setClip(cut >= 1 ? null : cut);
+        }
         board3d = view;
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
@@ -1174,6 +1221,7 @@ function updateNetRings() {
   const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
   const refs = group ? [...new Set(group.members.map((m) => m.ref))] : [];
   viewer.netRings(refs.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean));
+  if (board3d && board3dOn) board3d.setNet(refs);
 }
 
 function showNet(net) {
@@ -1743,10 +1791,10 @@ function onKey(e) {
     '+': () => viewer.zoomBy(1.25),
     '=': () => viewer.zoomBy(1.25),
     '-': () => viewer.zoomBy(1 / 1.25),
-    ArrowLeft: () => viewer.panBy(w * 0.1, 0),
-    ArrowRight: () => viewer.panBy(-w * 0.1, 0),
-    ArrowUp: () => viewer.panBy(0, h * 0.1),
-    ArrowDown: () => viewer.panBy(0, -h * 0.1),
+    ArrowLeft: () => (board3d && board3dOn ? board3d.orbit(0.15, 0) : viewer.panBy(w * 0.1, 0)),
+    ArrowRight: () => (board3d && board3dOn ? board3d.orbit(-0.15, 0) : viewer.panBy(-w * 0.1, 0)),
+    ArrowUp: () => (board3d && board3dOn ? board3d.orbit(0, -0.1) : viewer.panBy(0, h * 0.1)),
+    ArrowDown: () => (board3d && board3dOn ? board3d.orbit(0, 0.1) : viewer.panBy(0, -h * 0.1)),
     '/': () => find.focus(),
     n: () => find.next(),
     N: () => find.prev(),
@@ -1826,6 +1874,28 @@ async function start() {
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());
+  for (const [id, name] of [['#board3d-front', 'front'], ['#board3d-side', 'side'], ['#board3d-iso', 'iso']]) {
+    $(id).addEventListener('click', () => board3d && board3d.view(name));
+  }
+  $('#board3d-fit').addEventListener('click', () => board3d && board3d.fit());
+  $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
+  $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
+  $('#board3d-upto').addEventListener('change', syncStep3D);
+  $('#board3d-explode').addEventListener('input', (e) => board3d && board3d.setExplode(Number(e.target.value)));
+  $('#board3d-clip').addEventListener('input', (e) => board3d && board3d.setClip(Number(e.target.value) >= 1 ? null : Number(e.target.value)));
+  $('#board3d-measure-toggle').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    if (board3d) board3d.setMeasure(on);
+  });
+  $('#board3d-play').addEventListener('click', playSteps);
+  $('#board3d-png').addEventListener('click', () => board3d && download(board3d.picture(), `${fileSafe(projectName())}-3d.png`));
+  $('#board3d-stl').addEventListener('click', () => {
+    if (!board3d) return;
+    const url = URL.createObjectURL(new Blob([board3d.stl()], { type: 'model/stl' }));
+    download(url, `${fileSafe(projectName())}-board.stl`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
   $('#board3d-wiring').addEventListener('change', (e) => board3d && board3d.showWiring(e.target.checked));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
   for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());

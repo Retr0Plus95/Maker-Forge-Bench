@@ -44,11 +44,30 @@
     <div id="board3d" hidden>
       <div id="board3d-view"></div>
       <div class="board3d-bar">
-        <button id="board3d-top" class="tool" type="button">Top</button>
-        <button id="board3d-under" class="tool" type="button">Underside</button>
-        <button id="board3d-reset" class="tool" type="button">Reset view</button>
-        <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
-        <span class="hint">Sheet 4 positions · typical part sizes · drag to turn, wheel to zoom, click a part, double-click to go to it</span>
+        <div class="bar-group" role="group" aria-label="Views">
+          <button id="board3d-top" class="tool" type="button" title="From the top (T)">Top</button>
+          <button id="board3d-under" class="tool" type="button" title="From underneath, mirrored like the solder side (U)">Underside</button>
+          <button id="board3d-front" class="tool" type="button">Front</button>
+          <button id="board3d-side" class="tool" type="button">Side</button>
+          <button id="board3d-iso" class="tool" type="button">3/4</button>
+          <button id="board3d-fit" class="tool" type="button" title="Show the whole board">Fit</button>
+          <button id="board3d-reset" class="tool" type="button">Reset view</button>
+        </div>
+        <div class="bar-group" role="group" aria-label="Show">
+          <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
+          <label class="check"><input id="board3d-labels" type="checkbox" checked> Labels</label>
+          <label class="check"><input id="board3d-xray" type="checkbox"> X-ray</label>
+          <label class="check"><input id="board3d-upto" type="checkbox"> Build up to this step</label>
+          <label class="slider">Explode <input id="board3d-explode" type="range" min="0" max="1" step="0.05" value="0"></label>
+          <label class="slider">Cut <input id="board3d-clip" type="range" min="0" max="1" step="0.02" value="1"></label>
+        </div>
+        <div class="bar-group" role="group" aria-label="Tools">
+          <button id="board3d-measure-toggle" class="tool" type="button" aria-pressed="false">Measure</button>
+          <button id="board3d-play" class="tool" type="button" aria-pressed="false">Play the steps</button>
+          <button id="board3d-png" class="tool" type="button">Save picture</button>
+          <button id="board3d-stl" class="tool" type="button" title="The board as a 3D file, for Shape or a slicer">Save STL</button>
+        </div>
+        <span class="hint">Datasheet sizes · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
       </div>
       <p id="board3d-message" hidden></p>
     </div>

@@ -520,3 +520,15 @@ h1 {
 #part-howto summary { cursor: pointer; font-weight: 700; }
 .part-nav { display: flex; gap: 6px; margin-top: 8px; }
 .pin-name { fill: #ffd27a; font-size: 10px; }
+
+/* ---- the 3D board's bar and overlays (0.5) ---- */
+.board3d-bar .bar-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding-right: 8px; border-right: 1px solid var(--line); }
+.board3d-bar .bar-group:last-of-type { border-right: 0; }
+.board3d-bar .tool { padding: 3px 8px; font-size: .85rem; }
+.board3d-bar .slider { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; }
+.board3d-bar .slider input { width: 80px; }
+.board3d-bar [aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.board3d-tip { position: absolute; pointer-events: none; padding: 2px 8px; border-radius: 6px; background: rgba(10,12,16,.88); color: #fff; font-size: .85rem; font-weight: 700; white-space: nowrap; z-index: 3; }
+.board3d-tip[hidden] { display: none; }
+#board3d-measure { position: absolute; left: 8px; top: 8px; padding: 4px 10px; border-radius: 6px; background: #ff2bd6; color: #fff; font-weight: 700; z-index: 3; }
+#board3d-measure[hidden] { display: none; }
