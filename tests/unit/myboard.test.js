@@ -91,3 +91,12 @@ test('your placements become a board the 3D view can draw, shifted to start at h
   assert.equal(b.placedCount, 2);
   assert.equal(boardFromPlacement(board, {}, null), null);
 });
+
+test('hole names are kept with your board, checked', () => {
+  const isRef = (r) => /^[A-Za-z0-9_+.-]{1,20}$/.test(r);
+  const labels = { a: { pin: '1', text: 'L21' }, b: { pin: '14', text: 'L8' }, c: { pin: '28', text: 'O21' }, skip: 'w i' };
+  assert.deepEqual(cleanMyBoard({ labels }, isRef).labels, { ...labels, skip: 'WI' });
+  assert.equal(cleanMyBoard({ labels: { ...labels, c: { pin: '28', text: '<b>' } } }, isRef).labels, undefined);
+  assert.equal(cleanMyBoard({ labels: 'L21' }, isRef).labels, undefined);
+  assert.equal('labels' in cleanMyBoard({}, isRef), false, 'no names, no key');
+});

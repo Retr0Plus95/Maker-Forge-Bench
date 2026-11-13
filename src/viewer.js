@@ -404,6 +404,8 @@ export function createViewer(stage, hostSelector = '#sheet-host') {
     onView: (fn) => viewListeners.push(fn),
     /** A tap (a click that isn't a drag) on a photo, in the photo's own pixels. */
     onPointClick: (fn) => pointListeners.push(fn),
+    /** The photo pixel under a pointer event, or null when no photo is shown. */
+    photoPointAt: (e) => (content && content.kind === 'image' && size ? photoAt(e) : null),
     setOverlay,
     /** fn(phase: 'down' | 'move' | 'up' | 'cancel', x, y) in photo pixels; true on 'down' takes the drag instead of panning. */
     setDragHandler: (fn) => { dragHandler = fn; },

@@ -172,7 +172,9 @@ export function renderCard(container, part, o) {
       off.addEventListener('click', m.onUnplace);
       buttons.append(off);
     }
-    children.push(line, buttons);
+    children.push(line);
+    if (m.where) children.push(el('p', { id: 'part-where', className: 'part-myboard' }, m.where));
+    children.push(buttons);
   }
 
   if (o.ownNote) {
@@ -423,8 +425,56 @@ export function renderMyBoard(container, o) {
       findings.append(el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show));
     }
     children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
+    if (x.labels) children.push(...holeNamesBlock(container, x.labels));
   }
   keepFocus(container, () => container.replaceChildren(...children), '#myboard-line');
+}
+
+/**
+ * Hole names like your board's (0.6 design §1): a form for what's printed by three of the anchor's
+ * pins. What's typed survives the panel being redrawn while the form is open.
+ */
+function holeNamesBlock(container, h) {
+  const heading = el('h3', {}, 'Hole names');
+  if (h.unavailable) return [heading, el('p', { className: 'hint' }, h.unavailable)];
+  if (!h.editing) {
+    const edit = el('button', { id: 'hn-edit', type: 'button', 'data-focus': 'hn-edit' }, h.on ? 'Change hole names' : 'Name the holes like my board');
+    edit.addEventListener('click', h.onEdit);
+    const row = el('div', { className: 'myboard-actions' }, edit);
+    if (h.on) {
+      const off = el('button', { id: 'hn-off', type: 'button', 'data-focus': 'hn-off' }, 'Turn hole names off');
+      off.addEventListener('click', h.onOff);
+      row.append(off);
+    }
+    return [heading, el('p', { id: 'hn-summary', className: 'hint' }, h.on ? h.summary
+      : 'Boards print a letter and a number by each hole, like L21. Type three and Bench names every hole.'), row];
+  }
+  const typed = (id, fallback) => {
+    const old = container.querySelector(`#${id}`);
+    return old ? old.value : fallback;
+  };
+  const field = (id, label, value, placeholder) => {
+    const input = el('input', { id, type: 'text', maxlength: '8', autocomplete: 'off', spellcheck: 'false', placeholder, 'data-focus': id });
+    input.value = typed(id, value);
+    return el('label', { className: 'hn-field', for: id }, el('span', {}, label), input);
+  };
+  const form = el('form', { id: 'hn-form', className: 'hn-form' },
+    el('p', { className: 'hint' }, `Look at your board and type what's printed by these three holes. ${h.pins[0]} is the pin by the notch.`),
+    field('hn-a', h.pins[0], h.values[0], 'L21'),
+    field('hn-b', h.pins[1], h.values[1], 'L8'),
+    field('hn-c', h.pins[2], h.values[2], 'O21'),
+    field('hn-skip', 'Letters it skips (if any)', h.skip, 'like I'));
+  const use = el('button', { id: 'hn-use', type: 'submit', className: 'primary', 'data-focus': 'hn-use' }, 'Use these names');
+  const cancel = el('button', { id: 'hn-cancel', type: 'button', 'data-focus': 'hn-cancel' }, 'Cancel');
+  cancel.addEventListener('click', h.onCancel);
+  form.append(el('div', { className: 'myboard-actions' }, use, cancel));
+  if (h.why) form.append(el('p', { id: 'hn-why', className: 'finding-problem', role: 'alert' }, h.why));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = (id) => form.querySelector(`#${id}`).value;
+    h.onUse([value('hn-a'), value('hn-b'), value('hn-c')], value('hn-skip'));
+  });
+  return [heading, form];
 }
 
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */

@@ -7,7 +7,8 @@ import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
 import { anchorFor, anchorPins, boardFromPlacement, photoTransform, snap } from './myboard.js';
 import { buildOverlay } from './myboard-view.js';
-import { checkPlacement, suggestAll, wireText } from './boardcheck.js';
+import { checkPlacement, placedLegs, suggestAll, wireText } from './boardcheck.js';
+import { acrossPin, edgeName, holeName, labelsMap, solveLabels } from './holenames.js';
 import { libraryFor as libraryForPart } from './library.js';
 import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
 import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
@@ -74,6 +75,8 @@ const state = {
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
   clearAt: 0, // when Clear my board was first clicked
+  labelsEditing: false, // the hole names form is open (0.6 design §1)
+  labelsWhy: '', // why the typed hole names don't fit
   log: [], // the build log: [{ t, text }] (0.5 big improvement B10)
   versionDeleteAt: { name: null, t: 0 }, // a version's Delete asks twice
   trail: [], // the parts you opened, for Alt+← and Alt+→
@@ -837,7 +840,21 @@ function myBoardFor3D() {
   if (!board || !Object.keys(state.myBoard.photos).length) return null;
   const wires = store.get('showWires', false) === true
     ? suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => w.path)) : [];
-  return boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
+  const mine = boardFromPlacement(board, state.myBoard.placed, anchorRef(), wires);
+  const map = holeMap();
+  if (mine && map) {
+    const [dc, dr] = mine.shift;
+    mine.edgeLabels = [];
+    for (let c = 2; c < mine.cols; c++) {
+      const text = edgeName(map, 0, c - dc);
+      if (text) mine.edgeLabels.push({ at: [c, 0.5], text });
+    }
+    for (let r = 2; r < mine.rows; r++) {
+      const text = edgeName(map, 1, r - dr);
+      if (text) mine.edgeLabels.push({ at: [0.5, r], text });
+    }
+  }
+  return mine;
 }
 
 /** The board the 3D view draws now. */
@@ -950,6 +967,18 @@ function transformFor(id) {
   const pins = board.parts[anchor].pins;
   if (!pins[photo.a.pin] || !pins[photo.b.pin]) return null;
   return photoTransform(pins[photo.a.pin], pins[photo.b.pin], [photo.a.x, photo.a.y], [photo.b.x, photo.b.y], photo.side);
+}
+
+/** Your board's hole names, solved from what you typed (0.6 design §1), or null. */
+function holeMap() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  return board && anchor ? labelsMap(state.myBoard.labels, board.parts[anchor]) : null;
+}
+
+/** A hole's printed name on your board, or null. */
+function nameOfHole(hole) {
+  return holeName(holeMap(), hole);
 }
 
 const photoSide = (id) => (state.myBoard.photos[id] ? state.myBoard.photos[id].side : state.photoSides[id] || 'top');
@@ -1091,14 +1120,15 @@ function myBoardMore() {
   const step = state.openStep !== null ? stepsOf()[state.openStep] : null;
   const unplacedInStep = step ? step.parts.filter((ref) => board.parts[ref] && ref !== anchor && !state.myBoard.placed[ref]) : [];
   const routes = store.get('showWires', false) === true ? suggestAll(board, state.myBoard.placed, anchor, state.myBoard.routes || {})
-    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map(wireText) })) : [];
+    .map((g) => ({ net: g.net, label: g.label, shape: g.shape, texts: g.wires.map((w) => wireText(w, nameOfHole)) })) : [];
   return {
     marks: store.get('marksHidden', false) !== true,
     size: store.get('markSize', 'medium'),
     lineLabels: store.get('lineLabels', false) === true,
     wires: store.get('showWires', false) === true,
     routes,
-    findings: checkPlacement(board, state.myBoard.placed, anchor),
+    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole),
+    labels: holeLabelsOptions(),
     stepTodo: step && unplacedInStep.length ? `Step ${state.openStep + 1}, not placed yet: ${unplacedInStep.join(', ')}` : '',
     clearArmed: Date.now() - state.clearAt < 5000,
     onMarks: (on) => { store.set('marksHidden', !on); updateMyBoard(); },
@@ -1128,6 +1158,74 @@ function myBoardMore() {
       say('Your board is cleared. Ctrl+Z brings the parts back.');
     },
   };
+}
+
+/** The hole names form in Your board: what's printed by three of the anchor's pins. */
+function holeLabelsOptions() {
+  const board = boardOf();
+  const anchor = anchorRef();
+  const part = board.parts[anchor];
+  const { a, b } = anchorPins(part);
+  const c = acrossPin(part, a, b);
+  if (!c) return { unavailable: `Hole names need ${anchor} to have two rows of pins.` };
+  const saved = state.myBoard.labels;
+  const map = holeMap();
+  const same = saved && saved.a.pin === a && saved.b.pin === b && saved.c.pin === c;
+  return {
+    anchor,
+    pins: [a, b, c].map((pin) => `${anchor} ${pinText(pin)}`),
+    values: same ? [saved.a.text, saved.b.text, saved.c.text] : ['', '', ''],
+    skip: saved ? saved.skip : '',
+    on: Boolean(map),
+    editing: state.labelsEditing,
+    why: state.labelsWhy,
+    summary: map ? `Hole names like your board's: ${anchor} ${pinText(a)} is at ${holeName(map, part.pins[a])}.` : '',
+    onEdit: () => {
+      state.labelsEditing = true;
+      state.labelsWhy = '';
+      renderMyBoardPanel();
+      const first = $('#hn-a');
+      if (first) first.focus();
+    },
+    onCancel: () => {
+      state.labelsEditing = false;
+      state.labelsWhy = '';
+      renderMyBoardPanel();
+    },
+    onUse: (texts, skip) => {
+      const r = solveLabels(part.pins[a], part.pins[b], part.pins[c], texts[0], texts[1], texts[2], skip);
+      if (!r.ok) {
+        state.labelsWhy = r.why;
+        renderMyBoardPanel();
+        return;
+      }
+      state.labelsEditing = false;
+      state.labelsWhy = '';
+      const tidy = (t) => t.trim().toUpperCase().replace(/\s+/g, '');
+      changeMyBoard('Hole names', (bd) => {
+        bd.labels = { a: { pin: a, text: tidy(texts[0]) }, b: { pin: b, text: tidy(texts[1]) }, c: { pin: c, text: tidy(texts[2]) }, skip: skip.toUpperCase().replace(/[^A-Z]/g, '') };
+      });
+      say(`Hole names on: ${anchor} ${pinText(a)} is at ${tidy(texts[0])}. Cards, checks and wires now say where on your board.`);
+    },
+    onOff: () => {
+      changeMyBoard('Hole names off', (bd) => { delete bd.labels; });
+      say('Hole names off. Ctrl+Z brings them back.');
+    },
+  };
+}
+
+/** Hovering a lined-up photo with hole names: the hole's name and what's in it. */
+function holeTipText(point) {
+  const t = transformFor(state.current);
+  const map = holeMap();
+  if (!t || !map) return '';
+  const f = t.toBoard(point);
+  const hole = snap(f);
+  if (Math.hypot(f[0] - hole[0], f[1] - hole[1]) > 0.42) return '';
+  const name = holeName(map, hole);
+  if (!name) return '';
+  const legs = placedLegs(boardOf(), placedNow(), anchorRef()).filter((l) => l.hole[0] === hole[0] && l.hole[1] === hole[1]);
+  return [name, ...legs.map((l) => `${l.ref} ${pinText(l.pin)}`)].join(' · ');
 }
 
 function myBoardIdleStatus() {
@@ -1337,7 +1435,19 @@ async function lineUpFromCard() {
 function myBoardCardOptions(ref, onBoard) {
   if (!onBoard || !hasPhotos()) return null;
   if (ref === anchorRef() && !linedPhoto()) return { lineUp: lineUpFromCard };
+  const map = holeMap();
+  const holes = ref === anchorRef() ? boardOf().parts[ref].pins : state.myBoard.placed[ref];
+  let where = '';
+  if (map && holes) {
+    let entries = Object.entries(holes);
+    if (entries.length > 4) {
+      const { a, b } = anchorPins({ pins: holes });
+      entries = [[a, holes[a]], [b, holes[b]]];
+    }
+    where = `On your board: ${entries.map(([pin, h]) => `${pinText(pin)} at ${holeName(map, h) || 'off the labels'}`).join(', ')}`;
+  }
   return {
+    where,
     anchor: ref === anchorRef(),
     placed: Boolean(state.myBoard.placed[ref]) && Boolean(linedPhoto()),
     onPlace: () => placeOnBoard(ref),
@@ -1639,10 +1749,20 @@ function onStageHover(e) {
   // the event's path is only there while it's being handled: read it now, draw on the next frame
   const target = e.composedPath()[0];
   const { clientX, clientY } = e;
+  const point = viewer.photoPointAt(e);
   if (labelTipFrame) cancelAnimationFrame(labelTipFrame);
   labelTipFrame = requestAnimationFrame(() => {
     labelTipFrame = 0;
     const tip = $('#label-tip');
+    const holeText = point ? holeTipText(point) : '';
+    if (holeText) {
+      const r = $('#stage').getBoundingClientRect();
+      tip.textContent = holeText;
+      tip.style.left = `${clientX - r.left + 14}px`;
+      tip.style.top = `${clientY - r.top + 12}px`;
+      tip.hidden = false;
+      return;
+    }
     const text = target instanceof Element ? target.closest('text') : null;
     const ref = text ? refOfLabel(labelText(text), isKnownRef) : null;
     const part = ref ? state.partsByRef.get(ref) : null;

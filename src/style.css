@@ -556,6 +556,14 @@ body.print-step #top, body.print-step #status, body.print-step #stage, body.prin
 #myboard-routes > li { margin: 6px 0; }
 #myboard-routes ul { margin: 2px 0 0 12px; padding: 0; font-size: .85rem; color: var(--muted); }
 
+/* ---- hole names (0.6) ---- */
+.hn-form { margin: 4px 0; }
+.hn-field { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.hn-field span { flex: 1; }
+.hn-field input { width: 7em; font: inherit; text-transform: uppercase; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); }
+#hn-why { color: var(--danger); font-weight: 700; margin: 4px 0; }
+#part-where { font-weight: 700; }
+
 /* ---- history (0.5) ---- */
 #log, #versions { width: min(640px, 92vw); }
 #log-filter, #version-name { font: inherit; padding: 4px 8px; }

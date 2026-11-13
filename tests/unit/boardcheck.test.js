@@ -63,3 +63,16 @@ test('the chosen wire shapes are kept with your board, checked', () => {
   const clean = cleanMyBoard({ anchor: 'U2', photos: {}, placed: {}, routes: { P5V: 'rows', GND: 'zigzag', ['x'.repeat(50)]: 'cols' } }, isRef);
   assert.deepEqual(clean.routes, { P5V: 'rows' });
 });
+
+test("with hole names, findings and wires say where on your board", async () => {
+  const { labelsMap, holeName } = await import('../../src/holenames.js');
+  const map = labelsMap({ a: { pin: '1', text: 'L21' }, b: { pin: '14', text: 'L8' }, c: { pin: '28', text: 'O21' } }, board.parts.U2);
+  const name = (h) => holeName(map, h);
+  const clash = checkPlacement(board, { R8: { 1: [11, 13], 2: [11, 15] } }, 'U2', name).find((x) => x.kind === 'clash');
+  assert.match(clash.text, /^Two legs in one hole \(L21\): /);
+  const near = checkPlacement(board, { R8: { 1: [10, 13], 2: [10, 16] } }, 'U2', name).find((x) => x.kind === 'neighbours');
+  assert.match(near.text, /\(L22\)/);
+  assert.match(near.text, /\(L21\)/);
+  const legs = [{ key: 'U2:7', ref: 'U2', pin: '7', hole: [17, 13] }, { key: 'C10:p', ref: 'C10', pin: 'p', hole: [19, 14] }];
+  assert.equal(wireText(suggestWires(legs)[0], name), 'U2 pin 7 (L15) to C10 + (K13): 2 holes across, 1 down');
+});
