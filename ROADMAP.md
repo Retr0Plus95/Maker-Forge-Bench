@@ -35,9 +35,10 @@ you have, building step by step, testing, and the board in its box.
   stripboard first, copper boards later. It saves `forge-project.json`, which Bench builds from.
   (Circuit and Layout were two ideas; they're one app now, the way KiCad keeps the schematic and
   the board in one project.)
-- **Copper boards go through KiCad first.** Bench opens KiCad projects (0.9), and Circuit writes
-  KiCad files so KiCad can make the factory files. The suite's own copper editor and factory files
-  come last.
+- **Copper boards go through KiCad first.** Bench can import KiCad projects (1.2, an option for
+  people who design in KiCad), and Circuit writes KiCad files so KiCad can make the factory files.
+  You never have to open KiCad yourself. The suite's own copper editor and factory files come
+  last.
 
 **Taken from KiCad:** the schematic with its electrical rules check (ERC); the board with its
 ratsnest (the lines that show what still needs joining) and design rules check (DRC); a symbol,
@@ -52,8 +53,8 @@ standoffs, nuts). From SolidWorks Electrical: the wiring harness, wire numbers a
 3D. And a light viewer anyone can open, like eDrawings, which is what Bench already is.
 
 ### The order from here
-1. **Bench 0.9 Real parts:** the shared library's first version, KiCad's 3D models, a better 3D
-   view, and KiCad projects opened directly, with their error checks.
+1. **Bench 0.9 Real parts:** the shared library's first version, KiCad's 3D models and a better 3D
+   view, all working on the website with nothing running on your computer.
 2. **Bench 1.0 Launch.**
 3. **Maker Forge Circuit:** schematic, then a perfboard or stripboard board, then KiCad files and a
    factory pack, then simulation built in.
@@ -210,8 +211,8 @@ Design: `docs/design/2026-11-13-release-0.8-design.md`.
   style had overridden them all.
 
 ### 0.9 Real parts
-Real 3D parts from KiCad's free library, a better 3D view, and KiCad projects opened directly.
-Design: `docs/design/2026-11-14-release-0.9-design.md`.
+Real 3D parts from KiCad's free library and a better 3D view. It all works on the website, with
+nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-design.md`.
 - **The Maker Forge Library, first version:** one list of parts that every app will share. Each
   part has its pins, its footprint (the hole spacing), its 3D model, and where it came from with its
   licence. Symbols and how-to pages join it with Parts and Circuit. It starts inside Bench and
@@ -221,17 +222,10 @@ Design: `docs/design/2026-11-14-release-0.9-design.md`.
   regulators, chips and sockets, headers, screw terminals, crystals, pots, buttons and connectors.
   Bench still paints its own colour bands, values and stripes on them. Looks like gets a model
   picker, and you can use your own `.glb` model for a part, kept on your device.
-- **Open a KiCad project:** a folder with a `.kicad_pro`. With `dev.py` and KiCad on the computer,
-  Bench runs KiCad's own command-line tool for the sheets, the 3D board, the checks and the parts
-  list. Without them (a GitHub link or a picked folder), Bench reads KiCad's text files itself for
-  the parts and connections. *(This was "KiCad parts list" and "Read KiCad schematic files" in 1.2.)*
-- **Errors found, and help fixing them:** KiCad's schematic check (ERC) and board check (DRC) in the
-  Checks tab, each with **Show me** and **Ask AI how to fix** (your Claude key or Ollama).
-- **★ New: Factory files** for a KiCad board (with `dev.py` and KiCad): one button makes a zip of
-  the Gerbers, drill files, parts list and placement file, ready to upload to a board maker.
 - **A better 3D view:** truer light and materials, board colours, solder joints, polarity marks,
   the camera following the guide, find a part in 3D, saved views, a height check for the case,
   Check my board shown in 3D, export to GLB and OBJ, a turntable video, and a loading bar.
+- *(Opening KiCad projects was planned here too, and moved to 1.2 as an option the same day.)*
 
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
@@ -259,7 +253,18 @@ answers always match. Bench adds the calculations that belong to a part:
 
 ### 1.2 More files, and offline
 - **PDF**, with its text searchable. KiCad's PDF exports keep text, which fixes the KiCad risk for good.
-- *(Reading KiCad's parts list and schematic files moved to 0.9, "Open a KiCad project".)*
+- **★ Import a KiCad project** (an option for people who design in KiCad; decided 2026-11-14;
+  design `docs/design/2026-11-14-kicad-import-design.md`):
+  - Bench reads KiCad's files itself, in the browser: part cards, connections, a 3D board with real
+    parts, and build steps made for you.
+  - **GitHub runs KiCad for you:** add one ready-made file to the repo, and on every push GitHub's
+    computers make the exact sheets, the exact 3D board, KiCad's error checks and factory files.
+    Bench on the website picks them up. Nothing runs on your computer.
+  - KiCad's error checks in plain words, with **Show me**, **Ask AI how to fix** and **Ignore**.
+  - **Factory files:** one zip of the Gerbers, drill files, parts list and placement file, ready to
+    upload to a board maker.
+  - Or Bench on your computer (`dev.py`) with KiCad installed does the same, for folders that
+    aren't on GitHub.
 - **Install on phone and tablet**, and work with no internet at the bench.
 - **One-file download**, like Shape's releases.
 - **★ New: Print the checklist and wire list** on paper, with tick boxes, for builders who prefer it.
@@ -281,7 +286,7 @@ answers always match. Bench adds the calculations that belong to a part:
 ### 1.4 Test and find faults
 - **Highlight a connection:** click +5 V or a pin, and every hole and wire on that connection
   lights up, ready for continuity checks with your meter. This needs connection data: a KiCad
-  project (0.9 reads its connections), or `board.py` for the fume extractor.
+  project (1.2 reads its connections), or `board.py` for the fume extractor.
 - **★ New: Measurement log with expected values.** Bring-up checks come from the project file
   ("U1 output: 5.00 V ± 0.05"). Type what your meter shows, and anything out of range turns red.
   The log can go along with a question to Claude. Later, Maker Forge Serial can fill in readings
@@ -502,8 +507,8 @@ one project, the way KiCad keeps its schematic and board editors together.)*
     from, and the board outline Shape uses for the case;
   - the parts list (BOM) and the netlist;
   - **KiCad files** (`.kicad_sch` and `.kicad_pcb`), so a board can move on to KiCad;
-  - **a factory pack** (Gerbers, drill, parts list and placement files) made through KiCad's
-    command-line tool when KiCad is installed;
+  - **a factory pack** (Gerbers, drill, parts list and placement files) made by KiCad's
+    command-line tool, on GitHub or on your computer, the way Bench 1.2 does it;
   - a circuit for other simulators too: KiCad's own, Falstad or Wokwi.
 - **★ Variants** (from SolidWorks): the same board with different parts fitted, like the fume
   extractor with or without its USB port.
@@ -591,6 +596,8 @@ Circuit comes first and Parts last (see "The order from here"). The smaller apps
 11. Simulation built into Circuit, as a later step, using ngspice in the browser.
 12. Parts is an app of its own, and comes last: browse what you have, a shopping list to print,
     and finding parts online.
+13. KiCad import is an option for people who bring KiCad projects, in 1.2, with GitHub able to run
+    KiCad so nothing has to run on your computer. 0.9 is the real parts and the 3D view.
 
 **Still open**
 4. Languages: English only at first, or Swedish too.
