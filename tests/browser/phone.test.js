@@ -169,13 +169,17 @@ describe('the start screen on a phone', () => {
 });
 
 describe('on a tablet', () => {
-  test('the panel stays beside or under the drawing, with every tool in the header', async () => {
+  test('the panel stays beside or under the drawing; the everyday tools are in the header, the rest in the Menu', async () => {
     const server = await startDevServer(await copyFixture('fume-extractor'));
     const { browser, page, problems } = await openPage(server.url, { width: 820, height: 1180 }, TOUCH);
     try {
       await shownSvg(page);
-      assert.equal(await page.locator('#menu-toggle').isVisible(), false);
+      for (const id of ['#flip', '#split', '#panel-toggle', '#settings-button', '#find']) assert.equal(await page.locator(id).isVisible(), true, id);
+      assert.equal(await page.locator('#calc-open').isVisible(), false, 'Calculators wait in the Menu (0.8)');
+      await page.locator('#menu-toggle').tap();
       assert.equal(await page.locator('#calc-open').isVisible(), true);
+      assert.deepEqual(await sticksOut(page), []);
+      await page.keyboard.press('Escape');
       assert.equal(await page.locator('#panel-handle').isVisible(), false);
       assert.deepEqual(await sticksOut(page), []);
       assert.deepEqual(problems, []);

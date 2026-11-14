@@ -80,7 +80,7 @@ describe('build steps', () => {
     const tab = page.locator('[role=tab]', { hasText: 'SFE-04' });
     await tab.focus();
     await page.keyboard.press('Space');
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
     assert.equal(await page.locator('#steps .step-title').textContent(), 'Step 8 of 10: The panel side');
     assert.deepEqual(problems, []);
   }));

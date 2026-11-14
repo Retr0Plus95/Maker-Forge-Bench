@@ -83,6 +83,13 @@ describe('hole names like your board', () => {
     assert.equal(await page.locator('#part-where').textContent(), 'On your board: pin 1 at L21, pin 14 at L8');
   });
 
+  test('the guide says where each part goes on your board, or on sheet 4 when it is not placed yet (0.8)', async () => {
+    await page.locator('#steps .steps-list li button', { hasText: 'Fan drive and tach' }).click();
+    const where = (ref) => page.locator('#steps .step-parts li').filter({ has: page.locator('.part-link', { hasText: new RegExp(`^${ref}$`) }) }).locator('.step-part-where');
+    assert.equal(await where('R8').textContent(), 'Your board: pin 1 at Q2 · pin 2 at O2');
+    assert.match(await where('R9').textContent(), /^pin 1 at \d+,\d+ · pin 2 at \d+,\d+$/);
+  });
+
   test('hovering a hole on the photo names it and what is in it', async () => {
     await page.getByRole('tab', { name: 'board-top', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('img'));

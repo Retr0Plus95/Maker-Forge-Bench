@@ -137,6 +137,29 @@ Design: `docs/design/2026-11-13-release-0.7-design.md`.
   reading, and Ask here in the part card.
 - (Keep screen on arrived in 0.4.1; pinch and two-finger pan in 0.5.)
 
+### 0.8 True to life — done 2026-11-14
+Truer 3D parts, your parts as you fitted them, and an easier screen.
+Design: `docs/design/2026-11-13-release-0.8-design.md`.
+- **3D parts drawn to their datasheets:** a new turned (lathe) shape for resistors, capacitors,
+  diodes and LEDs (with the LED's flat side by its cathode); the real PDIP leg with its shoulder;
+  TO-220 with its tab and hole; header strips; crystal flanges; the electrolytic's vents, stripe
+  and printed value.
+- **Looks like** on each part card: the colour, size, mount, socket or header you really fitted,
+  or another part in its place (an L7805 for the MP1584 buck module, drawn wired to the module's
+  holes, with a plain warning about the heat). Kept with your progress and undoable.
+- **The panel in tabs:** Guide · Board · Wiring · Checks · Parts, each with its count, the part
+  card on top of every tab, and **All** for every section in one list as before.
+- **The guide:** one step at a time in bigger words, a progress bar, each part with its value and
+  where it goes (your hole names when they're on) and a tick, and a big **Done, next step**.
+- **Adjust the steps:** move a step, skip one, add your own, or go back to the project's steps.
+- **A compact header:** Calculators, Keep screen on and Full screen wait in the Menu on every
+  screen; on a computer the Menu also has Save progress, Shopping list, Build log, Versions and
+  Keyboard shortcuts. (The Compact density in Easy reading arrived in 0.4.1; it now tightens the
+  tabs and the guide too.)
+- **★ New, along the way:** the build checklist's part names and the step list are plain text
+  again, and the panel's main buttons (Ask here, Use this spot, Beeped) stand out again: a panel
+  style had overridden them all.
+
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
   manual inside the app.

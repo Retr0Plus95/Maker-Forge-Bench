@@ -1,6 +1,7 @@
 // What's in a project: its sheets and its parts (design §6). From forge-project.json when the
 // folder has one, otherwise worked out from the folder's files and guessed from the drawings'
 // labels. No page code. A project file is untrusted: every value is checked before use.
+import { cleanLook } from './looks.js';
 
 const TYPES = { svg: 'svg', png: 'png', jpg: 'jpg', jpeg: 'jpg' };
 const RANK = { svg: 0, png: 1, jpg: 2 };
@@ -136,6 +137,7 @@ export function readBoard(raw) {
     if (p.round === 'up' || p.round === 'down') part.round = p.round;
     if (typeof p.half === 'number' && p.half > 0 && p.half <= 10) part.half = p.half;
     if (isOutline(p.keepout)) part.keepout = [...p.keepout];
+    Object.assign(part, cleanLook(part.type, p)); // what it looks like: the chip's holder, an LED's colour (0.8 §2)
     if (part.type === 'res') {
       part.mount = p.mount === 'flat' || p.mount === 'stand' ? p.mount : holeSpan(pins) >= 4 ? 'flat' : 'stand';
       if (part.mount === 'flat') delete part.body; // lying flat, no body over a pin

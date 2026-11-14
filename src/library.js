@@ -26,6 +26,13 @@ export const LIBRARY = [
     source: 'MP1584EN module listings (MPS MP1584 datasheet for the chip)',
   },
   {
+    id: 'l7805', name: 'L7805 5 V regulator (TO-220)', match: { value: /\b(l|lm|ua|mc)?78(m)?05/i },
+    pins: { IN: 'input (7–35 V)', GND: '0 V (the tab too)', OUT: '+5 V out' },
+    polarity: 'The metal tab is GND (0 V). In backwards, the 5 V side sees the full input voltage.',
+    howTo: 'Print facing you, legs down: IN, GND, OUT. A 330 nF capacitor from IN to GND and 100 nF from OUT to GND, close to its legs. It turns the extra voltage into heat, (IN − 5 V) × current: from 12 V, 0.1 A makes 0.7 W (warm). Above about 1 W, bolt it to a heatsink through the tab\'s hole.',
+    source: 'ST L78 series datasheet (L7805CV, TO-220)',
+  },
+  {
     id: '2n2222', name: '2N2222A / PN2222A (TO-92)', match: { value: /\b(2n|pn)2222/i },
     pins: { E: 'emitter', B: 'base', C: 'collector' },
     polarity: 'Flat face towards you, legs down: E, B, C from left to right (check your maker\'s datasheet: a few swap them).',

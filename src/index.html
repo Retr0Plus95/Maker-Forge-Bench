@@ -17,11 +17,18 @@
     <span id="saved" aria-live="polite"></span>
     <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span><span class="tool-word"> Undo</span></button>
     <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span><span class="tool-word"> Redo</span></button>
+    <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="top">Menu</button>
+  </div>
+  <div id="more-tools" class="bar" role="group" aria-label="More">
     <button id="calc-open" class="tool" type="button" title="Ohm's law, LED resistor, voltage divider">Calculators</button>
     <button id="wake" class="tool" type="button" aria-pressed="false" title="Stop the screen going dark while you solder">Keep screen on</button>
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
-    <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
-    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="top">Menu</button>
+    <button id="menu-save" class="tool" type="button" title="Your ticks, wiring, board and notes as a file (Ctrl+S)">Save progress</button>
+    <button id="menu-shopping" class="tool" type="button">Shopping list</button>
+    <button id="menu-log" class="tool" type="button">Build log</button>
+    <button id="menu-versions" class="tool" type="button">Versions</button>
+    <button id="menu-help" class="tool" type="button">Keyboard shortcuts</button>
   </div>
   <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
   <div class="bar">
@@ -39,7 +46,7 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 0.7:</strong> open a public GitHub repo from its link, or a folder on this computer; use Bench on your phone; and ask Claude (your own key) or Ollama right in a part card: set it up in Easy reading, under AI help. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 0.8:</strong> the side panel is in tabs, with a guide that takes you one step at a time (Done, next step) and steps you can adjust; Looks like on each part card for what you really fitted; truer 3D parts; and Calculators and more in the Menu. The old long panel is the All tab. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <p id="sheet-note" aria-live="polite" hidden></p>
 <section id="start" hidden aria-labelledby="start-title"></section>
@@ -95,15 +102,16 @@
   <div id="panel-resize" role="separator" aria-orientation="vertical" aria-label="Drag to change the side panel's width" title="Drag to widen the panel"></div>
   <aside id="panel" aria-label="Part and build checklist">
     <button id="panel-handle" type="button" aria-expanded="false" aria-label="Make the panel taller"><span aria-hidden="true"></span></button>
+    <nav id="panel-tabs" role="tablist" aria-label="Panel"></nav>
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
-    <section id="myboard" aria-label="Your board" hidden></section>
-    <section id="steps" aria-label="Build steps"></section>
-    <section id="wiring" aria-label="What to wire"></section>
-    <section id="checks" aria-label="Before power"></section>
-    <section id="continuity" aria-label="Continuity test"></section>
-    <section id="checklist" aria-label="Build checklist"></section>
+    <section id="myboard" aria-label="Your board" data-tab-of="board" hidden></section>
+    <section id="steps" aria-label="Build steps" data-tab-of="guide"></section>
+    <section id="wiring" aria-label="What to wire" data-tab-of="wiring"></section>
+    <section id="checks" aria-label="Before power" data-tab-of="checks"></section>
+    <section id="continuity" aria-label="Continuity test" data-tab-of="checks"></section>
+    <section id="checklist" aria-label="Build checklist" data-tab-of="parts"></section>
   </aside>
 </div>
 <dialog id="help" aria-labelledby="help-title">

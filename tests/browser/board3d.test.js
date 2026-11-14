@@ -28,7 +28,7 @@ describe('the 3D board', () => {
     assert.equal(await page.locator('#board3d canvas').isVisible(), true);
     assert.equal(await page.locator('#board3d-toggle').getAttribute('aria-pressed'), 'true');
     assert.ok(Number(await page.evaluate(() => getComputedStyle(document.querySelector('#sheet-host')).opacity)) < 1, 'schematic dimmed');
-    assert.equal(await page.locator('[role=tab][aria-selected=true]').textContent(), 'SFE-01 Main schematic');
+    assert.equal(await page.locator('#tabs [role=tab][aria-selected=true]').textContent(), 'SFE-01 Main schematic');
     await nextFrame(page);
     const at = await page.evaluate(() => window.makerForge.board3d.screenOf('R8'));
     assert.ok(at, 'R8 is on screen');

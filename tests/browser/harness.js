@@ -78,11 +78,20 @@ async function launchBrowser(args = []) {
 
 /**
  * options: { args, reducedMotion, context: extra newPage options (hasTouch, isMobile…),
- *            before(page): runs before the page loads, e.g. to answer for GitHub with page.route }
+ *            before(page): runs before the page loads, e.g. to answer for GitHub with page.route,
+ *            tabs: true to open the side panel in its tabs; without it the panel starts on All,
+ *            every section in one list, as before 0.8, so a test can reach any section }
  */
 export async function openPage(url, viewport, options = {}) {
   const browser = await launchBrowser(options.args);
   const page = await browser.newPage({ viewport, reducedMotion: options.reducedMotion ?? 'reduce', ...(options.context || {}) }); // camera moves are instant, so tests see where they end
+  if (!options.tabs) {
+    await page.addInitScript(() => {
+      try {
+        if (localStorage.getItem('bench.panelTab') === null) localStorage.setItem('bench.panelTab', '"all"');
+      } catch { /* no storage: the app forgets anyway */ }
+    });
+  }
   if (options.before) await options.before(page);
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
@@ -108,7 +117,7 @@ export async function openPage(url, viewport, options = {}) {
     } catch (error) {
       const pageState = await page.evaluate(() => ({
         ready: document.readyState,
-        tabs: document.querySelectorAll('[role=tab]').length,
+        tabs: document.querySelectorAll('#tabs [role=tab]').length,
         status: document.querySelector('#status')?.textContent,
         sheet: Boolean(document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg, img')),
       })).catch((e) => `unavailable: ${e.message}`);
@@ -175,4 +184,10 @@ export function solidPng(width, height, [r, g, b] = [36, 96, 60]) {
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0)),
   ]);
+}
+
+/** A header tool that waits in the Menu (0.8): opens the menu first if the tool is folded away, then clicks it. */
+export async function fromMenu(page, selector) {
+  if (!(await page.locator(selector).isVisible())) await page.locator('#menu-toggle').click();
+  await page.locator(selector).click();
 }
