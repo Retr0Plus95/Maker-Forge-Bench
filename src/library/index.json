@@ -97,6 +97,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "flat",
     "size": "0207"
    },
@@ -144,6 +145,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "flat",
     "size": "0207"
    },
@@ -191,6 +193,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "flat",
     "size": "0207"
    },
@@ -520,6 +523,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "stand",
     "size": "0207"
    },
@@ -567,6 +571,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "stand",
     "size": "0207"
    },
@@ -894,6 +899,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "disc"
    },
    "footprint": {
@@ -986,6 +992,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "disc"
    },
    "footprint": {
@@ -1124,6 +1131,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "dipped"
    },
    "footprint": {
@@ -3070,6 +3078,7 @@
   },
   {
    "fit": {
+    "default": true,
     "size": 3
    },
    "footprint": {
@@ -3163,6 +3172,7 @@
   },
   {
    "fit": {
+    "default": true,
     "size": 5
    },
    "footprint": {
@@ -3303,6 +3313,7 @@
   },
   {
    "fit": {
+    "default": true,
     "legs": "inline"
    },
    "footprint": {
@@ -3504,6 +3515,7 @@
   },
   {
    "fit": {
+    "default": true,
     "mount": "stand"
    },
    "footprint": {
@@ -10601,6 +10613,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "hc49s"
    },
    "footprint": {
@@ -10739,6 +10752,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "trimmer"
    },
    "footprint": {
@@ -10989,6 +11003,7 @@
   },
   {
    "fit": {
+    "default": true,
     "size": 6
    },
    "footprint": {
@@ -11220,6 +11235,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "slide"
    },
    "footprint": {
@@ -12100,6 +12116,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "barrel"
    },
    "footprint": {
@@ -12254,6 +12271,7 @@
   },
   {
    "fit": {
+    "default": true,
     "size": 12
    },
    "footprint": {
@@ -12346,6 +12364,7 @@
   },
   {
    "fit": {
+    "default": true,
     "style": "srd"
    },
    "footprint": {
