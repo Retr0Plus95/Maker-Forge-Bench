@@ -258,6 +258,35 @@ export function placeFor(entry, part, { pitch = PITCH } = {}) {
   return bendLegs(entry, holes, { side }) || placed;
 }
 
+/** The library kinds that can draw each Bench part type (Looks like → 3D model). */
+const KINDS = {
+  res: ['res'], cer: ['cer', 'film'], film: ['film', 'cer'], elec: ['elec'], diode: ['diode'], diode_stand: ['diode'], led: ['led'],
+  to92: ['to92'], to220: ['to220'], dip: ['dip'], header: ['header', 'connector', 'terminal'], module: ['module'],
+  underside: ['crystal', 'cer', 'film'],
+};
+
+/**
+ * The library models that can draw a board part: its kind, as many pins, landing on its holes
+ * (placeFor's miss within MISS_LIMIT). Its own kind first, straight fits before radial ones with
+ * their legs bent (those are copies marked `bent: true`). ref: under the board, Y… is a crystal and
+ * C… a ceramic.
+ */
+export function modelsThatFit(part, index, { pitch = PITCH, ref = '' } = {}) {
+  if (!part || !part.pins || !index || !Array.isArray(index.parts)) return [];
+  let kinds = Object.hasOwn(KINDS, part.type) ? KINDS[part.type] : [part.type];
+  if (part.type === 'underside' && /^Y/i.test(ref)) kinds = ['crystal'];
+  if (part.type === 'underside' && /^C/i.test(ref)) kinds = ['cer', 'film'];
+  const n = Object.keys(part.pins).length;
+  const found = [];
+  for (const e of index.parts) {
+    if (!kinds.includes(e.kind) || pinsOf(e).length !== n) continue;
+    const place = placeFor(e, part, { pitch });
+    if (!place || !(place.miss <= MISS_LIMIT)) continue;
+    found.push({ e: place.legs ? { ...e, bent: true } : e, key: kinds.indexOf(e.kind) * 2 + (place.legs ? 1 : 0) });
+  }
+  return found.sort((a, b) => a.key - b.key).map((f) => f.e);
+}
+
 /** The entry for a KiCad project's model path (${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D5.0mm.step), or null. */
 export function entryForModelPath(path, index) {
   if (!index || !Array.isArray(index.parts)) return null;

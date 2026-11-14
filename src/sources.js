@@ -15,7 +15,7 @@ export class SourceError extends Error {
 }
 
 const PROJECT_FILE = 'forge-project.json';
-const PROJECT_EXT = /\.(svg|png|jpe?g|pdf)$/i;
+const PROJECT_EXT = /\.(svg|png|jpe?g|pdf|glb|wrl)$/i; // 3D models (0.9) are never shown as sheets
 const MAX_FILES = 5000;
 
 /** A drawing, photo, datasheet or the project file, outside hidden folders and node_modules (as dev.py). */
@@ -66,6 +66,12 @@ export function localSource() {
     text: fetchText,
     imageUrl: async (path, mtime) => projectUrl(path, mtime),
     fileHref: (path) => projectUrl(path, 0),
+    /** A file's bytes; a KiCad .wrl comes back as GLB, converted by dev.py. */
+    async bytes(path) {
+      const url = /\.wrl$/i.test(path) ? '/api/glb/' + path.split('/').map(encodeURIComponent).join('/') : projectUrl(path, Date.now());
+      return (await get(url)).arrayBuffer();
+    },
+    wrl: true,
   };
 }
 
@@ -198,6 +204,12 @@ export function githubSource(spec, fetchFn = (...args) => fetch(...args)) {
       return images.get(key);
     },
     fileHref: (path) => `https://github.com/${spec.owner}/${spec.repo}/blob/${enc(spec.ref)}/${enc(top + path)}`,
+    /** A file's bytes (a .wrl needs dev.py to become a model: null). */
+    async bytes(path) {
+      if (/\.wrl$/i.test(path)) return null;
+      return (await getRaw(path)).arrayBuffer();
+    },
+    wrl: false,
   };
 }
 
@@ -254,5 +266,11 @@ export function folderSource(picked) {
     },
     imageUrl: async (path) => urlOf(path),
     fileHref: (path) => (picked.byPath.has(path) ? urlOf(path) : null),
+    /** A file's bytes (a .wrl needs dev.py to become a model: null). */
+    async bytes(path) {
+      if (/\.wrl$/i.test(path)) return null;
+      return fileOf(path).arrayBuffer();
+    },
+    wrl: false,
   };
 }

@@ -28,6 +28,21 @@ test('a look keeps only the fields that suit the part, with allowed values', () 
   assert.deepEqual(cleanLook('dip', null), {});
 });
 
+test('a look can name a 3D model: a library id, your own (own:<16 hex>) or one in the project (project:<path>)', () => {
+  assert.deepEqual(cleanLook('res', { model: 'r-axial-din0207-p10.16-h' }), { model: 'r-axial-din0207-p10.16-h' });
+  assert.deepEqual(cleanLook('underside', { model: 'own:0123456789abcdef' }), { model: 'own:0123456789abcdef' });
+  assert.deepEqual(cleanLook('dip', { model: 'project:models/my chip.glb', holder: 'none' }), { holder: 'none', model: 'project:models/my chip.glb' });
+  assert.deepEqual(cleanLook('res', { model: 'project:kicad/R.wrl' }), { model: 'project:kicad/R.wrl' });
+  for (const bad of ['../x', 'own:zz', 'own:0123456789ABCDEF', 'project:../secret.glb', 'project:/abs.glb', 'project:a/../b.glb',
+    'project:notes.txt', 'project:C:/x.glb', 'project:a\\b.glb', 'Mixed-Case', '', 42, 'x'.repeat(81)]) {
+    assert.deepEqual(cleanLook('res', { model: bad }), {}, String(bad));
+  }
+  assert.deepEqual({ ...cleanLooks({ R6: { model: 'r-axial-din0207-l6.3-d2.5-p5.08-v' } }) }, { R6: { model: 'r-axial-din0207-l6.3-d2.5-p5.08-v' } });
+  assert.deepEqual({ ...cleanLooks({ R6: { model: 'project:a long folder name/with more in it/and a model with a long name.glb' } }) },
+    { R6: { model: 'project:a long folder name/with more in it/and a model with a long name.glb' } }, 'a project path can be long');
+  assert.deepEqual({ ...cleanLooks({ R6: { model: 'own:zz' } }) }, {});
+});
+
 test("a project's board section can say how a part looks", () => {
   const b = readBoard({
     parts: {

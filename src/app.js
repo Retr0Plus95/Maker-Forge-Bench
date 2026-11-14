@@ -37,6 +37,8 @@ import { createStore, projectKey } from './store.js';
 import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
+import { modelFor, modelsThatFit } from './library-match.js';
+import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 
@@ -402,16 +404,97 @@ function cardPart(ref) {
   return card ? { ...part, ...card } : part || null;
 }
 
+// ---- Looks like → 3D model (0.9): the library's models that fit, the project's, your own
+let libraryNow = null; // the library's index once fetched, for the choices on a part's card
+let libraryAsked = false;
+let ownModels = null; // your own models in this browser: [{ id, name, bytes }], once read
+const modelStatus = { ref: null, text: '' }; // why your file was refused, on that part's card
+
+const sizeOf = (e) => {
+  const b = e.model && e.model.box;
+  if (!b) return '';
+  return `${[0, 1, 2].map((k) => (b[1][k] - b[0][k]).toFixed(1).replace(/\.0$/, '')).join(' × ')} mm`;
+};
+
+function modelChoices(ref, look) {
+  if (!libraryNow && !libraryAsked) {
+    libraryAsked = true;
+    libraryFor3D().then((index) => {
+      libraryNow = index;
+      if (index && state.selected) renderPartCard();
+    });
+  }
+  if (ownModels === null) {
+    ownModels = [];
+    listOwnModels().then((list) => {
+      ownModels = list;
+      if (list.length && state.selected) renderPartCard();
+    });
+  }
+  const board = projectBoard();
+  const part = board ? board.parts[ref] : null;
+  if (!part) return null;
+  const { model: _chosen, ...bare } = part;
+  const value = (cardPart(ref) || {}).value || '';
+  const auto = libraryNow ? modelFor({ ...bare, ref, value }, {}, libraryNow) : null;
+  const choices = [{ value: '', label: auto ? `Automatic: ${auto.name}` : "Automatic: Bench's own drawing", group: null }];
+  for (const e of libraryNow ? modelsThatFit(bare, libraryNow, { ref }) : []) {
+    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e), group: 'Maker Forge Library' });
+  }
+  for (const path of state.modelFiles || []) {
+    if (source && (source.wrl || !/\.wrl$/i.test(path))) choices.push({ value: `project:${path}`, label: path, group: 'In the project' });
+  }
+  for (const m of ownModels || []) {
+    choices.push({ value: `own:${m.id}`, label: m.name, detail: `${Math.max(1, Math.round(m.bytes / 1024))} KB`, group: 'Your own (in this browser)' });
+  }
+  return {
+    choices,
+    current: look.model || '',
+    status: modelStatus.ref === ref ? modelStatus.text : '',
+    onPick: (v, label) => {
+      modelStatus.ref = null;
+      setLook(ref, 'model', v, v ? `3D model ${label}` : 'automatic 3D model');
+    },
+    onOwnFile: async (file) => {
+      try {
+        const saved = await saveOwnModel(file);
+        ownModels = await listOwnModels();
+        modelStatus.ref = null;
+        setLook(ref, 'model', `own:${saved.id}`, `your own 3D model ${saved.name}`);
+      } catch (error) {
+        modelStatus.ref = ref;
+        modelStatus.text = error instanceof OwnModelError ? error.message : "That file couldn't be kept in this browser.";
+        renderPartCard();
+      }
+    },
+  };
+}
+
+/** The project's 3D models (.glb, and .wrl with dev.py), for Looks like → 3D model. */
+const modelFilesIn = (files) => files.map((f) => f.path).filter((path) => /\.(glb|wrl)$/i.test(path));
+
+/** A chosen model's bytes for the 3D view: your own from this browser, the project's from its source. */
+async function customModelBytes(choice) {
+  try {
+    if (choice.startsWith('own:')) return await ownModelBytes(choice.slice(4));
+    if (choice.startsWith('project:') && source && typeof source.bytes === 'function') return await source.bytes(choice.slice(8));
+  } catch { /* gone: Bench draws its own */ }
+  return null;
+}
+
 function looksCardOptions(ref) {
   const base = state.project && state.project.board ? state.project.board.parts[ref] : null;
   if (!base) return null;
   const look = state.looks[ref] || {};
   const fields = lookFields(base, look, state.partsByRef.get(ref) || null);
-  if (!fields.length) return null;
+  const models = modelChoices(ref, look);
+  if (!fields.length && !models) return null;
   const card = builtLooks().cards[ref];
+  const chosen = look.model && models ? (models.choices.find((c) => c.value === look.model) || { label: look.model }).label : '';
   return {
     fields,
-    summary: lookSummary(fields),
+    models,
+    summary: [lookSummary(fields), chosen && `3D: ${chosen}`].filter(Boolean).join(' · ') || 'As drawn',
     changed: Object.keys(look).length > 0,
     open: state.looksOpen,
     warning: card ? card.warning : null,
@@ -459,6 +542,7 @@ function setLook(ref, field, value, words = String(value)) {
   let mine = { ...(looks[ref] || {}) };
   if (field === null) mine = {};
   else if (field === 'swap') mine = value ? { swap: value } : {}; // another part starts from its own look
+  else if (field === 'model' && !value) delete mine.model; // back to the automatic one
   else mine[field] = value;
   if (Object.keys(mine).length) looks[ref] = mine;
   else delete looks[ref];
@@ -1106,6 +1190,7 @@ async function setBoard3D(on) {
         parts3d: parts3dMode(),
         library: libraryFor3D(),
         models: modelsFor3D(),
+        modelBytes: customModelBytes,
         onProgress: showRealProgress,
       }).then((view) => {
         if (view) {
@@ -2807,6 +2892,9 @@ function saveProgressFile() {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (Object.values(state.looks).some((l) => l && typeof l.model === 'string' && l.model.startsWith('own:'))) {
+    setStatus("Progress saved. Your own 3D models stay in this browser: the file names them but doesn't hold them.");
+  }
 }
 
 async function openProgressFile(input) {
@@ -2954,6 +3042,7 @@ async function relist(listing = null) {
   } catch {
     return;
   }
+  state.modelFiles = modelFilesIn(project.files);
   const sheets = sheetsFor(project.files);
   const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
     s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing &&
@@ -3424,6 +3513,7 @@ async function openProject(src, listing = null) {
   updateBoard3DButton();
   setStatus(project.truncated ? 'GitHub sent only part of this big repo\'s file list: some drawings may be missing. A link to its folder opens less.' : '');
   state.sheets = sheetsFor(project.files);
+  state.modelFiles = modelFilesIn(project.files);
   loadProgress();
   loadOpenStep();
   renderTabs();

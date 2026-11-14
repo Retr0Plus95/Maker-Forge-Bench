@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MISS_LIMIT, bendLegs, canBendLegs, entryForModelPath, holesFor, kicadPinOrder, modelFor, placeFor, placeInOutline, placeModel } from '../../src/library-match.js';
+import { MISS_LIMIT, bendLegs, canBendLegs, entryForModelPath, holesFor, kicadPinOrder, modelFor, modelsThatFit, placeFor, placeInOutline, placeModel } from '../../src/library-match.js';
 import { parseProject } from '../../src/project.js';
 import { readFixture } from './helpers.js';
 
@@ -184,6 +184,25 @@ test('placeFor: on its holes, a module in its outline, or radial legs bent', () 
   const far = placeFor(byId('r-axial-din0207-l6.3-d2.5-p10.16-h'), { type: 'res', mount: 'flat', side: 'top', pins: { 1: [1, 1], 2: [1, 4] } });
   assert.ok(far.miss > MISS_LIMIT, "a resistor's legs are not bent: it misses");
   assert.equal(placeFor(null, parts.R4), null);
+});
+
+test('modelsThatFit: the library models of its kind whose pins land on the part\'s holes, straight ones first', () => {
+  const fume = parseProject(readFixture('forge-project/fume-extractor.json'));
+  const ids = (ref) => modelsThatFit(fume.board.parts[ref], index).map((e) => e.id);
+  const r4 = ids('R4');
+  assert.ok(r4.includes('r-axial-din0207-l6.3-d2.5-p10.16-h'));
+  assert.ok(!r4.includes('r-axial-din0207-l6.3-d2.5-p7.62-h'), 'P7.62 misses holes 10.16 mm apart');
+  assert.ok(!r4.includes('d-do-41-sod81-p10.16-h'), 'only resistors for a resistor');
+  const r6 = ids('R6');
+  assert.ok(r6.includes('r-axial-din0207-l6.3-d2.5-p2.54-v'));
+  assert.ok(!r6.includes('r-axial-din0207-l6.3-d2.5-p10.16-h'));
+  const c2 = modelsThatFit(fume.board.parts.C2, index);
+  assert.ok(c2.length > 3, 'electrolytics of other sizes, legs bent');
+  assert.equal(c2.findIndex((e) => e.bent), c2.length - c2.filter((e) => e.bent).length, 'straight fits before bent ones');
+  assert.equal(modelsThatFit(fume.board.parts.Y1, index, { ref: 'Y1' })[0].id, 'crystal-hc49-4h-v', 'a crystal under the board first');
+  assert.ok(modelsThatFit(fume.board.parts.Y1, index, { ref: 'Y1' }).every((e) => e.kind === 'crystal'));
+  assert.equal(modelsThatFit(fume.board.parts.C5, index, { ref: 'C5' })[0].kind, 'cer');
+  assert.deepEqual(modelsThatFit(null, index), []);
 });
 
 test('KiCad pin order: diodes and LEDs cathode first, electrolytics + first, chips by number', () => {

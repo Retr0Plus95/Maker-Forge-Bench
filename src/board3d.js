@@ -6,7 +6,7 @@
 // 0.9: real parts. Where the Maker Forge Library has a model that fits (library-match.js), it takes
 // the drawn part's place once it has loaded, painted with Bench's markings (bands, colours, prints).
 import { BOARD_THICKNESS, LED_COLOURS, SIZES, bandLayout, busColour, colourInValue, partGeometry } from './board3d-geometry.js';
-import { MISS_LIMIT, modelFor, placeFor } from './library-match.js';
+import { MISS_LIMIT, holesFor, modelFor, placeFor } from './library-match.js';
 import { resistorBands } from './markings.js';
 
 const LINK_COLOURS = ['#f59e0b', '#22c55e', '#a855f7', '#ef4444', '#3b82f6', '#eab308', '#ec4899'];
@@ -39,10 +39,11 @@ const motionReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)'
  * - parts3d: 'real' (the library's models where one fits, the default) or 'simple' (Bench's own)
  * - library: the library's index.json, parsed (or a promise of it); models: createModels(…) (or a
  *   promise of it); onProgress({ done, total }) as the real parts load
+ * - modelBytes(choice): the bytes of a model a look chose that isn't the library's (own:…, project:…)
  */
 export async function createBoard3D(host, board, {
   onPick, onHover = () => {}, camera: savedCamera = null, onCamera = () => {}, details = {},
-  parts3d = 'real', library = null, models = null, onProgress = () => {},
+  parts3d = 'real', library = null, models = null, onProgress = () => {}, modelBytes = async () => null,
 }) {
   if (!webglAvailable()) return null;
   const THREE = await import('./three.module.js');
@@ -829,8 +830,24 @@ export async function createBoard3D(host, board, {
   let disposed = false;
   const realShown = () => parts3dMode === 'real';
 
+  /** A model that isn't the library's: pin 1 on hole 1, pin 2 towards hole 2, as KiCad draws two-leg parts. */
+  function holesPlace(part) {
+    const holes = holesFor(part, p);
+    const a = holes[0] || [0, 0];
+    const b = holes[1];
+    return { x: a[0], y: a[1], angle: b ? (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI : 0, mirror: part.side === 'bottom', miss: 0 };
+  }
+
   function planReal(index) {
     for (const [ref, part] of Object.entries(board.parts)) {
+      const custom = typeof part.model === 'string' && /^(own|project):/.test(part.model) ? part.model : null;
+      if (custom) { // your own model, or the project's: where the library's would go, if one fits straight
+        const base = index ? modelFor({ ...part, ref, value: (details[ref] || {}).value || '' }, {}, index, { pitch: p }) : null;
+        const fit = base ? placeFor(base, part, { pitch: p }) : null;
+        const place = fit && fit.miss <= MISS_LIMIT && !fit.legs ? fit : holesPlace(part);
+        planned.set(ref, { custom, place, entry: { id: custom, model: { body: null }, footprint: { pins: [] }, paint: null } });
+        continue;
+      }
       const entry = index ? modelFor({ ...part, ref, value: (details[ref] || {}).value || '' }, {}, index, { pitch: p }) : null;
       if (!index) whySimple[ref] = WHY_SIMPLE.notLoaded;
       else if (!entry || !entry.model || !entry.model.file) whySimple[ref] = NO_FIT;
@@ -856,8 +873,9 @@ export async function createBoard3D(host, board, {
       realTotal = todo.length;
       realDone = 0;
       onProgress({ done: 0, total: realTotal });
-      await Promise.all(todo.map(async ([ref, { entry, place, chip }]) => {
-        const [model, chipModel] = await Promise.all([kit.get(entry.model.file), chip ? kit.get(chip.model.file) : null]);
+      await Promise.all(todo.map(async ([ref, { entry, place, chip, custom }]) => {
+        const [model, chipModel] = await Promise.all([custom ? kit.getFrom(custom, () => modelBytes(custom)) : kit.get(entry.model.file),
+          chip ? kit.get(chip.model.file) : null]);
         if (disposed) return;
         if (model) installReal(ref, entry, place, model, chipModel && { entry: chip, model: chipModel });
         else whySimple[ref] = WHY_SIMPLE.notLoaded;
@@ -916,7 +934,7 @@ export async function createBoard3D(host, board, {
       if (!obj.isMesh) return;
       const name = obj.material.name || '';
       obj.userData.ref = ref;
-      obj.userData.role = name === entry.model.body ? 'body' : /^(PIN|MET)-/i.test(name) ? 'pin' : 'part';
+      obj.userData.role = !entry.model.body || name === entry.model.body ? 'body' : /^(PIN|MET)-/i.test(name) ? 'pin' : 'part';
       obj.castShadow = true;
       obj.receiveShadow = obj.userData.role === 'body';
       if (obj.userData.role === 'body') bodies.push(obj);
@@ -933,6 +951,12 @@ export async function createBoard3D(host, board, {
     const part = board.parts[ref];
     if (!group || !part || real.has(ref)) return;
     const value = (details[ref] || {}).value || '';
+    const custom = !entry.model.file; // your own or the project's
+    if (custom) { // glTF is in metres: a model under 1 unit across was made so, and is scaled to mm
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.isEmpty() ? 0 : Math.max(...box.getSize(new THREE.Vector3()).toArray());
+      if (size > 0 && size <= 1) model.scale.setScalar(1000);
+    }
     const under = Boolean(place.mirror);
     const strips = part.type === 'dip' && part.holder === 'strips'; // the chip sits in Bench's own header strips
     const lift = place.legs ? BENT_LIFT : part.type === 'module' ? MODULE_LIFT : strips ? SIZES.strip.height + 0.05 : 0;
@@ -959,9 +983,9 @@ export async function createBoard3D(host, board, {
     }
     // Bench's paint: a resistor's body colour and bands, an LED's colour
     let tint = null;
-    const bands = part.type === 'res' || entry.paint === 'bands' ? resistorBands(value) : null;
-    if (part.type === 'res' || entry.paint === 'bands') tint = part.colour === 'blue' ? '#3f7fc4' : '#d9c39a';
-    if (part.type === 'led' || entry.paint === 'colour') tint = LED_COLOURS[part.colour] || LED_COLOURS[colourInValue(value)] || LED_COLOURS.green;
+    const bands = !custom && (part.type === 'res' || entry.paint === 'bands') ? resistorBands(value) : null;
+    if (!custom && (part.type === 'res' || entry.paint === 'bands')) tint = part.colour === 'blue' ? '#3f7fc4' : '#d9c39a';
+    if (!custom && (part.type === 'led' || entry.paint === 'colour')) tint = LED_COLOURS[part.colour] || LED_COLOURS[colourInValue(value)] || LED_COLOURS.green;
     if (tint) for (const body of bodies) body.material.color.set(tint).convertSRGBToLinear();
     if (bands && bands.length) bandsOn(model, bodies, bands, ref);
     inner.add(model);
@@ -980,12 +1004,12 @@ export async function createBoard3D(host, board, {
     }
     group.add(root);
     // what Bench keeps of its own drawing: a module's foam and wires, and printed values, moved onto the model
-    const keep = part.type === 'module' ? ['foam', 'wire', 'print'] : strips ? ['socket', 'contact', 'print'] : ['print'];
+    const keep = custom ? [] : part.type === 'module' ? ['foam', 'wire', 'print'] : strips ? ['socket', 'contact', 'print'] : ['print'];
     root.updateWorldMatrix(true, true);
     const box = new THREE.Box3();
     for (const body of bodies) box.expandByObject(body);
     box.translate(group.position.clone().negate());
-    if (part.type !== 'module' && !box.isEmpty()) {
+    if (part.type !== 'module' && !custom && !box.isEmpty()) {
       const centre = box.getCenter(new THREE.Vector3());
       const half = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
       for (const mesh of group.children) {
@@ -1146,6 +1170,11 @@ export async function createBoard3D(host, board, {
         realBoxes: Object.fromEntries(Object.entries(facts).map(([ref, f]) => [ref, f.box])),
         realPins: Object.fromEntries(Object.entries(facts).map(([ref, f]) => [ref, f.pins])),
         loading: { done: realDone, total: realTotal },
+        textures: each((x) => {
+          let n = 0;
+          x.root.traverse((o) => { if (o.isMesh && o.material && o.material.map) n += 1; });
+          return n;
+        }),
         selected,
         hover: hovered,
         litHoles,

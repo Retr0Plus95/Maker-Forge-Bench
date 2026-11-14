@@ -537,6 +537,14 @@ h1 {
 .board3d-bar .bar-label { font-size: .85rem; color: var(--muted); }
 #board3d-loading { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); margin: 0; padding: 4px 10px; border-radius: 6px; background: rgba(10,12,16,.82); color: #fff; font-size: .85rem; z-index: 3; pointer-events: none; }
 #board3d-loading[hidden] { display: none; }
+.look-models { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.look-models-title { margin: 0; font-weight: 700; }
+.look-models-group { margin: 6px 0 0; font-size: .8rem; color: var(--muted); }
+.look-model { display: flex; justify-content: space-between; gap: 8px; text-align: left; padding: 4px 8px; }
+.look-model[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.look-model-detail { font-size: .8rem; opacity: .8; white-space: nowrap; }
+#look-own-model { align-self: flex-start; margin-top: 4px; }
+#look-models-status:empty { display: none; }
 
 /* ---- continuity test and step extras (0.5) ---- */
 #continuity progress { width: 100%; height: 10px; accent-color: var(--good); }

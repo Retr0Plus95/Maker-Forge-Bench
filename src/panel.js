@@ -50,6 +50,7 @@ function looksBlock(L) {
     rows.append(el('label', { for: id }, f.label), select);
   }
   box.append(rows);
+  if (L.models) box.append(modelsBlock(L.models));
   if (L.note) box.append(el('p', { className: 'hint', id: 'part-looks-note' }, L.note));
   if (L.warning) box.append(el('p', { className: 'part-looks-warning', id: 'part-looks-warning', role: 'note' }, L.warning));
   if (L.changed) {
@@ -58,6 +59,34 @@ function looksBlock(L) {
     box.append(reset);
   }
   return box;
+}
+
+/** Looks like → 3D model (0.9): the library's models that fit, the project's, your own. Each is a button. */
+function modelsBlock(M) {
+  const list = el('div', { className: 'look-models', id: 'look-models', role: 'group', 'aria-label': '3D model' });
+  list.append(el('p', { className: 'look-models-title' }, '3D model'));
+  let group = null;
+  M.choices.forEach((c, i) => {
+    if (c.group && c.group !== group) list.append(el('p', { className: 'look-models-group' }, c.group));
+    group = c.group;
+    const words = [el('span', { className: 'look-model-name' }, c.label)];
+    if (c.detail) words.push(el('span', { className: 'look-model-detail' }, c.detail));
+    const button = el('button', { type: 'button', className: 'look-model', 'data-model': c.value, 'data-focus': `look-model-${i}`,
+      'aria-pressed': String(c.value === M.current) }, ...words);
+    button.addEventListener('click', () => M.onPick(c.value, c.label));
+    list.append(button);
+  });
+  const input = el('input', { type: 'file', id: 'look-own-file', accept: '.glb,model/gltf-binary', hidden: '' });
+  input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (file) M.onOwnFile(file);
+  });
+  const own = el('button', { type: 'button', id: 'look-own-model', 'data-focus': 'look-own-model',
+    title: 'A .glb file from any 3D program, up to 5 MB. It stays in this browser: nothing is uploaded.' }, 'Use my own model…');
+  own.addEventListener('click', () => input.click());
+  list.append(own, input, el('p', { className: 'hint', id: 'look-models-status', role: 'status' }, M.status || ''));
+  return list;
 }
 
 export function renderHint(container) {
