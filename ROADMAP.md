@@ -119,16 +119,23 @@ accurate models, easier to use and much more functions" (design `docs/design/202
 - Save my board as a file, open a board file.
 - Design: `docs/design/2026-11-13-release-0.6-design.md`.
 
-### 0.7 Everywhere (was 0.3)
-- Phone and tablet layouts: pinch, two-finger pan, a sheet menu.
-- **★ New: Keep screen on** at the bench. (Easy reading and themes arrived in 0.2.)
-- Open a public GitHub repo by pasting its link.
-- **★ New: Links straight to a part.**
+### 0.7 Everywhere — done 2026-11-13
+Open a project from anywhere and use Bench on a phone, ready for the website.
+Design: `docs/design/2026-11-13-release-0.7-design.md`.
+- Open a public GitHub repo by pasting its link (one call to GitHub for the file list, the files
+  from raw.githubusercontent.com), or a folder picked in the browser. `dev.py` also runs without
+  a folder, and then shows the start screen.
+- **★ Links straight to a part.**
   `forge.retr0plus.se/bench/?repo=Retr0Plus95/Solder-Fume-Extractor&sheet=SFE-04&part=R6`
-  opens right at R6. Good for sending a friend "look here", and for buttons on your website.
-- **★ New: Built-in examples**, like Shape's *Start from*: the fume extractor, plus the RGB Lamp
-  Controller once it has drawings.
-- Your own Claude key (or Ollama), the same way Shape does it.
+  opens right at R6, and Copy link keeps the repo. A repo link wins, even under `dev.py`.
+- **★ Built-in examples** on the start screen, like Shape's *Start from*: the fume extractor (the
+  RGB Lamp Controller joins once it has drawings).
+- Phone and tablet layouts: a Menu that folds the tools, the sheets as a sideways strip, a
+  bottom-sheet panel with a handle (tap or swipe), no sideways scrolling. Tested at 375 × 812 with
+  touch.
+- Your own Claude key (or Ollama on this computer), the same way Shape does it: AI help in Easy
+  reading, and Ask here in the part card.
+- (Keep screen on arrived in 0.4.1; pinch and two-finger pan in 0.5.)
 
 ### 0.8 True to life
 3D parts drawn to their datasheets (a new lathe shape, the real PDIP leg, TO-220, header strips),

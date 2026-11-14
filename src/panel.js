@@ -70,7 +70,10 @@ export function renderHint(container) {
  * @param {object} part  a Part from project.js
  * @param {{ sheetsWithPart: object[], datasheetHref: string|null, ticked?: boolean,
  *           onSheet(id: string): void, onTick?(): void, onClose(): void,
- *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean> },
+ *           ask?: { placeholder: string, onCopy(q: string): Promise<boolean>, onOpen(q: string): Promise<boolean>,
+ *                   here?: { name, onAsk(q): void, asking: boolean (a question is out), waiting: boolean (about this part),
+ *                            answer: string, failed: boolean } | null,
+ *                   onSetUp?(): void },
  *           step?: { number, total, title }, where?: { pins: [string, number[]][], body?: string, mount?: string, side: string },
  *           offBoard?: boolean, connections?: { pin, label, others: [string, string][] }[], onPart?(ref: string): void }} o
  */
@@ -265,9 +268,28 @@ export function renderCard(container, part, o) {
     copy.addEventListener('click', async () => say(await o.ask.onCopy(question.value)));
     const open = el('button', { id: 'ask-open', type: 'button' }, 'Open claude.ai');
     open.addEventListener('click', async () => say(await o.ask.onOpen(question.value)));
+    const row = el('div', { className: 'ask-actions' });
+    const here = o.ask.here;
+    if (here) { // AI help is set up: ask from the card, the answer shows below (0.7)
+      const askHere = el('button', { id: 'ask-here', type: 'button', className: 'primary' }, here.asking ? 'Asking…' : 'Ask here');
+      askHere.disabled = here.asking;
+      askHere.title = `Ask ${here.name} and show the answer here`;
+      askHere.addEventListener('click', () => here.onAsk(question.value));
+      row.append(askHere);
+    }
+    row.append(copy, open, done);
     askBox = el('div', { className: 'ask-box' },
-      el('label', { for: 'ask-question' }, 'Ask Claude about this part'), question,
-      el('div', { className: 'ask-actions' }, copy, open, done));
+      el('label', { for: 'ask-question' }, 'Ask Claude about this part'), question, row);
+    if (here && (here.waiting || here.answer)) {
+      const answer = el('div', { id: 'ask-answer', className: here.failed ? 'ask-answer ai-bad' : 'ask-answer', 'aria-live': 'polite' });
+      answer.textContent = here.waiting ? `Asking ${here.name}…` : here.answer; // plain text: never read as page code
+      if (!here.waiting && !here.failed) answer.prepend(el('span', { className: 'ask-who' }, `${here.name}:`), ' ');
+      askBox.append(answer);
+    } else if (!here && o.ask.onSetUp) {
+      const setUp = el('button', { id: 'ask-set-up', type: 'button', className: 'link-button' }, 'set up AI help');
+      setUp.addEventListener('click', o.ask.onSetUp);
+      askBox.append(el('p', { className: 'hint' }, 'To ask from here with your own Claude key or a model on this computer, ', setUp, '.'));
+    }
     const ask = el('button', { id: 'part-ask', type: 'button' }, 'Ask Claude');
     ask.addEventListener('click', () => question.focus());
     actions.append(ask);

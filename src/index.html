@@ -15,12 +15,13 @@
     <span id="live" aria-live="polite"></span>
     <span class="spacer"></span>
     <span id="saved" aria-live="polite"></span>
-    <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span> Undo</button>
-    <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span> Redo</button>
+    <button id="undo" class="tool" type="button" disabled title="Nothing to undo"><span aria-hidden="true">↶</span><span class="tool-word"> Undo</span></button>
+    <button id="redo" class="tool" type="button" disabled title="Nothing to redo"><span aria-hidden="true">↷</span><span class="tool-word"> Redo</span></button>
     <button id="calc-open" class="tool" type="button" title="Ohm's law, LED resistor, voltage divider">Calculators</button>
     <button id="wake" class="tool" type="button" aria-pressed="false" title="Stop the screen going dark while you solder">Keep screen on</button>
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="settings-button" class="tool" type="button" aria-haspopup="dialog">Easy reading</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="top">Menu</button>
   </div>
   <nav id="tabs" role="tablist" aria-label="Sheets"></nav>
   <div class="bar">
@@ -38,9 +39,11 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 0.6:</strong> name the holes like your board (type three, like L21), Suggest a spot for any part, and save your board as a file. Find them in My board on a photo. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 0.7:</strong> open a public GitHub repo from its link, or a folder on this computer; use Bench on your phone; and ask Claude (your own key) or Ollama right in a part card: set it up in Easy reading, under AI help. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <p id="sheet-note" aria-live="polite" hidden></p>
+<section id="start" hidden aria-labelledby="start-title"></section>
+<input id="source-folder" type="file" webkitdirectory multiple class="visually-hidden" tabindex="-1" aria-hidden="true">
 <div id="workspace">
   <main id="stage" aria-label="Drawing">
     <div id="sheet-host"></div>
@@ -91,6 +94,7 @@
   </section>
   <div id="panel-resize" role="separator" aria-orientation="vertical" aria-label="Drag to change the side panel's width" title="Drag to widen the panel"></div>
   <aside id="panel" aria-label="Part and build checklist">
+    <button id="panel-handle" type="button" aria-expanded="false" aria-label="Make the panel taller"><span aria-hidden="true"></span></button>
     <section id="part-card" aria-live="polite">
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
@@ -211,7 +215,32 @@
   </fieldset>
   <label class="check"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
   <label class="check"><input type="checkbox" name="compact"> Compact (more on screen)</label>
-  <p class="hint">Every change here can be undone with Ctrl+Z.</p>
+  <p class="hint">Every change above can be undone with Ctrl+Z.</p>
+  <h3 id="ai-title" class="settings-sub">AI help (optional)</h3>
+  <fieldset id="ai-provider">
+    <legend>Ask about a part from its card, with</legend>
+    <label><input type="radio" name="aiProvider" value="off"> Off</label>
+    <label><input type="radio" name="aiProvider" value="claude"> Claude (your API key)</label>
+    <label><input type="radio" name="aiProvider" value="ollama"> On this computer (Ollama)</label>
+  </fieldset>
+  <div id="ai-claude" class="ai-fields" hidden>
+    <label for="ai-key">Claude API key</label>
+    <input id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+    <label class="check"><input id="ai-remember" type="checkbox"> Remember the key in this browser</label>
+    <label for="ai-model">Model</label>
+    <input id="ai-model" type="text" autocomplete="off" spellcheck="false" placeholder="claude-opus-5-5">
+    <p class="hint">Get a key at console.anthropic.com; using it is billed to your account. The key goes only from this page to Anthropic, and is never put in a progress file, a board file or a link. Unless you tick Remember, it is forgotten when you close the page.</p>
+  </div>
+  <div id="ai-ollama" class="ai-fields" hidden>
+    <label for="ai-ollama-address">Ollama address</label>
+    <input id="ai-ollama-address" type="text" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434">
+    <p id="ai-ollama-why" class="ai-bad" role="alert" hidden></p>
+    <label for="ai-ollama-model">Model</label>
+    <input id="ai-ollama-model" type="text" autocomplete="off" spellcheck="false" placeholder="llama3.2">
+    <p class="hint">Ollama runs models on your own computer, free and offline. Install it from ollama.com, run <code id="ai-pull">ollama pull llama3.2</code>, and let this page talk to it: set <code>OLLAMA_ORIGINS</code> to <code id="ai-origin"></code> and restart Ollama. Small models make more mistakes.</p>
+  </div>
+  <div id="ai-test-row" class="ai-test" hidden><button id="ai-test" class="tool" type="button">Test it</button> <span id="ai-test-result" aria-live="polite"></span></div>
+  <p class="hint">What is sent: your question and the part's details from the project, the same text "Copy for Claude" copies. Never drawings, photos or files.</p>
   <button id="settings-done" class="primary" type="button">Done</button>
 </dialog>
 </body>

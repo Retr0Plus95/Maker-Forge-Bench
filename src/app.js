@@ -25,7 +25,12 @@ import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
 import { createBoard3D } from './board3d.js';
 import { indexSheet } from './search.js';
-import { ServerError, fetchText, listProject, projectUrl } from './sources.js';
+import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
+import { renderStart } from './start.js';
+import { EXAMPLES } from './examples.js';
+import { wireMenu, wireSheetHandle } from './phone.js';
+import { SYSTEM, aiForStorage, aiName, aiReady, askAi, cleanAi } from './ai.js';
+import { wireAiSettings } from './ai-settings.js';
 import { connectLive } from './live.js';
 import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
@@ -94,7 +99,9 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.7.0';
+// where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
+let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 
 // ---- undo, saved data and Easy reading (board-view design §6a and §7) ----
@@ -198,7 +205,7 @@ async function prepare(sheet) {
   const name = fileName(sheet.path);
   if (sheet.missing) throw new SheetError('missing', `${sheet.label}: ${sheet.path} isn't in the folder. Check the file name in forge-project.json.`);
   if (sheet.type === 'svg') {
-    const { text, size } = await fetchText(sheet.path);
+    const { text, size } = await source.text(sheet.path);
     const { doc } = prepareSvg(text, parser, name, size);
     const root = document.importNode(doc.documentElement, true);
     const box = svgSize({
@@ -213,7 +220,7 @@ async function prepare(sheet) {
   }
   const img = new Image();
   img.alt = sheet.label;
-  img.src = projectUrl(sheet.path, sheet.mtime);
+  img.src = await source.imageUrl(sheet.path, sheet.mtime);
   try {
     await img.decode();
   } catch {
@@ -223,7 +230,7 @@ async function prepare(sheet) {
 }
 
 function messageFor(error, sheet) {
-  if (error instanceof SheetError) return error.message;
+  if (error instanceof SheetError || error instanceof SourceError) return error.message;
   if (error instanceof ServerError) return SERVER_DOWN;
   console.error(error);
   return brokenMessage(fileName(sheet.path));
@@ -363,8 +370,8 @@ function sheetsWithPart(ref) {
 }
 
 function datasheetHref(part) {
-  if (part.datasheetFile) return projectUrl(part.datasheetFile, 0);
-  return part.datasheet || null;
+  const file = part.datasheetFile ? source.fileHref(part.datasheetFile) : null;
+  return file || part.datasheet || null;
 }
 
 function updatePartDots() {
@@ -486,7 +493,20 @@ function renderPartCard() {
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
     onTick: () => toggleTick(part.ref),
-    ask: { placeholder: DEFAULT_QUESTION, onCopy: copyForClaude, onOpen: openClaude },
+    ask: {
+      placeholder: DEFAULT_QUESTION,
+      onCopy: copyForClaude,
+      onOpen: openClaude,
+      here: aiReady(ai) ? {
+        name: aiName(ai),
+        onAsk: askHere,
+        asking: asked.asking,
+        waiting: asked.asking && asked.ref === part.ref,
+        answer: asked.ref === part.ref ? asked.answer : '',
+        failed: asked.ref === part.ref && asked.failed,
+      } : null,
+      onSetUp: openAiSettings,
+    },
     onSheet: (id) => showPartOn(id, part.ref),
     onClose: clearPart,
   });
@@ -560,7 +580,7 @@ function cardExtras(part, board) {
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
     library: lib,
     onCopy: () => copyText(`${part.ref}${part.value ? ` ${part.value}` : ''}`, `Copied ${part.ref}.`),
-    onLink: () => copyText(`${window.location.origin}${window.location.pathname}?sheet=${encodeURIComponent(state.current)}&part=${encodeURIComponent(part.ref)}`, 'Link to this part copied.'),
+    onLink: () => copyText(`${window.location.origin}${window.location.pathname}?${source.spec ? `${repoQuery(source.spec)}&` : ''}sheet=${encodeURIComponent(state.current)}&part=${encodeURIComponent(part.ref)}`, 'Link to this part copied.'),
     sameValue: same.length >= 2 ? { count: same.length, value: part.value, onTick: () => tickParts(same, `Tick all ${part.value}`) } : null,
     onWireAll: left.length ? () => wireMany(left.map((pin) => `${part.ref}:${pin}`), `Wired all of ${part.ref}`) : null,
     onPrev: () => stepPart(-1),
@@ -706,6 +726,40 @@ async function copyForClaude(question) {
   }
 }
 
+// ---- AI help: ask Claude with your own key, or Ollama on this computer (0.7 design §5) ----
+let ai = cleanAi(store.get('ai', null));
+const asked = { ref: null, asking: false, answer: '', failed: false };
+let aiSettings = null;
+
+function setAi(next) {
+  ai = next;
+  store.set('ai', aiForStorage(ai)); // the key only when Remember is ticked
+  if (state.selected) renderPartCard();
+}
+
+/** The card's Ask here: the same context Copy for Claude copies goes to the AI; the answer shows as plain text. */
+async function askHere(question) {
+  const ref = state.selected;
+  if (!ref || asked.asking) return;
+  const prompt = contextText(buildContext(), question);
+  Object.assign(asked, { ref, asking: true, answer: '', failed: false });
+  renderPartCard();
+  try {
+    asked.answer = await askAi(ai, SYSTEM, prompt, { origin: window.location.origin });
+  } catch (error) {
+    asked.answer = error.message;
+    asked.failed = true;
+  }
+  asked.asking = false;
+  if (state.selected) renderPartCard();
+}
+
+function openAiSettings() {
+  $('#settings-button').click();
+  $('#ai-title').scrollIntoView({ block: 'start' });
+  $('#settings input[name=aiProvider][value=claude]').focus();
+}
+
 /** Starts the copy, then opens claude.ai at once: opening after a wait would be blocked as a popup. */
 function openClaude(question) {
   const copying = copyForClaude(question);
@@ -827,13 +881,13 @@ const find = createFindBar({
 /** Reads forge-project.json. On a problem, says why (whenever the status line is free) and gives null. */
 async function readProjectFile() {
   try {
-    const { text } = await fetchText('forge-project.json');
+    const { text } = await source.text('forge-project.json');
     const project = parseProject(text);
     state.projectProblem = '';
     return project;
   } catch (error) {
-    if (!(error instanceof ProjectError) && !(error instanceof ServerError)) console.warn(error);
-    state.projectProblem = projectProblemText(error, error instanceof ServerError, SERVER_DOWN);
+    if (!(error instanceof ProjectError) && !(error instanceof ServerError) && !(error instanceof SourceError)) console.warn(error);
+    state.projectProblem = error instanceof SourceError ? error.message : projectProblemText(error, error instanceof ServerError, SERVER_DOWN);
     return null;
   }
 }
@@ -2680,7 +2734,7 @@ async function refreshSheet(sheet, mtime) {
 async function catchUp() {
   let project;
   try {
-    project = await listProject();
+    project = await source.list();
   } catch {
     return;
   }
@@ -2689,14 +2743,14 @@ async function catchUp() {
     const file = byPath.get(sheet.path);
     if (file && file.mtime !== sheet.mtime) onFileChange(sheet.path, file.mtime);
   }
-  relist();
+  relist(project);
 }
 
 /** Drawings were added or removed: list the folder again and rebuild the tabs. */
-async function relist() {
-  let project;
+async function relist(listing = null) {
+  let project = listing;
   try {
-    project = await listProject();
+    if (!project) project = await source.list();
   } catch {
     return;
   }
@@ -2759,6 +2813,16 @@ let livePaused = false;
 let liveNow = 'live';
 function showLive() {
   const badge = $('#live');
+  if (!source.live) {
+    // From GitHub or a picked folder: no auto-refresh, the badge refreshes when clicked (0.7)
+    const when = state.updatedAt ? ` · read ${state.updatedAt}` : '';
+    const button = el('button', { id: 'source-refresh', type: 'button', className: 'source-badge',
+      title: source.kind === 'github' ? 'Read the repo again and reload what changed' : 'Open the folder again to see changes' },
+    `${source.label}${source.spec ? `: ${source.spec.owner}/${source.spec.repo}` : ''}${when} ↻`);
+    button.addEventListener('click', () => (source.kind === 'github' ? refreshSource() : $('#source-folder').click()));
+    badge.replaceChildren(button);
+    return;
+  }
   badge.textContent = `${liveNow === 'live' ? 'Auto-refresh on' : 'Auto-refresh paused'}${state.updatedAt ? ` · updated ${state.updatedAt}` : ''}`;
 }
 function onLiveStatus(live) {
@@ -2920,6 +2984,10 @@ async function start() {
     }
   });
   setPanelHidden(store.get('panelHidden', false) === true);
+  // phones: the header's tools fold into a menu, the panel is a sheet from the bottom (0.7 design §4)
+  wireMenu({ top: $('#top'), button: $('#menu-toggle') });
+  wireSheetHandle({ panel: $('#panel'), handle: $('#panel-handle'), onChange: (tall) => store.set('panelTall', tall) })
+    .restore(store.get('panelTall', false) === true);
   $('#panel-toggle').addEventListener('click', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
   $('#rotate').addEventListener('click', turnPhoto);
   $('#fullscreen').hidden = !document.fullscreenEnabled;
@@ -3047,23 +3115,105 @@ async function start() {
     const before = settings;
     history.do({ label, apply: () => setSettings(next), revert: () => setSettings(before) });
   });
-  let project;
-  try {
-    project = await listProject();
-  } catch {
-    setStatus(SERVER_DOWN);
+  aiSettings = wireAiSettings({
+    dialog: $('#settings'),
+    get: () => ai,
+    set: setAi,
+    test: () => askAi(ai, 'Answer in one short, friendly sentence.', 'Say hello to someone soldering at their bench.', { origin: window.location.origin }),
+  });
+  $('#settings-button').addEventListener('click', () => aiSettings.show());
+  $('#source-folder').addEventListener('change', (e) => {
+    const picked = folderFiles(e.target.files);
+    e.target.value = '';
+    if (picked.files.length) refreshSource(folderSource(picked));
+  });
+  // a repo link wins, even under dev.py (0.7 design §2)
+  const repoText = new URLSearchParams(window.location.search).get('repo');
+  if (repoText !== null) {
+    const spec = parseRepoLink(repoText);
+    if (!spec) {
+      showStart(`That link isn't a GitHub repo: ${repoText.slice(0, 120)}`);
+      return;
+    }
+    await openProject(githubSource(spec));
     return;
   }
+  let listing;
+  try {
+    listing = await localSource().list();
+  } catch {
+    showStart(''); // no dev.py: the website, or dev.py without a folder
+    return;
+  }
+  await openProject(localSource(), listing);
+}
+
+// ---- the start screen (0.7 design §3) ----
+function repoQuery(spec) {
+  return `repo=${encodeURIComponent(repoParam(spec)).replace(/%2F/g, '/').replace(/%40/g, '@')}`;
+}
+
+function showStart(message) {
+  document.body.toggleAttribute('data-start', true);
+  $('#project-name').textContent = '';
+  document.title = 'Open a project – Maker Forge Bench';
+  setStatus('');
+  renderStart($('#start'), {
+    message,
+    examples: EXAMPLES.map((x) => ({ ...x, href: `?${repoQuery(parseRepoLink(x.repo))}` })),
+    onRepo: (text) => {
+      const spec = parseRepoLink(text);
+      if (!spec) return "That isn't a GitHub repo link. It looks like github.com/owner/name.";
+      window.location.search = `?${repoQuery(spec)}`;
+      return '';
+    },
+    onFolder: (files) => {
+      const picked = folderFiles(files);
+      if (!picked.files.length) return `${picked.root || 'That folder'} has no drawings (SVG, PNG or JPG) and no forge-project.json.`;
+      openProject(folderSource(picked));
+      return '';
+    },
+  });
+  $('#start').hidden = false;
+}
+
+function hideStart() {
+  document.body.toggleAttribute('data-start', false);
+  $('#start').hidden = true;
+  $('#start').replaceChildren();
+}
+
+/** Open a project from a source: its file list (given, or read now), its project file and its sheets. */
+async function openProject(src, listing = null) {
+  let project = listing;
+  try {
+    if (!project) project = await src.list();
+  } catch (error) {
+    showStart(error instanceof SourceError ? error.message : SERVER_DOWN);
+    return;
+  }
+  if (!src.live && !project.files.length) {
+    showStart(src.kind === 'github'
+      ? `${src.spec.owner}/${src.spec.repo} has no drawings (SVG, PNG or JPG) and no forge-project.json${src.spec.path ? ` in ${src.spec.path}` : ''}.`
+      : 'That folder has no drawings (SVG, PNG or JPG) and no forge-project.json.');
+    return;
+  }
+  hideStart();
+  source = src;
   state.root = project.root;
   if (project.files.some((f) => f.path === 'forge-project.json')) state.project = await readProjectFile();
   showProjectName();
   updateBoard3DButton();
-  setStatus('');
+  setStatus(project.truncated ? 'GitHub sent only part of this big repo\'s file list: some drawings may be missing. A link to its folder opens less.' : '');
   state.sheets = sheetsFor(project.files);
   loadProgress();
   loadOpenStep();
   renderTabs();
-  connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });
+  if (source.live) {
+    connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });
+  } else {
+    markUpdated();
+  }
   if (state.sheets.length === 0) {
     setStatus(noDrawingsMessage(project.root));
     return;
@@ -3078,14 +3228,47 @@ async function start() {
   openFromLink();
 }
 
-/** A link with ?sheet=…&part=… opens there (0.5 improvement 1). */
+/** A link with ?sheet=…&part=… opens there (0.5 improvement 1); a repo in it stays (0.7). */
 async function openFromLink() {
   const q = new URLSearchParams(window.location.search);
   const sheet = q.get('sheet');
   const part = q.get('part');
   if (sheet && state.sheets.some((s) => s.id === sheet)) await selectSheet(sheet);
   if (part && state.partsByRef.has(part)) selectPart(part);
-  if (sheet || part) window.history.replaceState(null, '', window.location.pathname); // once: a reload stays where you are
+  if (sheet || part) { // once: a reload stays where you are
+    window.history.replaceState(null, '', `${window.location.pathname}${source.spec ? `?${repoQuery(source.spec)}` : ''}`);
+  }
+}
+
+/** From GitHub or a picked folder: read the file list again and reload what changed (0.7 design §1). */
+async function refreshSource(next = source) {
+  let listing;
+  try {
+    listing = await next.list();
+  } catch (error) {
+    setStatus(error instanceof SourceError ? error.message : String(error && error.message));
+    return;
+  }
+  source = next;
+  const byPath = new Map(listing.files.map((f) => [f.path, f]));
+  const changed = state.sheets.filter((s) => !s.missing && byPath.has(s.path) && byPath.get(s.path).mtime !== s.mtime)
+    .map((s) => ({ path: s.path, mtime: byPath.get(s.path).mtime }));
+  state.root = listing.root;
+  const fresh = byPath.has('forge-project.json') ? await readProjectFile() : null;
+  if (fresh || !byPath.has('forge-project.json')) state.project = fresh; // a broken project file keeps the last good one
+  showProjectName();
+  setStatus(state.projectProblem || '');
+  await relist(listing);
+  for (const c of changed) {
+    const sheet = state.sheets.find((s) => s.path === c.path);
+    if (sheet) await refreshSheet(sheet, c.mtime);
+  }
+  markUpdated();
+  updateParts();
+  checkProgressKey();
+  refreshOpenStep();
+  resetBoard3D();
+  find.refresh(true);
 }
 
 start();

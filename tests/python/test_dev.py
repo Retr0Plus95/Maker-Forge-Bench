@@ -227,5 +227,35 @@ class TestLiveServer(DevServerTestCase):
         conn.close()
 
 
+class TestAppAlone(unittest.TestCase):
+    """dev.py without a folder serves the app alone, as the website will (0.7)."""
+
+    def setUp(self):
+        self.server = dev.make_server(None, 0)
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+
+    def get(self, path):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        conn.request("GET", path)
+        resp = conn.getresponse()
+        body = resp.read()
+        conn.close()
+        return resp, body
+
+    def test_the_page_but_no_files(self):
+        resp, body = self.get("/")
+        self.assertEqual(resp.status, 200)
+        self.assertIn(b"Maker Forge Bench", body)
+        for path in ("/api/files", "/api/events", "/project/forge-project.json"):
+            resp, _ = self.get(path)
+            self.assertEqual(resp.status, 404, path)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -151,13 +151,14 @@ class BenchServer(ThreadingHTTPServer):
     # the rest whenever the server is busy for a moment, and the page's scripts fail to load.
     request_queue_size = 128
 
-    def __init__(self, root: Path, port: int):
-        self.root = root
-        self.watcher = Watcher(root)
+    def __init__(self, root: Path | None, port: int):
+        self.root = root  # None: the app alone, like the website (0.7): no files, no events
+        self.watcher = Watcher(root) if root is not None else None
         super().__init__(("127.0.0.1", port), BenchHandler)
 
     def server_close(self) -> None:
-        self.watcher.stop()
+        if self.watcher is not None:
+            self.watcher.stop()
         super().server_close()
 
 
@@ -196,6 +197,9 @@ class BenchHandler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return
         path = urlsplit(self.path).path
+        if self.server.root is None and (path.startswith("/api/") or path.startswith("/project/")):
+            self.send_error(404, "No project folder: open one in the page.")
+            return
         if path == "/api/files":
             body = json.dumps({"root": self.server.root.name, "files": list_files(self.server.root)},
                               ensure_ascii=False).encode("utf-8")
@@ -253,7 +257,7 @@ class BenchHandler(BaseHTTPRequestHandler):
             self.server.watcher.unsubscribe(q)
 
 
-def make_server(root: Path, port: int) -> ThreadingHTTPServer:
+def make_server(root: Path | None, port: int) -> ThreadingHTTPServer:
     return BenchServer(root, port)
 
 
@@ -261,15 +265,18 @@ def main(argv: list[str] | None = None) -> int:
     # Paths can hold any character; the Windows console's default code page can't print them all.
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Show a project folder's drawings in Maker Forge Bench.")
-    parser.add_argument("folder", help="the project folder with the drawings")
+    parser.add_argument("folder", nargs="?", help="the project folder with the drawings (without one: the app alone, like the website)")
     parser.add_argument("--port", type=int, default=8765, help="0 picks a free port (default 8765)")
     args = parser.parse_args(argv)
-    root = Path(args.folder).resolve()
-    if not root.is_dir():
-        print(f"Maker Forge Bench: {root} isn't a folder. Give dev.py the project folder.", flush=True)
-        return 2
+    root = None
+    if args.folder is not None:
+        root = Path(args.folder).resolve()
+        if not root.is_dir():
+            print(f"Maker Forge Bench: {root} isn't a folder. Give dev.py the project folder.", flush=True)
+            return 2
     server = make_server(root, args.port)
-    print(f"Maker Forge Bench: http://127.0.0.1:{server.server_address[1]}/ (serving {root})", flush=True)
+    what = f"serving {root}" if root is not None else "the app alone: open a project in the page"
+    print(f"Maker Forge Bench: http://127.0.0.1:{server.server_address[1]}/ ({what})", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
