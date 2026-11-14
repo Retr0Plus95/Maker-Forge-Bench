@@ -138,7 +138,7 @@ export function boardFromPlacement(projectBoard, placed, anchor, wirePaths = [])
   for (const [ref, pins] of Object.entries(placed || {})) {
     const part = projectBoard.parts[ref];
     if (!part || ref === anchor) continue;
-    const { keepout, ...rest } = part; // a module's outline was drawn for sheet 4, not your board
+    const { keepout, also, ...rest } = part; // a module's outline (and holes wired to it) were drawn for sheet 4, not your board
     parts[ref] = { ...rest, pins: { ...pins } };
     placedCount++;
   }

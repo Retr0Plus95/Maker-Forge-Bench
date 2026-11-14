@@ -31,6 +31,7 @@ import { createHistory } from './history.js';
 import { createStore, projectKey } from './store.js';
 import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
+import { applyLooks, lookFields, lookSummary } from './looks.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -73,6 +74,8 @@ const state = {
   folded: new Set(), // panel sections folded away (0.4.1)
   startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
   continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
+  looks: Object.create(null), // what each part looks like as you fitted it: { ref: { holder, colour, swap, ... } } (0.8 §2)
+  looksOpen: false, // the card's Looks like is open
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
   clearAt: 0, // when Clear my board was first clicked
@@ -366,15 +369,101 @@ function updatePartDots() {
   for (const tab of $('#tabs').children) tab.toggleAttribute('data-has-part', withPart.has(tab.dataset.id));
 }
 
+// ---- your parts (0.8 design §2): the board as you built it ----
+let builtCache = { from: null, looks: null, value: { board: null, cards: {}, pinMaps: {} } };
+/** The project's board with your looks applied: { board, cards, pinMaps } (worked out once per change). */
+function builtLooks() {
+  const board = state.project ? state.project.board : null;
+  if (builtCache.from !== board || builtCache.looks !== state.looks) {
+    builtCache = { from: board, looks: state.looks, value: applyLooks(board, state.looks, (ref) => state.partsByRef.get(ref) || null) };
+  }
+  return builtCache.value;
+}
+/** The board as you built it: everything that reads the project's board reads this. */
+function projectBoard() {
+  return builtLooks().board;
+}
+/** A part as its card shows it: a part fitted in another's place has its own value and type. */
+function cardPart(ref) {
+  const part = ref ? state.partsByRef.get(ref) : null;
+  const card = part ? builtLooks().cards[ref] : null;
+  return card ? { ...part, ...card } : part || null;
+}
+
+function looksCardOptions(ref) {
+  const base = state.project && state.project.board ? state.project.board.parts[ref] : null;
+  if (!base) return null;
+  const look = state.looks[ref] || {};
+  const fields = lookFields(base, look, state.partsByRef.get(ref) || null);
+  if (!fields.length) return null;
+  const card = builtLooks().cards[ref];
+  return {
+    fields,
+    summary: lookSummary(fields),
+    changed: Object.keys(look).length > 0,
+    open: state.looksOpen,
+    warning: card ? card.warning : null,
+    note: card ? card.wiredTo : null,
+    onToggle: (open) => { state.looksOpen = open; },
+    onChange: (field, value) => {
+      const choice = fields.find((f) => f.field === field)?.choices.find((c) => c.value === value);
+      setLook(ref, field, value, choice ? choice.label : String(value));
+    },
+    onReset: () => setLook(ref, null),
+  };
+}
+
+/** Your placement of a part whose pins are renamed by a swap (or by undoing one): the holes follow the names. */
+function placementAfterSwap(ref, fromLooks, toLooks) {
+  const placed = state.myBoard.placed[ref];
+  const board = state.project ? state.project.board : null; // the drawing's own, before any look
+  if (!placed || !board) return state.myBoard;
+  const partOf = (r) => state.partsByRef.get(r) || null;
+  const was = applyLooks(board, { [ref]: fromLooks[ref] || {} }, partOf).pinMaps[ref] || null;
+  const now = applyLooks(board, { [ref]: toLooks[ref] || {} }, partOf).pinMaps[ref] || null;
+  if (JSON.stringify(was) === JSON.stringify(now)) return state.myBoard;
+  // back to the drawing's names first, then on to the new part's
+  const original = {};
+  for (const [pin, hole] of Object.entries(placed)) {
+    const o = was ? Object.keys(was).find((k) => was[k] === pin) : pin; // one hole, one pin
+    if (o && !original[o]) original[o] = hole;
+  }
+  const next = {};
+  for (const [o, hole] of Object.entries(original)) {
+    const pin = now ? now[o] : o;
+    if (pin && !next[pin]) next[pin] = hole;
+  }
+  const placedNow = { ...state.myBoard.placed };
+  const target = applyLooks(board, toLooks, partOf).board.parts[ref];
+  if (target && Object.keys(target.pins).every((p) => next[p])) placedNow[ref] = next;
+  else delete placedNow[ref]; // a pin it had is gone: place it again
+  return { ...state.myBoard, placed: placedNow };
+}
+
+/** Changes how a part looks (field null: back to the drawing's look), as one undo step. */
+function setLook(ref, field, value, words = String(value)) {
+  const before = { looks: state.looks, myBoard: state.myBoard };
+  const looks = Object.assign(Object.create(null), state.looks);
+  let mine = { ...(looks[ref] || {}) };
+  if (field === null) mine = {};
+  else if (field === 'swap') mine = value ? { swap: value } : {}; // another part starts from its own look
+  else mine[field] = value;
+  if (Object.keys(mine).length) looks[ref] = mine;
+  else delete looks[ref];
+  const myBoard = placementAfterSwap(ref, state.looks, looks);
+  const label = field === null ? `${ref} back to the drawing's look` : `${ref}: ${words}`;
+  history.do({ label, apply: () => setProgress({ looks, myBoard }), revert: () => setProgress(before) });
+}
+
 function renderPartCard() {
   if (board3d && board3dOn) board3d.select(state.selected);
   drawMyBoardMarks();
-  const part = state.selected ? state.partsByRef.get(state.selected) : null;
+  const part = state.selected ? cardPart(state.selected) : null;
   if (!part) {
     renderHint($('#part-card'));
     return;
   }
-  const board = state.project ? state.project.board : null;
+  const board = projectBoard();
   const onBoard = board ? board.parts[part.ref] : null;
   const build = state.project ? state.project.build : [];
   const stepIndex = build.findIndex((s) => s.parts.includes(part.ref));
@@ -388,6 +477,7 @@ function renderPartCard() {
     wired: board ? state.wired : null,
     onWire: setWired,
     pins: pinOptions(onBoard),
+    looks: looksCardOptions(part.ref),
     myBoard: myBoardCardOptions(part.ref, onBoard),
     extras: cardExtras(part, board),
     sheetsWithPart: sheetsWithPart(part.ref),
@@ -405,7 +495,7 @@ function pinOptions(onBoard) {
   const side = store.get('pinSide', 'top') === 'bottom' ? 'bottom' : 'top';
   const layout = onBoard ? pinLayout(onBoard, side) : null;
   if (!layout) return null;
-  const lib = libraryFor(state.partsByRef.get(state.selected));
+  const lib = libraryFor(cardPart(state.selected));
   return {
     names: lib && lib.pins ? Object.fromEntries(layout.pins.filter((p) => lib.pins[p.pin]).map((p) => [p.pin, lib.pins[p.pin]])) : {},
     layout,
@@ -581,7 +671,7 @@ function nearbyText(ref) {
 
 /** What's selected, for the Claude app (it reads window.makerForge.context() from the browser pane) and for copying. */
 function buildContext() {
-  const part = state.selected ? state.partsByRef.get(state.selected) : null;
+  const part = state.selected ? cardPart(state.selected) : null;
   const sheet = state.sheets.find((s) => s.id === state.current);
   const fields = part ? Object.fromEntries(PART_FIELDS.filter((k) => part[k] !== undefined).map((k) => [k, part[k]])) : null;
   return {
@@ -724,7 +814,7 @@ const find = createFindBar({
   },
   setStatus,
   extras: (query) => [
-    ...findLines(state.project ? state.project.board : null, query)
+    ...findLines(projectBoard(), query)
       .map((l) => ({ cls: 'find-line', text: `Line ${l.label}: ${l.legs} legs`, onPick: () => openLine(l.net) })),
     ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => selectPart(p.ref) })),
   ],
@@ -797,7 +887,7 @@ function syncStep3D() {
 }
 
 /** What the 3D view prints and names: each part's value. */
-const partDetails = () => Object.fromEntries(state.parts.map((p) => [p.ref, { value: p.value || '' }]));
+const partDetails = () => Object.fromEntries(state.parts.map((p) => [p.ref, { value: cardPart(p.ref).value || '' }]));
 
 function download(href, name) {
   const link = el('a', { href, download: name });
@@ -838,7 +928,7 @@ let board3dSource = 'sheet4'; // which board the 3D view shows: 'sheet4' or 'min
 
 /** Your own placement as a board, when a photo is lined up. */
 function myBoardFor3D() {
-  const board = state.project ? state.project.board : null;
+  const board = projectBoard();
   if (!board || !Object.keys(state.myBoard.photos).length) return null;
   const wires = store.get('showWires', false) === true
     ? suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}).flatMap((g) => g.wires.map((w) => w.path)) : [];
@@ -862,7 +952,7 @@ function myBoardFor3D() {
 /** The board the 3D view draws now. */
 function board3dData() {
   const mine = board3dSource === 'mine' ? myBoardFor3D() : null;
-  return mine || (state.project ? state.project.board : null);
+  return mine || projectBoard();
 }
 
 function updateBoard3DSource() {
@@ -949,7 +1039,7 @@ async function resetBoard3D() {
 }
 
 // ---- your board, from your photos (0.4 design F3) ----
-const boardOf = () => (state.project ? state.project.board : null);
+const boardOf = () => projectBoard();
 const isPhotoSheet = (id) => state.sheets.some((s) => s.id === id && (s.type === 'png' || s.type === 'jpg'));
 const hasPhotos = () => state.sheets.some((s) => !s.missing && (s.type === 'png' || s.type === 'jpg'));
 const sheetLabel = (id) => (state.sheets.find((s) => s.id === id) || { label: id }).label;
@@ -1062,7 +1152,7 @@ function drawMyBoardMarks() {
     const sel = state.selected;
     const selHoles = sel === anchor ? board.parts[anchor].pins : sel ? placed[sel] : null;
     if (selHoles) {
-      const lib = libraryForPart(state.partsByRef.get(sel));
+      const lib = libraryForPart(cardPart(sel));
       for (const [pin, hole] of Object.entries(selHoles)) {
         const at = t.toPixel(hole);
         const name = lib && lib.pins && lib.pins[pin] ? lib.pins[pin].split(' ')[0] : pinText(pin);
@@ -1734,14 +1824,14 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
 
 function saveReport() {
-  const board = state.project ? state.project.board : null;
+  const board = projectBoard();
   const groups = currentGroups();
   const steps = stepsOf();
   const checks = powerChecks(board);
@@ -1886,7 +1976,7 @@ function onStageHover(e) {
     }
     const text = target instanceof Element ? target.closest('text') : null;
     const ref = text ? refOfLabel(labelText(text), isKnownRef) : null;
-    const part = ref ? state.partsByRef.get(ref) : null;
+    const part = ref ? cardPart(ref) : null;
     if (!part) {
       tip.hidden = true;
       return;
@@ -1944,7 +2034,7 @@ function setWired(key, on) {
   history.do({ label: `${on ? 'Wired' : 'Unwired'} ${ref} ${pin}`, apply: () => setProgress({ wired: after }), revert: () => setProgress({ wired: before }) });
 }
 
-const currentGroups = () => wiringGroups(state.project ? state.project.board : null);
+const currentGroups = () => wiringGroups(projectBoard());
 
 function updateNetRings() {
   const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
@@ -2004,7 +2094,7 @@ const stepsOf = () => (state.project ? state.project.build : []);
 const stepKey = () => `${state.progressKey}:step`;
 
 function stepWhatText(step) {
-  const board = state.project ? state.project.board : null;
+  const board = projectBoard();
   if (!board) return '';
   const lines = [];
   if (step.what.includes('buses') && board.buses.length) {
@@ -2041,7 +2131,7 @@ function setCheck(id, on, label) {
 
 // ---- the guided continuity test (0.5 big improvement B6) ----
 function currentTests() {
-  const tests = continuityTests(state.project ? state.project.board : null);
+  const tests = continuityTests(projectBoard());
   const map = holeMap();
   if (!map || !tests.length) return tests;
   // with hole names on, each leg that's on your board says where (0.6)
@@ -2105,7 +2195,7 @@ function autoNextStep(wasDone) {
 }
 
 function stepExtras(step) {
-  const board = state.project ? state.project.board : null;
+  const board = projectBoard();
   const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
   return {
     joints,
@@ -2123,7 +2213,7 @@ function stepExtras(step) {
 
 function renderChecksPanel() {
   renderChecks($('#checks'), {
-    checks: powerChecks(state.project ? state.project.board : null),
+    checks: powerChecks(projectBoard()),
     done: state.checks,
     onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check before power`),
   });
@@ -2205,6 +2295,7 @@ function loadProgress() {
   state.checks = new Set(data ? data.checks : []);
   state.continuity = data ? data.continuity : {};
   state.log = data ? data.log : [];
+  state.looks = data ? data.looks : Object.create(null);
   refreshNotes();
 }
 
@@ -2219,7 +2310,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks });
   if (saved) flashSaved();
 }
 
@@ -2270,7 +2361,7 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks }) {
   const stepWasDone = autoStepWasDone();
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
@@ -2291,6 +2382,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
   if (continuity) state.continuity = continuity;
+  if (looks) {
+    state.looks = looks;
+    state.suggest = null;
+  }
   if (flipped) {
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
@@ -2306,6 +2401,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   renderPartCard();
   updateMyBoard();
   updateTabCounts();
+  if (looks) resetBoard3D();
   autoNextStep(stepWasDone);
 }
 
@@ -2395,7 +2491,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -2420,8 +2516,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 

@@ -45,6 +45,12 @@ export const SIZES = {
 
 export const LED_COLOURS = { red: '#ff3b30', green: '#3ddc84', yellow: '#ffd60a', blue: '#3a86ff', white: '#f2f2f2' };
 
+/** An LED colour named in a part's value ("5 mm green LED" → 'green'), or null. */
+export function colourInValue(value) {
+  const m = /\b(red|green|yellow|blue|white)\b/i.exec(String(value || ''));
+  return m ? m[1].toLowerCase() : null;
+}
+
 const mm = (hole, pitch) => [(hole[0] - 1) * pitch, (hole[1] - 1) * pitch];
 const centre = (pts) => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
 const lead = (points, role = 'lead', radius = LEAD) => ({ kind: 'wire', points, radius, colour: LEAD_COLOUR, role });
@@ -284,8 +290,32 @@ export function partGeometry(part, pitch = 2.54, ref = '', details = {}) {
     case 'to220': {
       const S = SIZES.to220;
       const order = ['IN', 'GND', 'OUT'].every((n) => pins[n]) ? ['IN', 'GND', 'OUT'] : Object.keys(pins).sort();
-      const first = pins[order[0]];
-      const last = pins[order[order.length - 1]];
+      // legs in three holes in a row; otherwise (in a module's place) it stands in the part's outline,
+      // wired to its holes
+      const holes = order.map((n) => part.pins[n]);
+      const step = holes.length > 1 ? [holes[1][0] - holes[0][0], holes[1][1] - holes[0][1]] : [1, 0];
+      const inRow = Math.abs(step[0]) + Math.abs(step[1]) === 1 &&
+        holes.every((h, i) => h[0] === holes[0][0] + i * step[0] && h[1] === holes[0][1] + i * step[1]);
+      let legs = holes.map((h) => mm(h, pitch));
+      if (!inRow) {
+        const k = part.keepout;
+        const mid = k ? [Math.round((k[0] + k[2]) / 2), Math.round((k[1] + k[3]) / 2)]
+          : [Math.round(holes.reduce((t, h) => t + h[0], 0) / holes.length), Math.round(holes.reduce((t, h) => t + h[1], 0) / holes.length)];
+        legs = holes.map((_, i) => mm([mid[0] + i - Math.floor(holes.length / 2), mid[1]], pitch));
+        const wire = (from, to) => ({ kind: 'wire', points: [[from[0], from[1], below], [from[0], from[1], 1.2], [to[0], to[1], 1.2]], radius: 0.4, colour: '#d23b3b', role: 'wire' });
+        order.forEach((n, i) => {
+          out.push(wire(pins[n], legs[i]));
+          for (const h of (part.also && part.also[n]) || []) {
+            const at = mm(h, pitch);
+            out.push(wire(at, legs[i]));
+            if (part.side !== 'bottom') out.push(joint(at));
+          }
+          if (part.side !== 'bottom') out.push(joint(legs[i]));
+        });
+      }
+      const [cx, cy] = centre(legs);
+      const first = legs[0];
+      const last = legs[legs.length - 1];
       const { ux, uy } = along(first, last);
       const want = { down: [0, 1], up: [0, -1], left: [-1, 0], right: [1, 0] }[part.facing] || [0, 1];
       let f = [-uy, ux]; // the printed face points this way
@@ -303,7 +333,7 @@ export function partGeometry(part, pitch = 2.54, ref = '', details = {}) {
       out.push({ kind: 'hcyl', x1: h1x, y1: h1y, x2: h2x, y2: h2y, z: S.lift + S.total - S.holeFromTop, radius: S.hole / 2, colour: '#0b0b0b', role: 'hole' });
       const [fx, fy] = at(front + 0.02);
       out.push({ kind: 'print', text: (details.value || '').split(/\s/)[0].slice(0, 10), x: fx, y: fy, z: S.lift + S.body * 0.55, w: 8, h: 1.6, normal: [f[0], f[1], 0], up: [0, 0, 1], colour: '#d0d0d0', role: 'print' });
-      for (const p of pts) {
+      for (const p of legs) {
         out.push({ kind: 'box', x: p[0], y: p[1], z0: S.lift - 1.6, w: S.shoulder, d: S.leadThick, h: 1.6, angle, colour: LEAD_COLOUR, role: 'leg-shoulder', metal: 0.7 });
         out.push({ kind: 'box', x: p[0], y: p[1], z0: below, w: S.lead, d: S.leadThick, h: S.lift - 1.6 - below, angle, colour: LEAD_COLOUR, role: 'leg', metal: 0.7 });
       }
@@ -417,8 +447,7 @@ export function partGeometry(part, pitch = 2.54, ref = '', details = {}) {
     }
     case 'led': {
       const L = SIZES.led;
-      const named = /\b(red|green|yellow|blue|white)\b/i.exec(details.value || '');
-      const colour = LED_COLOURS[part.colour] || (named && LED_COLOURS[named[1].toLowerCase()]) || LED_COLOURS.green;
+      const colour = LED_COLOURS[part.colour] || LED_COLOURS[colourInValue(details.value)] || LED_COLOURS.green;
       const [a, k] = [pins.A || pins['1'] || pts[0], pins.K || pins['2'] || pts[1] || pts[0]];
       const kl = Math.hypot(k[0] - cx, k[1] - cy);
       const [kx, ky] = kl ? [(k[0] - cx) / kl, (k[1] - cy) / kl] : [0, 1];

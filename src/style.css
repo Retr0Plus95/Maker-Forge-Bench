@@ -616,3 +616,11 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
 }
 #stage-retry { position: absolute; left: 50%; top: calc(50% + 48px); transform: translateX(-50%); z-index: 1; }
 #stage-retry[hidden] { display: none; }
+
+/* Looks like on the part card (0.8 design §2) */
+.part-looks { margin: 0.5rem 0; }
+.part-looks summary { cursor: pointer; }
+.part-looks #part-looks-summary { color: var(--muted, #9aa4ad); }
+.look-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.35rem 0.6rem; align-items: center; margin: 0.5rem 0; }
+.look-rows select { min-width: 0; max-width: 100%; font: inherit; padding: 0.2rem 0.3rem; }
+.part-looks-warning { border-left: 3px solid #e0a020; padding-left: 0.5rem; }

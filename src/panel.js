@@ -31,6 +31,35 @@ function keepFocus(container, build, fallbackSelector = 'button, input') {
   if (caret && target === again && typeof again.setSelectionRange === 'function') again.setSelectionRange(...caret);
 }
 
+/** Looks like (0.8 design §2): what this part really is and looks like, as you fitted it. */
+function looksBlock(L) {
+  const box = el('details', { id: 'part-looks', className: 'part-looks' });
+  if (L.open) box.open = true;
+  box.addEventListener('toggle', () => L.onToggle(box.open));
+  box.append(el('summary', { 'data-focus': 'looks' }, el('span', {}, 'Looks like: '), el('span', { id: 'part-looks-summary' }, L.summary)));
+  const rows = el('div', { className: 'look-rows' });
+  for (const f of L.fields) {
+    const id = `look-${f.field}`;
+    const select = el('select', { id, 'data-focus': id });
+    f.choices.forEach((c, i) => {
+      const option = el('option', { value: String(i) }, c.label);
+      if (c.value === f.current) option.selected = true;
+      select.append(option);
+    });
+    select.addEventListener('change', () => L.onChange(f.field, f.choices[Number(select.value)].value));
+    rows.append(el('label', { for: id }, f.label), select);
+  }
+  box.append(rows);
+  if (L.note) box.append(el('p', { className: 'hint', id: 'part-looks-note' }, L.note));
+  if (L.warning) box.append(el('p', { className: 'part-looks-warning', id: 'part-looks-warning', role: 'note' }, L.warning));
+  if (L.changed) {
+    const reset = el('button', { id: 'look-reset', type: 'button', 'data-focus': 'look-reset' }, "Back to the drawing's look");
+    reset.addEventListener('click', L.onReset);
+    box.append(reset);
+  }
+  return box;
+}
+
 export function renderHint(container) {
   container.replaceChildren(el('p', { className: 'hint' },
     "Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes."));
@@ -100,6 +129,7 @@ export function renderCard(container, part, o) {
     if (o.where.body) children.push(el('p', { className: 'part-standing' }, `Standing: body over pin ${o.where.body}`));
     else if (o.where.mount === 'flat') children.push(el('p', { className: 'part-flat' }, 'Lies flat on the board'));
   }
+  if (o.looks) children.push(looksBlock(o.looks));
   if (o.offBoard) children.push(el('p', { className: 'part-offboard' }, 'Not on the board (wired to it).'));
   if (o.connections && o.connections.length) {
     const list = el('ul', { className: 'part-connections' });
