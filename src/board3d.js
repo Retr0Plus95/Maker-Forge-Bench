@@ -42,11 +42,12 @@ const motionReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)'
  * - modelBytes(choice): the bytes of a model a look chose that isn't the library's (own:…, project:…)
  * - boardColour: a BOARD_COLOURS name; soldered: the refs whose joints are soldered (null: all);
  *   polarity: Which way round's marks to start with
+ * - onMark(id): a finding's mark was clicked (setMarks)
  */
 export async function createBoard3D(host, board, {
   onPick, onHover = () => {}, camera: savedCamera = null, onCamera = () => {}, details = {},
   parts3d = 'real', library = null, models = null, onProgress = () => {}, modelBytes = async () => null,
-  boardColour = 'green', soldered = null, polarity = false,
+  boardColour = 'green', soldered = null, polarity = false, onMark = () => {},
 }) {
   if (!webglAvailable()) return null;
   const THREE = await import('./three.module.js');
@@ -148,6 +149,7 @@ export async function createBoard3D(host, board, {
   const boardMesh = new THREE.Mesh(new THREE.BoxGeometry((board.cols + 1) * p, T, (board.rows + 1) * p), boardMat);
   boardMesh.position.set(cx, -T / 2, cz);
   boardMesh.receiveShadow = true;
+  boardMesh.userData.exportName = 'board';
   scene.add(boardMesh);
   const holes = board.cols * board.rows;
   // the pads' own material (not the shared one): it changes with the board's colour
@@ -155,6 +157,8 @@ export async function createBoard3D(host, board, {
   const pads = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.85, 0.85, T + 0.08, 16), padMat, holes);
   const drills = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.45, 0.45, T + 0.14, 10), material('#0d0d0d'), holes);
   pads.receiveShadow = true;
+  pads.userData.exportName = 'pads';
+  drills.userData.exportName = 'holes';
   const m = new THREE.Matrix4();
   let i = 0;
   for (let c = 1; c <= board.cols; c++) {
@@ -173,6 +177,7 @@ export async function createBoard3D(host, board, {
     stripMesh.setMatrixAt(r - 1, m);
   }
   stripMesh.receiveShadow = true;
+  stripMesh.userData.exportName = 'strips';
   stripMesh.visible = false;
   scene.add(stripMesh);
   let colourName = 'green';
@@ -227,7 +232,10 @@ export async function createBoard3D(host, board, {
     const mesh = segment(at(bridge.holes[0], -T - 0.3), at(bridge.holes[1], -T - 0.3), 0.75, material('#d0d4d8', { metal: 0.8 }));
     if (mesh) wiring.push(mesh);
   }
-  for (const mesh of wiring) scene.add(mesh);
+  for (const mesh of wiring) {
+    mesh.userData.exportName = 'wiring';
+    scene.add(mesh);
+  }
 
   // ---- printed text and labels
   function textTexture(text, colour, w, h) {
@@ -410,6 +418,7 @@ export async function createBoard3D(host, board, {
   // every leg's solder joint under the board: one instanced mesh
   const jointMat = material('#d6d9dc', { metal: 0.9 });
   const joints = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.95, 0.32, 0.9, 16), jointMat, Math.max(1, jointSpots.length));
+  joints.userData.exportName = 'joints';
   scene.add(joints);
   /** Your progress (0.9): the parts you've ticked get solder joints; the rest show their bare legs. */
   function setSoldered(refs) {
@@ -433,6 +442,17 @@ export async function createBoard3D(host, board, {
   let stepLater = new Set();
   let hideLater = false;
   let netParts = new Set();
+  // the height check (0.9): a lid at some height over the board, and the parts that poke through it
+  let lid = null;
+  let poking = new Set();
+  const POKE = '#ff3b30';
+  const lidPlane = new THREE.Mesh(new THREE.PlaneGeometry((board.cols + 3) * p, (board.rows + 3) * p),
+    new THREE.MeshBasicMaterial({ color: '#7cc8ff', transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
+  lidPlane.rotation.x = -Math.PI / 2;
+  lidPlane.position.set(cx, 0, cz);
+  lidPlane.visible = false;
+  lidPlane.userData.noExport = true;
+  scene.add(lidPlane);
   let explode = 0;
   const LIFT = 1.2;
   let lit = null; // the selected part's holes, lit on both faces of the board
@@ -523,12 +543,12 @@ export async function createBoard3D(host, board, {
   let polarityOn = false;
   const MARK_COLOURS = { '+': '#ff6b5e', K: '#7cc8ff', 1: '#ffd27a' };
   const markLine = new THREE.LineBasicMaterial({ color: '#ffffff', depthTest: false, transparent: true, opacity: 0.7 });
-  function markSprite(text) {
+  function markSprite(text, fill = MARK_COLOURS[text] || '#ffffff', ink = '#111111') {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
     const g = canvas.getContext('2d');
-    g.fillStyle = MARK_COLOURS[text] || '#ffffff';
+    g.fillStyle = fill;
     g.strokeStyle = 'rgba(0,0,0,0.85)';
     g.lineWidth = 5;
     g.beginPath();
@@ -538,7 +558,7 @@ export async function createBoard3D(host, board, {
     g.font = 'bold 36px system-ui, sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillStyle = '#111111';
+    g.fillStyle = ink;
     g.fillText(text, 32, 34);
     const texture = new THREE.CanvasTexture(canvas);
     texture.encoding = THREE.sRGBEncoding;
@@ -613,6 +633,81 @@ export async function createBoard3D(host, board, {
     return true;
   }
 
+  /** How far each part reaches above the board (top side) or below it (underneath), in mm, at rest. */
+  function partHeights() {
+    const out = {};
+    for (const [ref, group] of groups) {
+      const box = localBox(group);
+      if (box.isEmpty()) continue;
+      const below = group.userData.side === 'bottom';
+      out[ref] = { side: below ? 'bottom' : 'top', h: Math.round(Math.max(0, below ? -T - box.min.y : box.max.y) * 10) / 10 };
+    }
+    return out;
+  }
+  function heights() {
+    const parts = partHeights();
+    const tallest = (s) => {
+      let best = null;
+      for (const [ref, x] of Object.entries(parts)) if (x.side === s && (!best || x.h > best.h)) best = { ref, h: x.h };
+      return best;
+    };
+    return { top: tallest('top'), bottom: tallest('bottom'), parts };
+  }
+  /** A lid h mm over the board (null: none): the parts taller than that glow red. */
+  function setLid(h) {
+    const n = h === null || h === '' ? NaN : Number(h);
+    lid = Number.isFinite(n) && n > 0 && n < 1000 ? n : null;
+    lidPlane.visible = lid !== null;
+    if (lid !== null) lidPlane.position.y = lid;
+    const parts = partHeights();
+    poking = new Set(lid === null ? [] : Object.entries(parts).filter(([, x]) => x.side === 'top' && x.h > lid).map(([ref]) => ref));
+    restyle();
+    return [...poking];
+  }
+
+  // ---- findings as marks (0.9): Check my board's, a red mark each over the hole it's about
+  const findingMarks = [];
+  function setMarks(list) {
+    for (const mk of findingMarks) {
+      scene.remove(mk.sprite, mk.line);
+      mk.line.geometry.dispose();
+      mk.sprite.material.map.dispose();
+      mk.sprite.material.dispose();
+    }
+    findingMarks.length = 0;
+    const tallest = heights();
+    const over = Math.max(10, (tallest.top ? tallest.top.h : 0) + 3);
+    const under = -T - Math.max(6, (tallest.bottom ? tallest.bottom.h : 0) + 3);
+    for (const f of list || []) {
+      if (!f || !Number.isFinite(f.x) || !Number.isFinite(f.y)) continue;
+      const below = f.side === 'bottom';
+      const y = below ? under : over;
+      const sprite = markSprite('!', f.level === 'warning' ? '#ffb020' : '#ff3b30', f.level === 'warning' ? '#111111' : '#ffffff');
+      sprite.position.set(f.x, y, f.y);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(f.x, y, f.y), new THREE.Vector3(f.x, below ? -T : 0, f.y)]), markLine);
+      line.renderOrder = 10;
+      sprite.userData.noExport = true;
+      scene.add(sprite, line);
+      findingMarks.push({ id: String(f.id), text: String(f.text || ''), sprite, line });
+    }
+    render();
+  }
+  function toScreen(v) {
+    const pt = v.clone().project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    return { x: rect.left + ((pt.x + 1) / 2) * rect.width, y: rect.top + ((1 - pt.y) / 2) * rect.height };
+  }
+  /** The finding mark under the pointer (within 14 px), or null. */
+  function markNear(e) {
+    let best = null;
+    for (const mk of findingMarks) {
+      const s = toScreen(mk.sprite.position);
+      const d = Math.hypot(s.x - e.clientX, s.y - e.clientY);
+      if (d <= 14 && (!best || d < best.d)) best = { mark: mk, d };
+    }
+    return best ? best.mark : null;
+  }
+
   const explodeOrder = new Map([...groups.keys()].map((ref, k) => [ref, k]));
   polarityOn = Boolean(polarity);
   placeMarks();
@@ -625,7 +720,7 @@ export async function createBoard3D(host, board, {
       group.position.y = bottomSide ? -(lift + spread * 0.6) : lift + spread;
       group.visible = !(hideLater && stepLater.has(ref));
       if (group.userData.tag) group.userData.tag.scale.set(LABEL_W * (on ? 1.35 : 1), LABEL_H * (on ? 1.35 : 1), 1);
-      const glow = on ? SELECT : stepNow.has(ref) ? STEP : netParts.has(ref) ? NET : ref === hovered ? HOVER : null;
+      const glow = on ? SELECT : poking.has(ref) ? POKE : stepNow.has(ref) ? STEP : netParts.has(ref) ? NET : ref === hovered ? HOVER : null;
       const faded = !glow && stepLater.has(ref) && !hideLater;
       group.traverse((obj) => {
         if (!obj.isMesh || obj.userData.print) return;
@@ -875,6 +970,11 @@ export async function createBoard3D(host, board, {
       if (hit) addMeasurePoint(hit.point);
       return;
     }
+    const mark = markNear(e);
+    if (mark) {
+      onMark(mark.id);
+      return;
+    }
     const ref = partAt(e);
     if (ref) onPick(ref);
   });
@@ -890,7 +990,8 @@ export async function createBoard3D(host, board, {
     if (e.buttons || hoverFrame) return;
     hoverFrame = requestAnimationFrame(() => {
       hoverFrame = 0;
-      const ref = cubeFaceAt(e) ? null : partAt(e);
+      const mark = cubeFaceAt(e) ? null : markNear(e);
+      const ref = cubeFaceAt(e) || mark ? null : partAt(e);
       if (ref !== hovered) {
         hovered = ref;
         onHover(ref);
@@ -900,6 +1001,12 @@ export async function createBoard3D(host, board, {
         const rect = renderer.domElement.getBoundingClientRect();
         const d = details[ref] || {};
         tip.textContent = d.value ? `${ref} · ${d.value}` : ref;
+        tip.style.left = `${e.clientX - rect.left + 14}px`;
+        tip.style.top = `${e.clientY - rect.top + 12}px`;
+        tip.hidden = false;
+      } else if (mark) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        tip.textContent = mark.text;
         tip.style.left = `${e.clientX - rect.left + 14}px`;
         tip.style.top = `${e.clientY - rect.top + 12}px`;
         tip.hidden = false;
@@ -951,7 +1058,7 @@ export async function createBoard3D(host, board, {
       if (g !== geometry) g.dispose();
     };
     scene.updateMatrixWorld(true);
-    const skip = (obj) => (lit && lit.children.includes(obj)) || (measureGroup && measureGroup.children.includes(obj));
+    const skip = (obj) => obj.userData.noExport || (lit && lit.children.includes(obj)) || (measureGroup && measureGroup.children.includes(obj));
     scene.traverse((obj) => {
       if (!obj.isMesh || obj.userData.print || !shown(obj) || skip(obj)) return;
       if (obj.isInstancedMesh) {
@@ -973,6 +1080,189 @@ export async function createBoard3D(host, board, {
       t.forEach((v, j) => out.setFloat32(o + j * 4, v, true));
     });
     return buffer;
+  }
+
+  /** What a file of the board holds: each mesh that shows, an instanced one copy by copy, in the scene's frame. */
+  function exportList() {
+    scene.updateMatrixWorld(true);
+    const out = [];
+    const im = new THREE.Matrix4();
+    const skip = (obj) => obj.userData.noExport || (lit && lit.children.includes(obj)) || (measureGroup && measureGroup.children.includes(obj));
+    const nameOf = (obj) => {
+      for (let o = obj; o; o = o.parent) if (o.userData && o.userData.ref) return o.userData.ref;
+      for (let o = obj; o; o = o.parent) if (o.userData && o.userData.exportName) return o.userData.exportName;
+      return 'board';
+    };
+    scene.traverse((obj) => {
+      if (!obj.isMesh || !shown(obj) || skip(obj) || !obj.geometry.attributes.position) return;
+      if (obj.isInstancedMesh) {
+        for (let k = 0; k < obj.count; k++) {
+          obj.getMatrixAt(k, im);
+          out.push({ name: nameOf(obj), mesh: obj, matrix: new THREE.Matrix4().multiplyMatrices(obj.matrixWorld, im) });
+        }
+      } else {
+        out.push({ name: nameOf(obj), mesh: obj, matrix: obj.matrixWorld.clone() });
+      }
+    });
+    return out;
+  }
+  // the library's models are packed (KHR_mesh_quantization: whole-number positions, small normals);
+  // three r128's exporter writes only plain numbers, so a file gets plain copies
+  const UNIT = { Int8Array: 127, Uint8Array: 255, Int16Array: 32767, Uint16Array: 65535 };
+  function plainGeometry(geo, copies) {
+    const attrs = Object.values(geo.attributes);
+    if (attrs.every((a) => !a.isInterleavedBufferAttribute && a.array instanceof Float32Array)) return geo;
+    if (!copies.has(geo)) {
+      const out = new THREE.BufferGeometry();
+      for (const [name, a] of Object.entries(geo.attributes)) {
+        const src = a.isInterleavedBufferAttribute ? a.data.array : a.array;
+        const stride = a.isInterleavedBufferAttribute ? a.data.stride : a.itemSize;
+        const start = a.isInterleavedBufferAttribute ? a.offset : 0;
+        const unit = a.normalized ? UNIT[src.constructor.name] || 1 : 1;
+        const values = new Float32Array(a.count * a.itemSize);
+        for (let i = 0; i < a.count; i++) {
+          for (let c = 0; c < a.itemSize; c++) {
+            const v = src[i * stride + start + c];
+            values[i * a.itemSize + c] = unit === 1 ? v : Math.max(v / unit, -1);
+          }
+        }
+        out.setAttribute(name, new THREE.BufferAttribute(values, a.itemSize));
+      }
+      if (geo.index) out.setIndex(new THREE.BufferAttribute(Uint32Array.from(geo.index.array), 1));
+      for (const g of geo.groups) out.addGroup(g.start, g.count, g.materialIndex);
+      copies.set(geo, out);
+    }
+    return copies.get(geo);
+  }
+  /** The board as GLB (three's GLTFExporter): real parts and all, in metres, as it looks (not lit up). */
+  async function exportGlb() {
+    const { GLTFExporter } = await import('./three-gltf-exporter.js');
+    const root = new THREE.Group();
+    root.name = 'Bench board';
+    root.scale.setScalar(0.001); // glTF is in metres; the scene is in mm
+    const plain = new Map();
+    const materialOf = (mat) => {
+      if (!plain.has(mat)) {
+        const base = mat.userData.clearBase;
+        const lit = (mat.emissive && mat.emissive.getHex() !== 0) || (base && (mat.opacity !== base.opacity || mat.transparent !== base.transparent));
+        let copy = mat;
+        if (lit) {
+          copy = mat.clone();
+          if (copy.emissive) copy.emissive.set(0x000000);
+          if (base) Object.assign(copy, { transparent: base.transparent, opacity: base.opacity });
+        }
+        plain.set(mat, copy);
+      }
+      return plain.get(mat);
+    };
+    const named = new Map();
+    const copies = new Map();
+    for (const item of exportList()) {
+      if (!named.has(item.name)) {
+        const g = new THREE.Group();
+        g.name = item.name;
+        named.set(item.name, g);
+        root.add(g);
+      }
+      const mesh = new THREE.Mesh(plainGeometry(item.mesh.geometry, copies), Array.isArray(item.mesh.material) ? item.mesh.material.map(materialOf) : materialOf(item.mesh.material));
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.copy(item.matrix);
+      named.get(item.name).add(mesh);
+    }
+    try {
+      const result = await new Promise((resolve, reject) => {
+        try {
+          new GLTFExporter().parse(root, resolve, { binary: true, onlyVisible: false });
+        } catch (error) {
+          reject(error);
+        }
+      });
+      return new Blob([result], { type: 'model/gltf-binary' });
+    } finally {
+      for (const [mat, copy] of plain) if (copy !== mat) copy.dispose();
+      for (const geo of copies.values()) geo.dispose();
+    }
+  }
+  /** The board as OBJ, written here: an object per part, in mm with z up, like the STL. */
+  function exportObj() {
+    const chunks = ['# Maker Forge Bench board, in mm, z up (like the STL)\n'];
+    const r3 = (x) => String(Math.round(x * 1000) / 1000 || 0);
+    const r4 = (x) => String(Math.round(x * 10000) / 10000 || 0);
+    const v = new THREE.Vector3();
+    const n = new THREE.Vector3();
+    const nm = new THREE.Matrix3();
+    let base = 1;
+    let last = null;
+    for (const item of exportList()) {
+      const g = item.mesh.geometry;
+      const pos = g.attributes.position;
+      const nor = g.attributes.normal;
+      nm.getNormalMatrix(item.matrix);
+      const lines = [];
+      if (item.name !== last) {
+        lines.push(`o ${item.name}`);
+        last = item.name;
+      }
+      for (let k = 0; k < pos.count; k++) {
+        v.fromBufferAttribute(pos, k).applyMatrix4(item.matrix);
+        lines.push(`v ${r3(v.x)} ${r3(-v.z)} ${r3(v.y)}`); // three's y-up → z-up
+      }
+      for (let k = 0; k < pos.count; k++) {
+        if (nor) n.fromBufferAttribute(nor, k).applyMatrix3(nm).normalize();
+        else n.set(0, 1, 0);
+        lines.push(`vn ${r4(n.x)} ${r4(-n.z)} ${r4(n.y)}`);
+      }
+      const idx = g.index;
+      const count = idx ? idx.count : pos.count;
+      for (let k = 0; k + 2 < count; k += 3) {
+        const [a, b, c] = (idx ? [idx.getX(k), idx.getX(k + 1), idx.getX(k + 2)] : [k, k + 1, k + 2]).map((q) => q + base);
+        lines.push(`f ${a}//${a} ${b}//${b} ${c}//${c}`);
+      }
+      base += pos.count;
+      chunks.push(`${lines.join('\n')}\n`);
+    }
+    return new Blob(chunks, { type: 'model/obj' });
+  }
+  /** A WebM of the board turning once (the browser's own recorder), or null where it can't record. */
+  async function turntable(seconds = 10) {
+    const type = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t));
+    if (!type || !renderer.domElement.captureStream) return null;
+    if (flight) cancelAnimationFrame(flight.frame);
+    flight = null;
+    const stream = renderer.domElement.captureStream(30);
+    const recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 4000000 });
+    const pieces = [];
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size) pieces.push(e.data); };
+    const stopped = new Promise((resolve) => { recorder.onstop = resolve; });
+    const start = camera.position.clone();
+    const from = new THREE.Spherical().setFromVector3(start.clone().sub(controls.target));
+    const backdrop = scene.background;
+    scene.background = new THREE.Color('#1b1f24'); // the page behind the view isn't in the video
+    recorder.start(250);
+    const t0 = performance.now();
+    await new Promise((resolve) => {
+      const frame = (now) => {
+        if (disposed) return resolve();
+        const t = Math.min(1, (now - t0) / (seconds * 1000));
+        const s = from.clone();
+        s.theta += t * Math.PI * 2;
+        camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s));
+        controls.update();
+        render();
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+        return null;
+      };
+      requestAnimationFrame(frame);
+    });
+    recorder.stop();
+    await stopped;
+    for (const track of stream.getTracks()) track.stop();
+    scene.background = backdrop;
+    camera.position.copy(start);
+    controls.update();
+    render();
+    return pieces.length ? new Blob(pieces, { type: 'video/webm' }) : null;
   }
 
   // ---- real parts (0.9 design §2): the library's model in each drawn part's place, once loaded
@@ -1315,6 +1605,23 @@ export async function createBoard3D(host, board, {
     },
     setPolarity,
     flyToParts,
+    /** The camera now ({ side, position, target }), for saved views. */
+    camera: () => cameraNow(),
+    /** Goes to a saved camera. */
+    setCamera(saved) {
+      if (!saved || !Array.isArray(saved.position) || !Array.isArray(saved.target) ||
+          ![...saved.position, ...saved.target].every((n) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) < 1e5)) return false;
+      side = VIEW_NAMES.includes(saved.side) ? saved.side : side;
+      camera.up.set(0, 1, 0);
+      flyTo(new THREE.Vector3().fromArray(saved.position), new THREE.Vector3().fromArray(saved.target));
+      return true;
+    },
+    heights,
+    setLid,
+    setMarks,
+    exportGlb,
+    exportObj,
+    turntable,
     /** The box round some parts ({ min, max } in the scene), for tests; null if none show. */
     boxOf(refs) {
       const box = boxOfParts(refs);
@@ -1369,6 +1676,10 @@ export async function createBoard3D(host, board, {
         strips: stripMesh.visible ? board.rows : 0,
         polarityMarks: marks.size,
         polarity: [...marks.keys()],
+        lid,
+        poking: [...poking],
+        marks: findingMarks.length,
+        markSpots: findingMarks.map((mk) => ({ id: mk.id, ...toScreen(mk.sprite.position) })),
         hidden: [...groups.values()].filter((g) => !g.visible).length,
         net: [...netParts],
         target: controls.target.toArray(),

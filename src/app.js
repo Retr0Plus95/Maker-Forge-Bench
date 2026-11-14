@@ -492,6 +492,10 @@ function looksCardOptions(ref) {
   const models = modelChoices(ref, look);
   if (!fields.length && !models) return null;
   const card = builtLooks().cards[ref];
+  // the box as it is on screen wins: its toggle event comes a moment after a click, and the card can
+  // be drawn again in between (the library arriving does that)
+  const live = document.querySelector('#part-looks');
+  if (live) state.looksOpen = live.open;
   const chosen = look.model && models ? (models.choices.find((c) => c.value === look.model) || { label: look.model }).label : '';
   return {
     fields,
@@ -804,6 +808,7 @@ window.makerForge = Object.freeze({
     screenOf: (ref) => (board3d && board3dOn ? board3d.screenOf(ref) : null),
     info: () => (board3d && board3dOn ? board3d.info() : null),
     boxOf: (refs) => (board3d && board3dOn ? board3d.boxOf(refs) : null),
+    heights: () => (board3d && board3dOn ? board3d.heights() : null),
   }),
 });
 
@@ -1064,6 +1069,126 @@ function setBoardColour(name) {
   $('#board3d-colour').value = boardColourNow();
   if (board3d) board3d.setBoardColour(boardColourNow());
 }
+// saved views (0.9): up to nine per project, by name
+const viewsKey = () => `views:${projectName()}`;
+const goodView = (v) => v && typeof v.name === 'string' && v.name.trim() && v.camera && Array.isArray(v.camera.position) && Array.isArray(v.camera.target);
+function savedViews() {
+  const list = store.get(viewsKey(), []);
+  return Array.isArray(list) ? list.filter(goodView).slice(-9) : [];
+}
+let lastView = null; // the saved view you chose last: Forget forgets it
+function renderSavedViews() {
+  const views = savedViews();
+  if (lastView && !views.some((v) => v.name === lastView)) lastView = null;
+  $('#board3d-views').replaceChildren(el('option', { value: '' }, views.length ? 'Saved views…' : 'No saved views yet'),
+    ...views.map((v, i) => el('option', { value: String(i) }, v.name)));
+  $('#board3d-views').value = '';
+  const forget = $('#board3d-view-forget');
+  forget.disabled = !lastView;
+  forget.textContent = lastView ? `Forget “${lastView}”` : 'Forget';
+}
+function saveView() {
+  if (!board3d) return;
+  const input = $('#board3d-view-name');
+  const views = savedViews();
+  const name = input.value.trim().slice(0, 40) || `View ${views.length + 1}`;
+  const rest = views.filter((v) => v.name !== name); // the same name saves over it; the oldest makes way for a tenth
+  store.set(viewsKey(), [...rest, { name, camera: board3d.camera() }].slice(-9));
+  input.value = '';
+  lastView = name;
+  renderSavedViews();
+}
+function chooseView(value) {
+  const view = savedViews()[Number(value)];
+  if (value !== '' && view && board3d) {
+    board3d.setCamera(view.camera);
+    lastView = view.name;
+  }
+  renderSavedViews();
+}
+function forgetView() {
+  if (!lastView) return;
+  store.set(viewsKey(), savedViews().filter((v) => v.name !== lastView));
+  lastView = null;
+  renderSavedViews();
+}
+
+// the height check (0.9): the tallest part on each side, and what pokes through a lid
+function showHeights() {
+  if (!board3d) return;
+  const h = board3d.heights();
+  const parts = [];
+  if (h.top) parts.push(`${h.top.ref} ${h.top.h.toFixed(1)} mm on top`);
+  if (h.bottom) parts.push(`${h.bottom.ref} ${h.bottom.h.toFixed(1)} mm underneath`);
+  $('#board3d-heights').textContent = parts.length ? `Tallest: ${parts.join(', ')}` : '';
+  setLid($('#board3d-lid').value);
+}
+function setLid(value) {
+  if (!board3d) return;
+  const lid = value === '' ? null : Number(value);
+  const refs = board3d.setLid(lid);
+  const on = lid !== null && Number.isFinite(lid) && lid > 0 && lid < 1000;
+  $('#board3d-lid-note').textContent = !on ? '' : refs.length ? `Pokes through: ${refs.join(', ')}` : 'Nothing pokes through.';
+}
+
+// findings in 3D (0.9): Check my board's problems as marks on your board; clicking one opens it
+let findings3D = new Map();
+const findingId = (f) => `${f.kind}:${f.refs.join(',')}`;
+function marksFor3D() {
+  findings3D = new Map();
+  if (board3dSource !== 'mine') return [];
+  const mine = myBoardFor3D();
+  const board = boardOf();
+  if (!mine || !board) return [];
+  const [dc, dr] = mine.shift || [0, 0];
+  const marks = [];
+  for (const f of checkPlacement(board, state.myBoard.placed, anchorRef(), nameOfHole)) {
+    if (!f.at || f.level === 'todo') continue;
+    const id = findingId(f);
+    findings3D.set(id, f);
+    marks.push({ id, x: (f.at[0] + dc - 1) * mine.pitch, y: (f.at[1] + dr - 1) * mine.pitch, side: f.side, level: f.level, text: f.text });
+  }
+  return marks;
+}
+async function openFinding(id) {
+  const f = findings3D.get(id);
+  if (!f) return;
+  state.openFinding = id;
+  showTab('board');
+  // the findings list shows with your photo: go to the lined-up one if another sheet is showing
+  const photo = transformFor(state.current) ? state.current : Object.keys(state.myBoard.photos).find((sheet) => transformFor(sheet));
+  if (photo && photo !== state.current) await selectSheet(photo);
+  state.myBoardOpen = true;
+  selectPart(f.refs[0]);
+  renderMyBoardPanel();
+  const li = document.querySelector(`#myboard-check li[data-finding="${CSS.escape(id)}"]`);
+  if (li) li.scrollIntoView({ block: 'nearest' });
+}
+
+const canRecord = () => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm') &&
+  typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype;
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  download(url, name);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+async function saveTurntable() {
+  const button = $('#board3d-video');
+  if (!board3d || button.disabled) return;
+  button.disabled = true;
+  button.textContent = 'Recording… 10 s';
+  try {
+    const blob = await board3d.turntable(10);
+    if (blob) saveBlob(blob, `${fileSafe(projectName())}-board.webm`);
+    else setStatus("This browser couldn't record the video.");
+  } catch {
+    setStatus("This browser couldn't record the video.");
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Turntable video';
+  }
+}
+
 const polarity3dOn = () => store.get('polarity3d', false) === true;
 function setPolarity3d(on) {
   store.set('polarity3d', Boolean(on));
@@ -1111,6 +1236,7 @@ function setParts3d(mode) {
 
 /** The loading bar: "Real parts 12 of 31", gone when they're all in (or couldn't load). */
 function showRealProgress({ done, total }) {
+  if (total && done >= total) setTimeout(showHeights, 0); // real parts change the heights
   const bar = $('#board3d-loading');
   bar.hidden = parts3dMode() !== 'real' || !total || done >= total;
   bar.textContent = `Real parts ${done} of ${total}`;
@@ -1239,6 +1365,7 @@ async function setBoard3D(on) {
         boardColour: boardColourNow(),
         soldered: [...state.ticked],
         polarity: polarity3dOn(),
+        onMark: openFinding,
       }).then((view) => {
         if (view) {
           view.showWiring($('#board3d-wiring').checked);
@@ -1252,6 +1379,11 @@ async function setBoard3D(on) {
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
         step3DFlown = openStepId(); // a new view keeps its saved camera: only the next step turns it
+        if (view) {
+          view.setMarks(marksFor3D());
+          renderSavedViews();
+          showHeights();
+        }
         return view;
       });
     }
@@ -1272,7 +1404,10 @@ async function resetBoard3D() {
   if (board3dBuilding) await board3dBuilding;
   updateBoard3DSource();
   const board = board3dData();
-  if (board3d && board && JSON.stringify(board) === board3dBoard) return;
+  if (board3d && board && JSON.stringify(board) === board3dBoard) {
+    board3d.setMarks(marksFor3D());
+    return;
+  }
   if (board3d) board3d.dispose();
   board3d = null;
   board3dBoard = '';
@@ -1466,7 +1601,7 @@ function myBoardMore() {
     lineLabels: store.get('lineLabels', false) === true,
     wires: store.get('showWires', false) === true,
     routes,
-    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole),
+    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole).map((f) => ({ ...f, id: findingId(f), open: findingId(f) === state.openFinding })),
     labels: holeLabelsOptions(),
     suggest: suggestOptions(),
     onSuggest: () => {
@@ -1482,7 +1617,10 @@ function myBoardMore() {
     onLineLabels: (on) => { store.set('lineLabels', on); updateMyBoard(); },
     onWires: (on) => { store.set('showWires', on); updateMyBoard(); resetBoard3D(); },
     onRoute: (net, shape, label) => changeMyBoard(`Wires for ${label}: ${shape}`, (b) => { b.routes = { ...(b.routes || {}), [net]: shape }; }),
-    onShow: (ref) => selectPart(ref),
+    onShow: (ref) => {
+      state.openFinding = null;
+      selectPart(ref);
+    },
     onNext: () => {
       const ref = placingOrder().find((r) => !state.myBoard.placed[r]);
       if (ref) {
@@ -3421,6 +3559,30 @@ async function start() {
   $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
   $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
   $('#board3d-colour').addEventListener('change', (e) => setBoardColour(e.target.value));
+  $('#board3d-view-save').addEventListener('click', saveView);
+  $('#board3d-view-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveView();
+  });
+  $('#board3d-views').addEventListener('change', (e) => chooseView(e.target.value));
+  $('#board3d-view-forget').addEventListener('click', forgetView);
+  $('#board3d-lid').addEventListener('input', (e) => setLid(e.target.value));
+  $('#board3d-glb').addEventListener('click', async () => {
+    if (!board3d) return;
+    const button = $('#board3d-glb');
+    button.disabled = true;
+    try {
+      saveBlob(await board3d.exportGlb(), `${fileSafe(projectName())}-board.glb`);
+    } catch {
+      setStatus("The GLB couldn't be made in this browser. Save STL or OBJ instead.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+  $('#board3d-obj').addEventListener('click', () => {
+    if (board3d) saveBlob(board3d.exportObj(), `${fileSafe(projectName())}-board.obj`);
+  });
+  $('#board3d-video').hidden = !canRecord();
+  $('#board3d-video').addEventListener('click', saveTurntable);
   $('#board3d-polarity').addEventListener('change', (e) => setPolarity3d(e.target.checked));
   $('#board3d-upto').addEventListener('change', syncStep3D);
   $('#board3d-explode').addEventListener('input', (e) => board3d && board3d.setExplode(Number(e.target.value)));

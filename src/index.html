@@ -76,6 +76,17 @@
           <button id="board3d-fit" class="tool" type="button" title="Show the whole board">Fit</button>
           <button id="board3d-reset" class="tool" type="button">Reset view</button>
         </div>
+        <div class="bar-group" role="group" aria-label="Saved views">
+          <select id="board3d-views" aria-label="Saved views" title="Your saved views of this board (up to nine)"><option value="">No saved views yet</option></select>
+          <input id="board3d-view-name" type="text" maxlength="40" placeholder="Name this view" aria-label="Name for this view">
+          <button id="board3d-view-save" class="tool" type="button">Save view</button>
+          <button id="board3d-view-forget" class="tool" type="button" disabled>Forget</button>
+        </div>
+        <div class="bar-group" role="group" aria-label="Height check">
+          <label class="slider" title="A lid this high over the board: the parts taller than it light up red">Lid at <input id="board3d-lid" type="number" min="1" max="200" step="0.5" placeholder="off"> mm</label>
+          <span id="board3d-lid-note" class="hint" role="status"></span>
+          <span id="board3d-heights" class="hint"></span>
+        </div>
         <div class="bar-group" role="group" aria-label="Show">
           <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
           <label class="check"><input id="board3d-labels" type="checkbox" checked> Labels</label>
@@ -100,6 +111,9 @@
           <button id="board3d-play" class="tool" type="button" aria-pressed="false">Play the steps</button>
           <button id="board3d-png" class="tool" type="button">Save picture</button>
           <button id="board3d-stl" class="tool" type="button" title="The board as a 3D file, for Shape or a slicer">Save STL</button>
+          <button id="board3d-glb" class="tool" type="button" title="The board with its colours and real parts, for 3D viewers and Blender">Save GLB</button>
+          <button id="board3d-obj" class="tool" type="button" title="The board as an OBJ: a shape per part">Save OBJ</button>
+          <button id="board3d-video" class="tool" type="button" hidden title="A 10-second turn of the board, saved as a WebM video">Turntable video</button>
         </div>
         <span class="hint">Real parts: KiCad's 3D models (CC-BY-SA) · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
       </div>

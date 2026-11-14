@@ -803,3 +803,9 @@ html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem;
 }
 /* on a phone the menu stays as short as 0.7 had it: these are in the Parts tab, and there is no keyboard */
 @media (max-width: 759px) { #menu-save, #menu-shopping, #menu-log, #menu-versions, #menu-help { display: none !important; } }
+
+/* 0.9: saved views and the height check in the 3D bar */
+#board3d-view-name { width: 9em; }
+#board3d-lid { width: 4.5em; }
+#board3d-lid-note { color: #ff8a80; }
+#myboard-check li[data-open] { outline: 2px solid #ff3b30; outline-offset: 2px; border-radius: 4px; }

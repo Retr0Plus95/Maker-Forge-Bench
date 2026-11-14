@@ -90,3 +90,17 @@ test("an underside part on the chip's legs brings no new neighbour warnings", ()
   const f = checkPlacement(board, { C5: { 1: U2['7'], 2: U2['8'] } }, 'U2');
   assert.equal(f.filter((x) => x.kind === 'neighbours' && x.refs.includes('C5')).length, 0, JSON.stringify(f.filter((x) => x.kind === 'neighbours')));
 });
+
+test('findings say where they are, for marks on the 3D board (0.9): a hole, and the side to look from', () => {
+  const clash = checkPlacement(board, { R8: { 1: [11, 13], 2: [11, 15] } }, 'U2').find((x) => x.kind === 'clash');
+  assert.deepEqual(clash.at, [11, 13]);
+  assert.equal(clash.side, 'top');
+  const overlap = checkPlacement(board, { C1A: { p: [30, 2], n: [30, 4] }, C1B: { p: [31, 2], n: [31, 4] } }, 'U2').find((x) => x.kind === 'overlap');
+  assert.equal(overlap.side, 'top');
+  assert.ok(overlap.at[0] >= 30 && overlap.at[0] <= 31 && overlap.at[1] >= 2 && overlap.at[1] <= 4, String(overlap.at));
+  const f = checkPlacement(board, { R8: { 1: [10, 13], 2: [10, 16] } }, 'U2');
+  const w = f.find((x) => x.kind === 'neighbours');
+  assert.deepEqual(w.at, [10.5, 13]);
+  assert.equal(w.side, 'bottom', 'solder bridges happen underneath');
+  assert.equal(f.find((x) => x.kind === 'unplaced').at, undefined, 'nothing to point at');
+});

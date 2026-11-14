@@ -129,6 +129,25 @@ describe('real parts in the 3D view', () => {
     }
   });
 
+  test('the board as GLB and OBJ with its real parts (their packed, quantized models too)', async () => {
+    await page.waitForFunction(() => document.querySelector('#board3d-loading').hidden && window.makerForge.board3d.info().realParts > 20, null, { timeout: 30000 });
+    const [glb] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.locator('#board3d-glb').click()]);
+    const bytes = await readFile(await glb.path());
+    assert.equal(bytes.subarray(0, 4).toString('latin1'), 'glTF');
+    const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString('utf8'));
+    const names = new Set(json.nodes.map((n) => n.name));
+    for (const ref of ['U2', 'C1A', 'R6', 'board']) assert.ok(names.has(ref), `${ref} in the GLB`);
+    const root = json.nodes.find((n) => n.name === 'Bench board');
+    assert.equal(root.scale ? root.scale[0] : root.matrix[0], 0.001, 'in metres');
+    assert.equal(await page.locator('#board3d-glb').isDisabled(), false, 'ready again');
+    const [obj] = await Promise.all([page.waitForEvent('download'), page.locator('#board3d-obj').click()]);
+    const text = await readFile(await obj.path(), 'utf8');
+    const from = text.indexOf('\no U2\n');
+    const u2 = text.slice(from, text.indexOf('\no ', from + 3));
+    const zs = [...u2.matchAll(/^v (\S+) (\S+) (\S+)$/gm)].map((m) => Number(m[3]));
+    assert.ok(Math.max(...zs) > 3 && Math.max(...zs) < 12, `the chip's top at ${Math.max(...zs)} mm`);
+  });
+
   test('no errors', () => assert.deepEqual(problems, []));
 });
 

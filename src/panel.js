@@ -621,7 +621,10 @@ export function renderMyBoard(container, o) {
     for (const f of x.findings) {
       const show = el('button', { type: 'button', className: 'part-link' }, `Show ${f.refs[0]}`);
       show.addEventListener('click', () => x.onShow(f.refs[0]));
-      findings.append(el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show));
+      const li = el('li', { 'data-kind': f.kind, className: `finding-${f.level}` }, f.text, ' ', show);
+      if (f.id) li.dataset.finding = f.id;
+      if (f.open) li.dataset.open = ''; // its mark on the 3D board was clicked
+      findings.append(li);
     }
     children.push(el('h3', {}, 'Check my board'), x.findings.length ? findings : el('p', { id: 'myboard-check' }, 'No problems found.'));
     if (x.labels) children.push(...holeNamesBlock(container, x.labels));

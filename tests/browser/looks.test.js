@@ -111,6 +111,23 @@ describe('looks like: your parts as you fitted them', () => {
     assert.deepEqual((await placed()).U1, { INp: [40, 2], INn: [40, 4], OUTp: [44, 6], OUTn: [44, 4] });
   });
 
+  test('Looks like stays open when the card is drawn again right after you open it (0.9: the library loading does that)', async () => {
+    await openCard(page, 'R6');
+    if (await page.locator('#part-looks').evaluate((d) => d.open)) {
+      await page.locator('#part-looks summary').click();
+      await page.waitForFunction(() => !document.querySelector('#part-looks').open);
+    }
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50))); // the close is settled
+    // open it, and in the same moment have the card drawn again (here by ticking the part)
+    await page.evaluate(() => {
+      document.querySelector('#part-looks summary').click();
+      document.querySelector('#part-tick').click();
+    });
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    assert.equal(await page.locator('#part-looks').evaluate((d) => d.open), true, 'still open');
+    await page.locator('#part-tick').click(); // untick
+  });
+
   test('no page errors', () => {
     assert.deepEqual(problems, []);
   });
