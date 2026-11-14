@@ -472,7 +472,8 @@ def main(argv: list[str] | None = None) -> int:
         if f"models/{old.name}" not in written:
             old.unlink()
     index = {"format": "maker-forge-library", "version": 1, "parts": parts}
-    (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1, sort_keys=True) + "\n",
+                                    encoding="utf-8", newline="\n")  # the same bytes on Windows too
     total = sum(p["model"]["bytes"] for p in parts)
     print(f"{len(parts)} models, {total / 1024 / 1024:.2f} MB")
     problems = check_library(out)
