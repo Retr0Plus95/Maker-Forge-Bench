@@ -945,6 +945,51 @@ function syncStep3D() {
   board3d.setStep(now, later, { hideLater: open !== null && ($('#board3d-upto').checked || Boolean(stepPlayer)) });
 }
 
+/** Real parts (0.9): the library's index, fetched once when 3D first opens (null if it can't be read). */
+let libraryIndex = null;
+function libraryFor3D() {
+  if (!libraryIndex) {
+    libraryIndex = fetch('library/index.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => (j && j.format === 'maker-forge-library' && Array.isArray(j.parts) ? j : null))
+      .catch(() => null);
+  }
+  return libraryIndex;
+}
+/** The library's models, loaded once each however often the 3D view is rebuilt. */
+let models3d = null;
+function modelsFor3D() {
+  if (!models3d) {
+    const fetchBytes = (file) => fetch(`library/${file}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+    models3d = Promise.all([import('./three.module.js'), import('./three-gltf-loader.js'), import('./models3d.js')])
+      .then(([THREE, { GLTFLoader }, { createModels }]) => createModels(THREE, { GLTFLoader, fetchBytes }))
+      .catch(() => null);
+  }
+  return models3d;
+}
+const parts3dMode = () => (store.get('parts3d', 'real') === 'simple' ? 'simple' : 'real');
+
+function showParts3dMode() {
+  const mode = parts3dMode();
+  $('#board3d-parts-real').setAttribute('aria-pressed', String(mode === 'real'));
+  $('#board3d-parts-simple').setAttribute('aria-pressed', String(mode === 'simple'));
+}
+
+/** Real or Simple parts: a setting, kept for next time (not an undo step). */
+function setParts3d(mode) {
+  store.set('parts3d', mode === 'simple' ? 'simple' : 'real');
+  showParts3dMode();
+  if (mode === 'simple') $('#board3d-loading').hidden = true;
+  if (board3d) board3d.setParts3d(parts3dMode());
+}
+
+/** The loading bar: "Real parts 12 of 31", gone when they're all in (or couldn't load). */
+function showRealProgress({ done, total }) {
+  const bar = $('#board3d-loading');
+  bar.hidden = parts3dMode() !== 'real' || !total || done >= total;
+  bar.textContent = `Real parts ${done} of ${total}`;
+}
+
 /** What the 3D view prints and names: each part's value. */
 const partDetails = () => Object.fromEntries(state.parts.map((p) => [p.ref, { value: cardPart(p.ref).value || '' }]));
 
@@ -1058,6 +1103,10 @@ async function setBoard3D(on) {
         camera: store.get(cameraKey, null),
         onCamera: (camera) => store.set(cameraKey, camera),
         details: partDetails(),
+        parts3d: parts3dMode(),
+        library: libraryFor3D(),
+        models: modelsFor3D(),
+        onProgress: showRealProgress,
       }).then((view) => {
         if (view) {
           view.showWiring($('#board3d-wiring').checked);
@@ -3227,6 +3276,9 @@ async function start() {
   }
   $('#board3d-fit').addEventListener('click', () => board3d && board3d.fit());
   $('#board3d-sheet4').addEventListener('click', () => setBoard3DSource('sheet4'));
+  $('#board3d-parts-real').addEventListener('click', () => setParts3d('real'));
+  $('#board3d-parts-simple').addEventListener('click', () => setParts3d('simple'));
+  showParts3dMode();
   $('#board3d-mine').addEventListener('click', () => setBoard3DSource('mine'));
   $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
   $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));

@@ -169,6 +169,11 @@ def _mesh(name: str, colour, metal: bool, roughness: float, alpha: float, triang
             "positions": positions, "normals": normals, "indices": indices}
 
 
+def _linear(c: float) -> float:
+    """An sRGB colour channel (as KiCad and our specs give them) turned linear, as glTF stores colours."""
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
 def _pad4(b: bytes, fill: bytes) -> bytes:
     return b + fill * ((4 - len(b) % 4) % 4)
 
@@ -221,7 +226,7 @@ def write_glb(meshes: list[dict]) -> bytes:
         accessors.append({"bufferView": iv, "componentType": 5125 if big else 5123, "count": len(m["indices"]), "type": "SCALAR"})
         ia = len(accessors) - 1
         mat = {"name": m["name"], "pbrMetallicRoughness": {
-            "baseColorFactor": [_r(c) for c in m["colour"]] + [_r(m["alpha"])],
+            "baseColorFactor": [_r(_linear(c)) for c in m["colour"]] + [_r(m["alpha"])],
             "metallicFactor": 1 if m["metal"] else 0, "roughnessFactor": _r(m["roughness"])}}
         if m["alpha"] < 1:
             mat["alphaMode"] = "BLEND"

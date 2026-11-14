@@ -123,6 +123,9 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(mats["PIN-01"]["pbrMetallicRoughness"]["metallicFactor"], 1)
         self.assertEqual(mats["RES-THT-01"]["pbrMetallicRoughness"]["metallicFactor"], 0)
         self.assertAlmostEqual(mats["RES-THT-01"]["pbrMetallicRoughness"]["roughnessFactor"], 0.7)
+        # glTF colours are linear; KiCad's are display (sRGB) colours: 0.824 shows as 0.824 once turned linear
+        self.assertAlmostEqual(mats["PIN-01"]["pbrMetallicRoughness"]["baseColorFactor"][0], 0.6454, places=3)
+        self.assertEqual(mats["PIN-01"]["pbrMetallicRoughness"]["baseColorFactor"][3], 1)
         self.assertEqual(entry["model"]["body"], "RES-THT-01")
         self.assertEqual(entry["model"]["box"], [[0, 0, 0], [10.16, 2.54, 5.08]])
         self.assertEqual(entry["footprint"]["pins"], [[0, 0], [10.16, 0]])

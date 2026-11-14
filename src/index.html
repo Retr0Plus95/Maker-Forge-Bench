@@ -62,6 +62,11 @@
           <button id="board3d-mine" class="tool" type="button" aria-pressed="false" hidden title="Your own placement, from your photos">My board</button>
           <span id="board3d-mine-note" class="hint" hidden></span>
         </div>
+        <div class="bar-group" role="group" id="board3d-parts" aria-label="Parts">
+          <span class="bar-label">Parts:</span>
+          <button id="board3d-parts-real" class="tool" type="button" aria-pressed="true" title="Real parts from the Maker Forge Library (KiCad's 3D models), painted like Bench's">Real</button>
+          <button id="board3d-parts-simple" class="tool" type="button" aria-pressed="false" title="Bench's own simple parts: quicker on a slow phone">Simple</button>
+        </div>
         <div class="bar-group" role="group" aria-label="Views">
           <button id="board3d-top" class="tool" type="button" title="From the top (T)">Top</button>
           <button id="board3d-under" class="tool" type="button" title="From underneath, mirrored like the solder side (U)">Underside</button>
@@ -85,8 +90,9 @@
           <button id="board3d-png" class="tool" type="button">Save picture</button>
           <button id="board3d-stl" class="tool" type="button" title="The board as a 3D file, for Shape or a slicer">Save STL</button>
         </div>
-        <span class="hint">Datasheet sizes · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
+        <span class="hint">Real parts: KiCad's 3D models (CC-BY-SA) · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
       </div>
+      <p id="board3d-loading" role="status" hidden></p>
       <p id="board3d-message" hidden></p>
     </div>
     <button id="zoom-level" type="button" title="Zoom level: click to fit the sheet"></button>

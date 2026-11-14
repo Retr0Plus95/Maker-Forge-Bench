@@ -118,6 +118,12 @@ function bandSpots(n, L) {
   return n <= 3 ? spots.slice(0, n) : [...spots.slice(0, n - 1), L - 0.75 * k];
 }
 
+/** Where a resistor's colour bands go along a body L long, from its pin 1 end: [{ t, w, colour }] (0.9: on a library model). */
+export function bandLayout(bands, L) {
+  const w = 0.5 * Math.min(1, L / SIZES.resistor.len);
+  return bandSpots(bands.length, L).map((t, i) => ({ t, w, colour: BAND_HEX[bands[i]] }));
+}
+
 /** A resistor's colour bands as thin rings on its body, following the profile. */
 function bandRings(bands, profile, place) {
   const L = maxOf(profile, 1);

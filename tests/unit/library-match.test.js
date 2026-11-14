@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MISS_LIMIT, entryForModelPath, kicadPinOrder, modelFor, placeInOutline, placeModel } from '../../src/library-match.js';
+import { MISS_LIMIT, bendLegs, canBendLegs, entryForModelPath, holesFor, kicadPinOrder, modelFor, placeFor, placeInOutline, placeModel } from '../../src/library-match.js';
 import { parseProject } from '../../src/project.js';
 import { readFixture } from './helpers.js';
 
@@ -97,7 +97,7 @@ test('a model chosen in Looks like or in the project wins over the type rule', (
 test('the fume extractor: which parts get a library model', () => {
   const fume = parseProject(readFixture('forge-project/fume-extractor.json'));
   const value = (ref) => (fume.parts.find((p) => p.ref === ref) || {}).value;
-  const got = (ref) => idOf({ ...fume.board.parts[ref], value: value(ref) });
+  const got = (ref) => idOf({ ...fume.board.parts[ref], ref, value: value(ref) });
   assert.equal(got('R4'), 'r-axial-din0207-l6.3-d2.5-p10.16-h');
   assert.equal(got('R8'), 'r-axial-din0207-l6.3-d2.5-p5.08-v');
   assert.equal(got('C1A'), 'cp-radial-d8.0-p5.00');
@@ -107,7 +107,83 @@ test('the fume extractor: which parts get a library model', () => {
   assert.equal(got('Q1'), 'to-92-inline-wide');
   assert.equal(got('J2'), 'molex-kk-4');
   assert.equal(got('J0'), 'header-1x02');
-  assert.equal(got('C5'), null, 'an underside part keeps its own model');
+  assert.equal(got('Y1'), 'crystal-hc49-4h-v', 'the crystal under the board');
+  assert.equal(got('C5'), 'c-disc-d5.0-w2.5-p2.50', 'a ceramic under the board');
+});
+
+test('underside parts: a crystal by its Y ref, a ceramic by its C ref, anything else keeps its own model', () => {
+  assert.equal(idOf({ type: 'underside', ref: 'Y1', pins: { 1: [0, 0], 2: [1, 0] } }), 'crystal-hc49-4h-v');
+  assert.equal(idOf({ type: 'underside', ref: 'C8', pins: { 1: [0, 0], 2: [2, 0] } }), 'c-disc-d5.0-w2.5-p5.00');
+  assert.equal(idOf({ type: 'underside', ref: 'C9', style: 'dipped', pins: { 1: [0, 0], 2: [1, 0] } }), 'c-rect-l4.0-w2.5-p2.50');
+  assert.equal(idOf({ type: 'underside', ref: 'R1', pins: { 1: [0, 0], 2: [1, 0] } }), null);
+  assert.equal(idOf({ type: 'underside', pins: { 1: [0, 0], 2: [1, 0] } }), null);
+});
+
+test('radial parts can have their legs bent to holes their model does not match', () => {
+  assert.equal(canBendLegs({ type: 'elec' }), true);
+  assert.equal(canBendLegs({ type: 'underside' }), true);
+  assert.equal(canBendLegs({ type: 'res' }), false);
+  assert.equal(canBendLegs({ type: 'dip' }), false);
+  // a 6.3 mm can with legs 2.5 mm apart on holes 5.08 apart: centred, legs bent out
+  const out = bendLegs(byId('cp-radial-d6.3-p2.50'), [[0, 0], [0, 5.08]]);
+  near(out.angle, 90);
+  near(out.x, 0);
+  near(out.y, 1.29);
+  assert.equal(out.mirror, false);
+  assert.equal(out.legs.length, 2);
+  near(out.legs[0].from[1], 1.29);
+  near(out.legs[0].to[1], 0);
+  near(out.legs[1].from[1], 3.79);
+  near(out.legs[1].to[1], 5.08);
+  // the crystal's legs 4.88 apart into holes 2.54 apart, under the board: bent in, mirrored
+  const xtal = bendLegs(byId('crystal-hc49-4h-v'), [[0, 0], [2.54, 0]], { side: 'bottom' });
+  near(xtal.angle, 0);
+  near(xtal.x, -1.17);
+  near(xtal.legs[1].from[0], 3.71);
+  assert.equal(xtal.mirror, true);
+  assert.equal(bendLegs(byId('to-92-inline-wide'), [[0, 0], [2.54, 0], [5.08, 0]]), null, 'only two legs bend');
+  assert.equal(bendLegs(byId('cp-radial-d6.3-p2.50'), [[0, 0], [0, 12.7]]), null, 'too far to bend');
+});
+
+test('a resistor without a mount stands over short spans and lies over long ones, as Bench draws it', () => {
+  assert.equal(idOf({ type: 'res', pins: { 1: [0, 0], 2: [1, 0] } }), 'r-axial-din0207-l6.3-d2.5-p2.54-v');
+  assert.equal(idOf({ type: 'res', pins: { 1: [0, 0], 2: [0, 2] } }), 'r-axial-din0207-l6.3-d2.5-p5.08-v');
+  assert.equal(idOf({ type: 'res', pins: { 1: [0, 0], 2: [0, 4] } }), 'r-axial-din0207-l6.3-d2.5-p10.16-h');
+});
+
+test("holesFor: the holes in mm on the board, in the model pins' order", () => {
+  assert.deepEqual(holesFor({ type: 'led', pins: { A: [2, 1], K: [3, 1] } }), [[5.08, 0], [2.54, 0]], 'cathode first');
+  assert.deepEqual(holesFor({ type: 'res', mount: 'stand', body: '2', pins: { 1: [1, 1], 2: [1, 3] } }), [[0, 5.08], [0, 0]],
+    "a standing resistor's body pin first: KiCad's body stands on pad 1");
+  assert.deepEqual(holesFor({ type: 'res', mount: 'stand', body: '1', pins: { 1: [1, 1], 2: [1, 3] } }), [[0, 0], [0, 5.08]]);
+  assert.deepEqual(holesFor({ type: 'res', pins: { 1: [1, 1], 2: [1, 2] } }), [[0, 0], [0, 2.54]], 'standing, body on pin 1 when not said');
+});
+
+test('placeFor: on its holes, a module in its outline, or radial legs bent', () => {
+  const fume = parseProject(readFixture('forge-project/fume-extractor.json'));
+  const parts = fume.board.parts;
+  const r4 = placeFor(byId('r-axial-din0207-l6.3-d2.5-p10.16-h'), parts.R4);
+  near(r4.miss, 0);
+  assert.equal(r4.legs, undefined);
+  near(r4.x, 9 * 2.54);
+  near(r4.y, 5 * 2.54);
+  const r12 = placeFor(byId('r-axial-din0207-l6.3-d2.5-p5.08-v'), parts.R12);
+  near(r12.y, 10 * 2.54, 0.01, 'R12 stands on its pin 2');
+  const u1 = placeFor(byId('mp1584-module'), parts.U1);
+  assert.equal(u1.miss, 0);
+  assert.equal(u1.angle, 0);
+  const c2 = placeFor(byId('cp-radial-d6.3-p2.50'), parts.C2);
+  assert.equal(c2.miss, 0);
+  assert.equal(c2.legs.length, 2);
+  near(c2.legs[0].to[1], 5 * 2.54, 0.01, "C2's + leg goes to its + hole");
+  const y1 = placeFor(byId('crystal-hc49-4h-v'), parts.Y1);
+  assert.equal(y1.mirror, true);
+  assert.equal(y1.legs.length, 2);
+  const tooMany = placeFor(byId('header-1x04'), { type: 'header', side: 'top', pins: { 1: [1, 1], 2: [2, 1] } });
+  assert.equal(tooMany.miss, Infinity);
+  const far = placeFor(byId('r-axial-din0207-l6.3-d2.5-p10.16-h'), { type: 'res', mount: 'flat', side: 'top', pins: { 1: [1, 1], 2: [1, 4] } });
+  assert.ok(far.miss > MISS_LIMIT, "a resistor's legs are not bent: it misses");
+  assert.equal(placeFor(null, parts.R4), null);
 });
 
 test('KiCad pin order: diodes and LEDs cathode first, electrolytics + first, chips by number', () => {

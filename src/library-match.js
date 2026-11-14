@@ -89,8 +89,11 @@ export function modelFor(part, look = {}, index, { pitch = PITCH } = {}) {
   const bySpan = (list) => best(list, (e) => Math.abs(spanOf(e) - gap));
   const value = String(f.value || '');
   switch (part.type) {
-    case 'res':
-      return bySpan(of('res').filter((e) => fitOf(e).mount === (f.mount || 'flat')));
+    case 'res': { // not said: lying over 4 holes or more, standing over fewer, as Bench draws it
+      const span = holes.length > 1 ? Math.max(Math.abs(holes[0][0] - holes[1][0]), Math.abs(holes[0][1] - holes[1][1])) / pitch : 0;
+      const mount = f.mount || (span >= 4 - 1e-6 ? 'flat' : 'stand');
+      return bySpan(of('res').filter((e) => fitOf(e).mount === mount));
+    }
     case 'cer':
       return bySpan(of('cer').filter((e) => fitOf(e).style === (f.style || 'disc')));
     case 'film':
@@ -135,8 +138,12 @@ export function modelFor(part, look = {}, index, { pitch = PITCH } = {}) {
     }
     case 'module':
       return of('module').find((e) => fitOf(e).value && value.toUpperCase().includes(String(fitOf(e).value).toUpperCase())) || null;
-    case 'underside':
+    case 'underside': { // Bench knows two things that hang under a board: a crystal (Y…) and a ceramic (C…)
+      const ref = String(part.ref || '');
+      if (/^Y/i.test(ref)) return best(of('crystal').filter((e) => fitOf(e).style === (f.style || 'hc49s')));
+      if (/^C/i.test(ref)) return bySpan(of('cer').filter((e) => fitOf(e).style === (f.style || 'disc')));
       return null;
+    }
     default: // types Bench will draw later (pots, buttons, terminals…): the usual one with as many pins
       return best(of(part.type).filter((e) => pinsOf(e).length === holes.length));
   }
@@ -189,6 +196,66 @@ export function placeInOutline(entry, outline, { side } = {}) {
   const c = turn ? [-centre[1], centre[0]] : centre; // turned 90°: (x, y) → (−y, x)
   const mid = [(outline[0] + outline[2]) / 2, (outline[1] + outline[3]) / 2];
   return { x: mid[0] - c[0], y: mid[1] - c[1], angle: turn ? 90 : 0, mirror, miss: 0 };
+}
+
+/** Parts whose two legs can be bent to holes their model doesn't match: the radial ones. */
+const BENDABLE = new Set(['elec', 'cer', 'film', 'led', 'underside']);
+/** Legs bend out or in by at most this much in all (mm): further than that, Bench keeps its own model. */
+const BEND_LIMIT = 5.08;
+
+export function canBendLegs(part) {
+  return Boolean(part && BENDABLE.has(part.type));
+}
+
+/**
+ * A two-leg radial model whose pins don't match its holes, with its legs bent to them: the body
+ * centred between the holes, turned along them. legs: for each pin, `from` where the model's leg
+ * leaves it and `to` its hole, both [x, y] mm on the board. null when it can't be done that way.
+ */
+export function bendLegs(entry, holes, { side } = {}) {
+  const pins = pinsOf(entry);
+  if (pins.length !== 2 || !Array.isArray(holes) || holes.length !== 2) return null;
+  const gap = dist(holes[0], holes[1]);
+  const span = spanOf(entry);
+  if (gap < 1e-6 || span < 1e-6 || Math.abs(gap - span) > BEND_LIMIT) return null;
+  const dir = [(holes[1][0] - holes[0][0]) / gap, (holes[1][1] - holes[0][1]) / gap];
+  const shift = (gap - span) / 2;
+  const at = [holes[0][0] + dir[0] * shift, holes[0][1] + dir[1] * shift];
+  const placed = placeModel(entry, [at, [at[0] + dir[0] * span, at[1] + dir[1] * span]], { side });
+  const ends = [at, [at[0] + dir[0] * span, at[1] + dir[1] * span]];
+  return { x: placed.x, y: placed.y, angle: placed.angle, mirror: placed.mirror, miss: 0,
+    legs: ends.map((from, i) => ({ from, to: holes[i] })) };
+}
+
+/**
+ * A board part's holes as [x, y] mm on the board, in the order the model's pins go: KiCad's
+ * (kicadPinOrder), except that a standing resistor's body pin comes first, as KiCad's body stands on pad 1.
+ */
+export function holesFor(part, pitch = PITCH) {
+  if (!part || !part.pins) return [];
+  let names = kicadPinOrder(part);
+  const standing = part.mount ? part.mount === 'stand' : names.length === 2 && Math.max(
+    ...[0, 1].map((k) => Math.abs(part.pins[names[0]][k] - part.pins[names[1]][k]))) < 4;
+  if (part.type === 'res' && standing && part.body && names[1] === part.body) names = [names[1], names[0], ...names.slice(2)];
+  return names.map((n) => part.pins[n]).filter(Array.isArray).map(([c, r]) => [(c - 1) * pitch, (r - 1) * pitch]);
+}
+
+/**
+ * Where a board part's model goes: on its holes (placeModel); a module wired in place, in its
+ * outline (placeInOutline); a radial part whose pins miss, with its legs bent (bendLegs). null for
+ * no entry. The answer's miss says whether it fits (miss <= MISS_LIMIT).
+ */
+export function placeFor(entry, part, { pitch = PITCH } = {}) {
+  if (!entry || !part || !part.pins) return null;
+  const side = part.side;
+  if (part.type === 'module' && Array.isArray(part.keepout) && part.keepout.length === 4) {
+    const k = part.keepout;
+    return placeInOutline(entry, [(k[0] - 1) * pitch, (k[1] - 1) * pitch, (k[2] - 1) * pitch, (k[3] - 1) * pitch], { side });
+  }
+  const holes = holesFor(part, pitch);
+  const placed = placeModel(entry, holes, { side });
+  if (placed.miss <= MISS_LIMIT || !canBendLegs(part)) return placed;
+  return bendLegs(entry, holes, { side }) || placed;
 }
 
 /** The entry for a KiCad project's model path (${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D5.0mm.step), or null. */
