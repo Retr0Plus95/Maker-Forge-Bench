@@ -24,6 +24,7 @@ import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
 import { createBoard3D } from './board3d.js';
+import { BOARD_COLOURS } from './board3d-geometry.js';
 import { indexSheet } from './search.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
@@ -340,6 +341,7 @@ async function goTo(label, query) {
   if (ref) {
     pushTrail(ref);
     state.selected = ref;
+    flyTo3D([ref]);
   }
   if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
   viewer.zoomToRect(viewer.labelRect(label.el));
@@ -801,6 +803,7 @@ window.makerForge = Object.freeze({
     view: () => (board3d && board3dOn ? board3d.getView() : null),
     screenOf: (ref) => (board3d && board3dOn ? board3d.screenOf(ref) : null),
     info: () => (board3d && board3dOn ? board3d.info() : null),
+    boxOf: (refs) => (board3d && board3dOn ? board3d.boxOf(refs) : null),
   }),
 });
 
@@ -959,7 +962,7 @@ const find = createFindBar({
   extras: (query) => [
     ...findLines(projectBoard(), query)
       .map((l) => ({ cls: 'find-line', text: `Line ${l.label}: ${l.legs} legs`, onPick: () => openLine(l.net) })),
-    ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => selectPart(p.ref) })),
+    ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => { selectPart(p.ref); flyTo3D([p.ref]); } })),
   ],
 });
 
@@ -1020,6 +1023,13 @@ function updateBoard3DButton() {
   $('#board3d-toggle').hidden = !(state.project && state.project.board);
 }
 
+let step3DFlown = null; // the guide step the 3D camera last turned to
+
+function openStepId() {
+  const steps = stepsOf();
+  return state.openStep !== null && steps[state.openStep] ? steps[state.openStep].id : null;
+}
+
 function syncStep3D() {
   if (!board3d || !board3dOn) return;
   const steps = stepsOf();
@@ -1027,6 +1037,38 @@ function syncStep3D() {
   const now = open !== null ? steps[open].parts : [];
   const later = open !== null ? steps.slice(open + 1).flatMap((s) => s.parts) : [];
   board3d.setStep(now, later, { hideLater: open !== null && ($('#board3d-upto').checked || Boolean(stepPlayer)) });
+  // the camera follows the guide (0.9): opening another step turns the view to its parts, or over
+  // to the underside for the wiring there
+  const id = openStepId();
+  if (id !== step3DFlown) {
+    step3DFlown = id;
+    const step = open !== null ? steps[open] : null;
+    if (step && now.length) board3d.flyToParts(now);
+    else if (step && ['buses', 'links', 'bridges'].some((w) => (step.what || []).includes(w))) board3d.view('bottom');
+  }
+}
+
+/** Find in 3D (0.9): the camera flies to the part found. */
+function flyTo3D(refs) {
+  if (board3d && board3dOn) board3d.flyToParts(refs);
+}
+
+// the board's colour, kept per project; Which way round, kept for every project
+const boardColourKey = () => `boardColour:${projectName()}`;
+function boardColourNow() {
+  const name = store.get(boardColourKey(), 'green');
+  return Object.hasOwn(BOARD_COLOURS, name) ? name : 'green';
+}
+function setBoardColour(name) {
+  store.set(boardColourKey(), Object.hasOwn(BOARD_COLOURS, name) ? name : 'green');
+  $('#board3d-colour').value = boardColourNow();
+  if (board3d) board3d.setBoardColour(boardColourNow());
+}
+const polarity3dOn = () => store.get('polarity3d', false) === true;
+function setPolarity3d(on) {
+  store.set('polarity3d', Boolean(on));
+  $('#board3d-polarity').checked = polarity3dOn();
+  if (board3d) board3d.setPolarity(polarity3dOn());
 }
 
 /** Real parts (0.9): the library's index, fetched once when 3D first opens (null if it can't be read). */
@@ -1180,6 +1222,8 @@ async function setBoard3D(on) {
   if (!board3d) {
     if (!board3dBuilding) {
       message.hidden = true;
+      $('#board3d-colour').value = boardColourNow();
+      $('#board3d-polarity').checked = polarity3dOn();
       const board = board3dData();
       const cameraKey = `camera:${projectName()}:${board3dSource}`;
       board3dBuilding = createBoard3D($('#board3d-view'), board, {
@@ -1192,6 +1236,9 @@ async function setBoard3D(on) {
         models: modelsFor3D(),
         modelBytes: customModelBytes,
         onProgress: showRealProgress,
+        boardColour: boardColourNow(),
+        soldered: [...state.ticked],
+        polarity: polarity3dOn(),
       }).then((view) => {
         if (view) {
           view.showWiring($('#board3d-wiring').checked);
@@ -1204,6 +1251,7 @@ async function setBoard3D(on) {
         board3d = view;
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
+        step3DFlown = openStepId(); // a new view keeps its saved camera: only the next step turns it
         return view;
       });
     }
@@ -2732,6 +2780,7 @@ function acknowledgeNotes() {
 
 /** Ticked parts' labels turn green on every sheet that has been read. */
 function applyTickMarks() {
+  if (board3d) board3d.setSoldered([...state.ticked]); // your progress in 3D: ticked parts are soldered
   const done = (text) => labelDone(text, isKnownRef, (r) => state.ticked.has(r));
   for (const entry of state.loaded.values()) {
     if (entry.kind !== 'svg') continue;
@@ -3371,6 +3420,8 @@ async function start() {
   $('#board3d-mine').addEventListener('click', () => setBoard3DSource('mine'));
   $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
   $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
+  $('#board3d-colour').addEventListener('change', (e) => setBoardColour(e.target.value));
+  $('#board3d-polarity').addEventListener('change', (e) => setPolarity3d(e.target.checked));
   $('#board3d-upto').addEventListener('change', syncStep3D);
   $('#board3d-explode').addEventListener('input', (e) => board3d && board3d.setExplode(Number(e.target.value)));
   $('#board3d-clip').addEventListener('input', (e) => board3d && board3d.setClip(Number(e.target.value) >= 1 ? null : Number(e.target.value)));

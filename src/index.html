@@ -80,6 +80,17 @@
           <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
           <label class="check"><input id="board3d-labels" type="checkbox" checked> Labels</label>
           <label class="check"><input id="board3d-xray" type="checkbox"> X-ray</label>
+          <label class="check" title="A mark over each polarized part: the + leg, the cathode, pin 1"><input id="board3d-polarity" type="checkbox"> Which way round</label>
+          <label class="slider">Board <select id="board3d-colour" title="The board's colour, kept for this project">
+            <option value="green">Green</option>
+            <option value="black">Black</option>
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+            <option value="white">White</option>
+            <option value="purple">Purple</option>
+            <option value="perfboard">Perfboard (brown)</option>
+            <option value="stripboard">Stripboard</option>
+          </select></label>
           <label class="check"><input id="board3d-upto" type="checkbox"> Build up to this step</label>
           <label class="slider">Explode <input id="board3d-explode" type="range" min="0" max="1" step="0.05" value="0"></label>
           <label class="slider">Cut <input id="board3d-clip" type="range" min="0" max="1" step="0.02" value="1"></label>

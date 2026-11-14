@@ -5,7 +5,7 @@
 // three.js r128 (self-hosted, the same version as Maker Forge) loads only when this view first opens.
 // 0.9: real parts. Where the Maker Forge Library has a model that fits (library-match.js), it takes
 // the drawn part's place once it has loaded, painted with Bench's markings (bands, colours, prints).
-import { BOARD_THICKNESS, LED_COLOURS, SIZES, bandLayout, busColour, colourInValue, partGeometry } from './board3d-geometry.js';
+import { BOARD_COLOURS, BOARD_THICKNESS, LED_COLOURS, SIZES, bandLayout, busColour, colourInValue, partGeometry, polarityMark } from './board3d-geometry.js';
 import { MISS_LIMIT, holesFor, modelFor, placeFor } from './library-match.js';
 import { resistorBands } from './markings.js';
 
@@ -40,10 +40,13 @@ const motionReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)'
  * - library: the library's index.json, parsed (or a promise of it); models: createModels(…) (or a
  *   promise of it); onProgress({ done, total }) as the real parts load
  * - modelBytes(choice): the bytes of a model a look chose that isn't the library's (own:…, project:…)
+ * - boardColour: a BOARD_COLOURS name; soldered: the refs whose joints are soldered (null: all);
+ *   polarity: Which way round's marks to start with
  */
 export async function createBoard3D(host, board, {
   onPick, onHover = () => {}, camera: savedCamera = null, onCamera = () => {}, details = {},
   parts3d = 'real', library = null, models = null, onProgress = () => {}, modelBytes = async () => null,
+  boardColour = 'green', soldered = null, polarity = false,
 }) {
   if (!webglAvailable()) return null;
   const THREE = await import('./three.module.js');
@@ -58,7 +61,9 @@ export async function createBoard3D(host, board, {
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true;
+  // soft shadows, except with Less motion on or on a small screen (both say: keep it light)
+  const shadowsWanted = () => document.documentElement.dataset.motion !== 'reduce' && window.innerWidth >= 760;
+  renderer.shadowMap.enabled = shadowsWanted();
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.localClippingEnabled = true; // a real part with bent legs hides its own straight ones
   const tip = document.createElement('div');
@@ -139,13 +144,14 @@ export async function createBoard3D(host, board, {
   }
 
   // ---- the board: FR-4 with tinned pads and drilled holes, both faces
-  const boardMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#245a30').convertSRGBToLinear(), roughness: 0.78, metalness: 0, envMapIntensity: 0.4 });
+  const boardMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(BOARD_COLOURS.green.board).convertSRGBToLinear(), roughness: 0.78, metalness: 0, envMapIntensity: 0.4 });
   const boardMesh = new THREE.Mesh(new THREE.BoxGeometry((board.cols + 1) * p, T, (board.rows + 1) * p), boardMat);
   boardMesh.position.set(cx, -T / 2, cz);
   boardMesh.receiveShadow = true;
   scene.add(boardMesh);
   const holes = board.cols * board.rows;
-  const padMat = material('#c8ccd0', { metal: 0.9 });
+  // the pads' own material (not the shared one): it changes with the board's colour
+  const padMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(BOARD_COLOURS.green.pad).convertSRGBToLinear(), roughness: 0.3, metalness: 0.9, envMapIntensity: 1 });
   const pads = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.85, 0.85, T + 0.08, 16), padMat, holes);
   const drills = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.45, 0.45, T + 0.14, 10), material('#0d0d0d'), holes);
   pads.receiveShadow = true;
@@ -160,6 +166,25 @@ export async function createBoard3D(host, board, {
     }
   }
   scene.add(pads, drills);
+  // a stripboard's copper strips, one along each row underneath (shown only for stripboard)
+  const stripMesh = new THREE.InstancedMesh(new THREE.BoxGeometry((board.cols - 0.3) * p, 0.06, p * 0.8), padMat, board.rows);
+  for (let r = 1; r <= board.rows; r++) {
+    m.makeTranslation(cx, -T - 0.03, (r - 1) * p);
+    stripMesh.setMatrixAt(r - 1, m);
+  }
+  stripMesh.receiveShadow = true;
+  stripMesh.visible = false;
+  scene.add(stripMesh);
+  let colourName = 'green';
+  function setBoardColour(name) {
+    colourName = Object.hasOwn(BOARD_COLOURS, name) ? name : 'green';
+    const c = BOARD_COLOURS[colourName];
+    boardMat.color.set(c.board).convertSRGBToLinear();
+    padMat.color.set(c.pad).convertSRGBToLinear();
+    pads.visible = !c.strips;
+    stripMesh.visible = Boolean(c.strips);
+  }
+  setBoardColour(boardColour);
 
   // a run of straight pieces as one mesh: one draw call per link, however many bends it has
   function polyline(points, radius, mat) {
@@ -347,7 +372,7 @@ export async function createBoard3D(host, board, {
     const prims = partGeometry(part, p, ref, details[ref] || {});
     for (const prim of prims) {
       if (prim.kind === 'joint') {
-        jointSpots.push(prim);
+        jointSpots.push({ ...prim, ref });
         continue;
       }
       const mesh = meshFor(prim, ref);
@@ -385,12 +410,21 @@ export async function createBoard3D(host, board, {
   // every leg's solder joint under the board: one instanced mesh
   const jointMat = material('#d6d9dc', { metal: 0.9 });
   const joints = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.95, 0.32, 0.9, 16), jointMat, Math.max(1, jointSpots.length));
-  jointSpots.forEach((j, k) => {
-    m.makeTranslation(j.x, -T - 0.45, j.y);
-    joints.setMatrixAt(k, m);
-  });
-  joints.count = jointSpots.length;
   scene.add(joints);
+  /** Your progress (0.9): the parts you've ticked get solder joints; the rest show their bare legs. */
+  function setSoldered(refs) {
+    const done = refs ? new Set(refs) : null;
+    let k = 0;
+    for (const j of jointSpots) {
+      if (done && !done.has(j.ref)) continue;
+      m.makeTranslation(j.x, -T - 0.45, j.y);
+      joints.setMatrixAt(k, m);
+      k += 1;
+    }
+    joints.count = k;
+    joints.instanceMatrix.needsUpdate = true;
+  }
+  setSoldered(soldered);
 
   // ---- highlighting, lifting, exploding, steps
   let selected = null;
@@ -469,7 +503,119 @@ export async function createBoard3D(host, board, {
     });
     group.add(outline);
   }
+  /** A part's box in its own group's frame: its meshes that show (not its prints). */
+  function localBox(group) {
+    const box = new THREE.Box3();
+    group.updateWorldMatrix(true, true);
+    const toGroup = new THREE.Matrix4().copy(group.matrixWorld).invert();
+    const each = new THREE.Matrix4();
+    group.traverse((mesh) => {
+      if (!mesh.isMesh || mesh.userData.print || !shownIn(mesh, group)) return;
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      box.union(mesh.geometry.boundingBox.clone().applyMatrix4(each.multiplyMatrices(toGroup, mesh.matrixWorld)));
+    });
+    return box;
+  }
+
+  // ---- Which way round (0.9): a mark floats over each polarized part's + leg, cathode or pin 1,
+  // with a thin line down to its hole; the marks move and hide with their parts
+  const marks = new Map();
+  let polarityOn = false;
+  const MARK_COLOURS = { '+': '#ff6b5e', K: '#7cc8ff', 1: '#ffd27a' };
+  const markLine = new THREE.LineBasicMaterial({ color: '#ffffff', depthTest: false, transparent: true, opacity: 0.7 });
+  function markSprite(text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const g = canvas.getContext('2d');
+    g.fillStyle = MARK_COLOURS[text] || '#ffffff';
+    g.strokeStyle = 'rgba(0,0,0,0.85)';
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(32, 32, 27, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+    g.font = 'bold 36px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#111111';
+    g.fillText(text, 32, 34);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.encoding = THREE.sRGBEncoding;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, sizeAttenuation: false }));
+    sprite.scale.set(0.024, 0.024, 1);
+    sprite.renderOrder = 11;
+    return sprite;
+  }
+  function dropMark(ref) {
+    const mark = marks.get(ref);
+    if (!mark) return;
+    for (const obj of [mark.sprite, mark.line]) {
+      if (obj.parent) obj.parent.remove(obj);
+    }
+    mark.line.geometry.dispose();
+    mark.sprite.material.map.dispose();
+    mark.sprite.material.dispose();
+    marks.delete(ref);
+  }
+  /** Places the marks (all, or one part's after its real model came in). */
+  function placeMarks(only = null) {
+    for (const ref of only ? [only] : [...marks.keys()]) dropMark(ref);
+    if (!polarityOn) return;
+    for (const [ref, part] of Object.entries(board.parts)) {
+      if (only && ref !== only) continue;
+      const mark = polarityMark(part);
+      const group = groups.get(ref);
+      if (!mark || !mark.hole || !group) continue;
+      const box = localBox(group);
+      if (box.isEmpty()) continue;
+      const below = part.side === 'bottom';
+      const x = (mark.hole[0] - 1) * p;
+      const z = (mark.hole[1] - 1) * p;
+      const y = below ? box.min.y - 3 : box.max.y + 3;
+      const sprite = markSprite(mark.text);
+      sprite.position.set(x, y, z);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, y, z), new THREE.Vector3(x, below ? -T : 0, z)]), markLine);
+      line.renderOrder = 10;
+      sprite.userData.polarity = true;
+      line.userData.polarity = true;
+      group.add(sprite, line);
+      marks.set(ref, { sprite, line, text: mark.text });
+    }
+  }
+  function setPolarity(on) {
+    polarityOn = Boolean(on);
+    placeMarks();
+    render();
+  }
+
+  /** The box round some parts, in the scene (their meshes that show). */
+  function boxOfParts(refs) {
+    const box = new THREE.Box3();
+    for (const ref of refs || []) {
+      const group = groups.get(ref);
+      if (!group || !group.visible) continue;
+      group.updateWorldMatrix(true, true);
+      group.traverse((mesh) => {
+        if (mesh.isMesh && !mesh.userData.print && shownIn(mesh, group)) box.expandByObject(mesh);
+      });
+    }
+    return box;
+  }
+  /** Turns the camera to some parts (a guide step's, the one Find found), looking from where it looks now. */
+  function flyToParts(refs) {
+    const box = boxOfParts(refs);
+    if (box.isEmpty()) return false;
+    const centre = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3()).length();
+    const away = camera.position.clone().sub(controls.target).normalize();
+    flyTo(centre.clone().add(away.multiplyScalar(Math.min(span * 1.9, Math.max(span * 0.45, size * 2.2)))), centre);
+    return true;
+  }
+
   const explodeOrder = new Map([...groups.keys()].map((ref, k) => [ref, k]));
+  polarityOn = Boolean(polarity);
+  placeMarks();
   function restyle() {
     for (const [ref, group] of groups) {
       const on = ref === selected;
@@ -536,7 +682,20 @@ export async function createBoard3D(host, board, {
   }
   controls.addEventListener('change', render);
 
+  function updateShadows() {
+    const want = shadowsWanted();
+    if (renderer.shadowMap.enabled === want) return;
+    renderer.shadowMap.enabled = want;
+    scene.traverse((obj) => {
+      for (const mat of [].concat(obj.material || [])) mat.needsUpdate = true; // shadows change the shaders
+    });
+    render();
+  }
+  const motionWatch = new MutationObserver(updateShadows);
+  motionWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
+
   function resize() {
+    updateShadows();
     const w = host.clientWidth || 1;
     const h = host.clientHeight || 1;
     renderer.setSize(w, h);
@@ -1046,6 +1205,7 @@ export async function createBoard3D(host, board, {
         if (obj.userData.realPos) obj.position.copy(on ? obj.userData.realPos : obj.userData.simplePos);
       }
       if (ref === selected) outlinePart(selected);
+      if (polarityOn) placeMarks(ref);
     }
     restyle();
   }
@@ -1144,6 +1304,22 @@ export async function createBoard3D(host, board, {
     },
     picture,
     stl,
+    /** The board's colour (BOARD_COLOURS): a setting, kept per project by the app. */
+    setBoardColour(name) {
+      setBoardColour(name);
+      render();
+    },
+    setSoldered(refs) {
+      setSoldered(refs);
+      render();
+    },
+    setPolarity,
+    flyToParts,
+    /** The box round some parts ({ min, max } in the scene), for tests; null if none show. */
+    boxOf(refs) {
+      const box = boxOfParts(refs);
+      return box.isEmpty() ? null : { min: box.min.toArray(), max: box.max.toArray() };
+    },
     /** 'real' (the library's models where they fit) or 'simple' (Bench's own drawing): a setting, not an undo step. */
     setParts3d(mode) {
       parts3dMode = mode === 'simple' ? 'simple' : 'real';
@@ -1188,7 +1364,11 @@ export async function createBoard3D(host, board, {
         measure: measured,
         env: Boolean(scene.environment),
         shadows: renderer.shadowMap.enabled,
-        joints: joints.count,
+        joints: { soldered: joints.count, bare: jointSpots.length - joints.count },
+        boardColour: colourName,
+        strips: stripMesh.visible ? board.rows : 0,
+        polarityMarks: marks.size,
+        polarity: [...marks.keys()],
         hidden: [...groups.values()].filter((g) => !g.visible).length,
         net: [...netParts],
         target: controls.target.toArray(),
@@ -1225,6 +1405,7 @@ export async function createBoard3D(host, board, {
       disposed = true;
       if (flight) cancelAnimationFrame(flight.frame);
       sizer.disconnect();
+      motionWatch.disconnect();
       controls.dispose();
       const free = (obj) => {
         if (obj.geometry) obj.geometry.dispose();

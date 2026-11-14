@@ -45,6 +45,51 @@ export const SIZES = {
 
 export const LED_COLOURS = { red: '#ff3b30', green: '#3ddc84', yellow: '#ffd60a', blue: '#3a86ff', white: '#f2f2f2' };
 
+/**
+ * Board colours in 3D (0.9): the board and its pads. FR-4 boards have tinned pads; perfboard is
+ * brown with copper pads; stripboard has copper strips underneath instead of pads.
+ */
+export const BOARD_COLOURS = Object.freeze({
+  green: { board: '#245a30', pad: '#c8ccd0' },
+  black: { board: '#18191b', pad: '#c8ccd0' },
+  blue: { board: '#1d4e8c', pad: '#c8ccd0' },
+  red: { board: '#8e1d22', pad: '#c8ccd0' },
+  white: { board: '#e6e6e1', pad: '#c8ccd0' },
+  purple: { board: '#4a2a6e', pad: '#d4af37' },
+  perfboard: { board: '#a8743f', pad: '#b8703f' },
+  stripboard: { board: '#a8743f', pad: '#b8703f', strips: true },
+});
+
+/**
+ * Which way round (0.9): the leg a polarized part's mark points at, or null. { text, hole }:
+ * '+' on an electrolytic's + leg and an LED's anode, 'K' on a diode's cathode, '1' on a chip's pin 1.
+ */
+export function polarityMark(part) {
+  const pins = (part && part.pins) || {};
+  const names = Object.keys(pins);
+  if (!names.length) return null;
+  const pick = (...want) => {
+    const name = want.find((n) => Object.hasOwn(pins, n));
+    return name === undefined ? pins[names[0]] : pins[name];
+  };
+  switch (part.type) {
+    case 'elec': return { text: '+', hole: pick('p', '+', '1') };
+    case 'led': return { text: '+', hole: pick('A', 'a', '1') };
+    case 'diode':
+    case 'diode_stand': {
+      if (Object.hasOwn(pins, 'K') || Object.hasOwn(pins, 'k')) return { text: 'K', hole: pick('K', 'k') };
+      if (part.type === 'diode_stand' && names.length > 1) {
+        // it stands on its body pin with the cathode end up: the cathode is the leg that loops over
+        const body = Object.hasOwn(pins, part.body) ? part.body : names[1];
+        return { text: 'K', hole: pins[names.find((n) => n !== body)] };
+      }
+      return { text: 'K', hole: pick('1') };
+    }
+    case 'dip': return { text: '1', hole: pick('1') };
+    default: return null;
+  }
+}
+
 /** An LED colour named in a part's value ("5 mm green LED" → 'green'), or null. */
 export function colourInValue(value) {
   const m = /\b(red|green|yellow|blue|white)\b/i.exec(String(value || ''));

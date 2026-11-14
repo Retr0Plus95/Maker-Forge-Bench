@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BOARD_THICKNESS, SIZES, partGeometry, radiusAt, resistorProfile } from '../../src/board3d-geometry.js';
+import { BOARD_COLOURS, BOARD_THICKNESS, SIZES, partGeometry, polarityMark, radiusAt, resistorProfile } from '../../src/board3d-geometry.js';
 import { footprint } from '../../src/boardcheck.js';
 import { parseProject } from '../../src/project.js';
 import { readFixture } from './helpers.js';
@@ -225,4 +225,23 @@ test('the crystal sits on its base flange', () => {
   const flange = prims.find((p) => p.role === 'flange');
   const b = prims.find((p) => p.role === 'body');
   assert.ok(flange && near(flange.z0 + flange.h, -BOARD_THICKNESS - 0.4) && near(b.z0 + b.h, flange.z0));
+});
+
+test('Which way round (0.9): the mark goes on the + leg, the cathode or pin 1', () => {
+  assert.deepEqual(polarityMark({ type: 'elec', pins: { p: [6, 2], n: [6, 4] } }), { text: '+', hole: [6, 2] });
+  assert.deepEqual(polarityMark({ type: 'elec', pins: { 1: [3, 3], 2: [3, 5] } }), { text: '+', hole: [3, 3] });
+  assert.deepEqual(polarityMark({ type: 'diode_stand', pins: { K: [2, 2], A: [2, 4] }, body: 'A' }), { text: 'K', hole: [2, 2] });
+  assert.deepEqual(polarityMark({ type: 'diode_stand', pins: { 1: [2, 2], 2: [2, 4] }, body: '1' }), { text: 'K', hole: [2, 4] }, 'the cathode end is up: the leg that loops over');
+  assert.deepEqual(polarityMark({ type: 'led', pins: { A: [5, 5], K: [6, 5] } }), { text: '+', hole: [5, 5] });
+  assert.deepEqual(polarityMark({ type: 'dip', pins: { 2: [12, 13], 1: [11, 13] } }), { text: '1', hole: [11, 13] });
+  assert.equal(polarityMark({ type: 'res', pins: { 1: [1, 1], 2: [1, 5] } }), null);
+  assert.equal(polarityMark({ type: 'cer', pins: { 1: [1, 1], 2: [2, 1] } }), null);
+});
+
+test('board colours (0.9): eight of them, perfboard copper, stripboard strips', () => {
+  assert.deepEqual(Object.keys(BOARD_COLOURS), ['green', 'black', 'blue', 'red', 'white', 'purple', 'perfboard', 'stripboard']);
+  assert.equal(BOARD_COLOURS.green.board, '#245a30', "0.8's green");
+  assert.equal(BOARD_COLOURS.stripboard.strips, true);
+  assert.ok(!BOARD_COLOURS.perfboard.strips);
+  for (const c of Object.values(BOARD_COLOURS)) assert.match(c.board + c.pad, /^#[0-9a-f]{6}#[0-9a-f]{6}$/);
 });
