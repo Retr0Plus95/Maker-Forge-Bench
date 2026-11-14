@@ -76,6 +76,32 @@ describe('the 3D board: views, heights and files', () => {
     assert.equal(await page.locator('#board3d-views option[value]:not([value=""])').count(), 9);
   });
 
+  test("saved 3D views and the drawing's remembered zoom don't wipe each other", async () => {
+    // the drawing remembers its zoom per sheet; a 3D view saved after that must leave it alone
+    await page.locator('#board3d-toggle').click();
+    await page.locator('#stage').click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press('+');
+    await page.keyboard.press('+');
+    const zoomed = await page.locator('#zoom-level').textContent();
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 600))); // the zoom is kept after a moment
+    await show3D(page);
+    await page.locator('#board3d-view-name').fill('After the zoom');
+    await page.locator('#board3d-view-save').click();
+    await page.locator('#board3d-toggle').click();
+    await page.locator('#stage').click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press('-'); // a drawing move after the save is kept too
+    const later = await page.locator('#zoom-level').textContent();
+    assert.notEqual(later, zoomed);
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 600)));
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+    await page.waitForFunction(() => /^\d+ %$/.test(document.querySelector('#zoom-level')?.textContent || ''));
+    assert.equal(await page.locator('#zoom-level').textContent(), later, 'the drawing kept its zoom');
+    await show3D(page);
+    const names = await page.locator('#board3d-views option').evaluateAll((os) => os.filter((o) => o.value).map((o) => o.textContent));
+    assert.ok(names.includes('After the zoom'), names.join(', '));
+  });
+
   test('the height check: the tallest part on each side, and what pokes through a lid', async () => {
     const h = await heights(page);
     const types = await page.evaluate(async () => {

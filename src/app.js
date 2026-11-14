@@ -1094,8 +1094,8 @@ function setBoardColour(name) {
   $('#board3d-colour').value = boardColourNow();
   if (board3d) board3d.setBoardColour(boardColourNow());
 }
-// saved views (0.9): up to nine per project, by name
-const viewsKey = () => `views:${projectName()}`;
+// saved views (0.9): up to nine per project, by name (views: is the drawing's zoom per sheet, so 3D has its own)
+const viewsKey = () => `views3d:${projectName()}`;
 const goodView = (v) => v && typeof v.name === 'string' && v.name.trim() && v.camera && Array.isArray(v.camera.position) && Array.isArray(v.camera.target);
 function savedViews() {
   const list = store.get(viewsKey(), []);
