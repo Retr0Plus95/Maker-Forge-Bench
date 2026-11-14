@@ -410,6 +410,7 @@ function cardPart(ref) {
 let libraryNow = null; // the library's index once fetched, for the choices on a part's card
 let libraryAsked = false;
 let ownModels = null; // your own models in this browser: [{ id, name, bytes }], once read
+let ownModelsRead = false; // the list above has been read (until then a missing one isn't missing yet)
 const modelStatus = { ref: null, text: '' }; // why your file was refused, on that part's card
 
 const sizeOf = (e) => {
@@ -430,7 +431,8 @@ function modelChoices(ref, look) {
     ownModels = [];
     listOwnModels().then((list) => {
       ownModels = list;
-      if (list.length && state.selected) renderPartCard();
+      ownModelsRead = true;
+      if (state.selected) renderPartCard();
     });
   }
   const board = projectBoard();
@@ -449,10 +451,14 @@ function modelChoices(ref, look) {
   for (const m of ownModels || []) {
     choices.push({ value: `own:${m.id}`, label: m.name, detail: `${Math.max(1, Math.round(m.bytes / 1024))} KB`, group: 'Your own (in this browser)' });
   }
+  // a model chosen before that isn't here (kept in another browser, a file that's gone, a library
+  // model that was renamed) says so in words, and shows as chosen: Bench draws the part meanwhile
+  const away = look.model && !choices.some((c) => c.value === look.model) ? missingModel(look.model) : null;
+  if (away) choices.push({ value: look.model, label: away.label, group: 'Chosen before, not here' });
   return {
     choices,
     current: look.model || '',
-    status: modelStatus.ref === ref ? modelStatus.text : '',
+    status: modelStatus.ref === ref ? modelStatus.text : away ? away.note : '',
     onPick: (v, label) => {
       modelStatus.ref = null;
       setLook(ref, 'model', v, v ? `3D model ${label}` : 'automatic 3D model');
@@ -470,6 +476,25 @@ function modelChoices(ref, look) {
       }
     },
   };
+}
+
+/** A chosen model that isn't among the choices, in words: { label, note }, or null while it may still turn up. */
+function missingModel(choice) {
+  if (choice.startsWith('own:')) {
+    if (!ownModelsRead) return null;
+    return { label: 'Your own model, not in this browser',
+      note: "That model isn't in this browser (it was kept in another one), so Bench draws the part. Use my own model… to add it here." };
+  }
+  if (choice.startsWith('project:')) {
+    const path = choice.slice('project:'.length);
+    if (!state.project) return null;
+    if (/\.wrl$/i.test(path) && (state.modelFiles || []).includes(path)) {
+      return { label: `${path}, needs dev.py`, note: 'A KiCad .wrl becomes a model only with Bench running on your computer (dev.py), so Bench draws the part.' };
+    }
+    return { label: `${path}, not found here`, note: "That file isn't in the project here, so Bench draws the part." };
+  }
+  if (!libraryNow) return null;
+  return { label: "A model this library doesn't have", note: "That model isn't in this version of the library, so Bench uses the automatic one." };
 }
 
 /** The project's 3D models (.glb, and .wrl with dev.py), for Looks like → 3D model. */
@@ -496,7 +521,7 @@ function looksCardOptions(ref) {
   // be drawn again in between (the library arriving does that)
   const live = document.querySelector('#part-looks');
   if (live) state.looksOpen = live.open;
-  const chosen = look.model && models ? (models.choices.find((c) => c.value === look.model) || { label: look.model }).label : '';
+  const chosen = look.model && models ? (models.choices.find((c) => c.value === look.model) || { label: 'a chosen model' }).label : '';
   return {
     fields,
     models,
