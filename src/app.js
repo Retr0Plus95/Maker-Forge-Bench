@@ -104,7 +104,7 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.8.0';
+const APP_VERSION = '0.9.0';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';

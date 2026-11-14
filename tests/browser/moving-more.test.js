@@ -195,10 +195,20 @@ describe('moving around, lists, and the app extras', () => {
     await page.reload();
     await ready(page);
     assert.equal(await page.locator('#whats-new').isVisible(), true);
+    assert.match(await page.locator('#whats-new').textContent(), /New in Bench 0\.9:.*real 3D parts/);
     await page.locator('#whats-new-close').click();
     await page.reload();
     await ready(page);
     assert.equal(await page.locator('#whats-new').isVisible(), false);
+  });
+
+  test("the help credits KiCad's 3D models and links their licence, which is there to read", async () => {
+    const link = page.locator('#help a[href="library/LICENSE-KICAD-3D.md"]');
+    assert.equal(await link.count(), 1);
+    assert.match(await page.locator('#help .help-credit').textContent(), /KiCad.*CC-BY-SA 4\.0/);
+    const res = await page.request.get(new URL('library/LICENSE-KICAD-3D.md', page.url()).href);
+    assert.equal(res.status(), 200);
+    assert.match(await res.text(), /CC-BY-SA|Creative Commons/);
   });
 
   test('no errors', () => assert.deepEqual(problems.filter((p) => !/Failed to load resource/.test(p)), []));

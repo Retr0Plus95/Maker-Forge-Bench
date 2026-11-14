@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.8 works on PC, phone and tablet, from a local folder, a public GitHub repo,
+**Status:** release 0.9 works on PC, phone and tablet, from a local folder, a public GitHub repo,
 or a folder picked in the browser. The website comes with 1.0 (see the roadmap).
 
 ## Try it
@@ -133,6 +133,32 @@ repo straight away.
     datasheets; the chip has its real legs; TO-220, headers and the crystal are to size.
   - **The Menu on a computer too:** Calculators, Keep screen on and Full screen are in it, with
     Save progress, Shopping list, Build log, Versions and Keyboard shortcuts.
+- **Real parts (0.9):**
+  - **Real 3D parts:** the 3D board draws each part from the **Maker Forge Library**, 193
+    through-hole parts converted once from KiCad's free 3D models (CC-BY-SA 4.0, see
+    [`src/library/LICENSE-KICAD-3D.md`](src/library/LICENSE-KICAD-3D.md)), plus models made for
+    Bench where KiCad has none (the MP1584 buck module, a 9 mm pot, a 12 mm button). Bench still
+    paints its own colour bands, values and stripes on them, and bends a capacitor's legs when its
+    holes are wider than the model's. **Parts: Real or Simple** in the 3D bar: Simple is Bench's
+    own drawing, quicker on a slow phone. A loading bar counts the models in. Nothing runs on your
+    computer: the models come with the page.
+  - **A 3D model in Looks like:** each part card lists the models that fit its holes (straight
+    first, then with bent legs), models in the project (`.glb`, and KiCad's `.wrl` through
+    `dev.py`), and **Use my own model…**: a `.glb` up to 5 MB, kept in this browser.
+  - **Board colours:** green, black, blue, red, white, purple, perfboard or stripboard, kept per
+    project.
+  - **Your progress in 3D:** the parts you've ticked get shiny solder joints underneath; the rest
+    show bare legs.
+  - **Which way round:** a mark over each + leg, cathode and pin 1.
+  - **The camera follows you:** opening a guide step turns the view to its parts (or over, for the
+    wiring underneath), and Find flies to the part it found.
+  - **Saved views:** name the view and keep up to nine per project.
+  - **Height check:** the tallest part on each side, and **Lid at __ mm** lights up what pokes
+    through: ready for the board in its box.
+  - **Check my board in 3D:** with My board showing, its problems are red marks on the board
+    (warnings amber); click one to open it.
+  - **Save GLB, Save OBJ and Turntable video** next to Save picture and Save STL. Shadows switch
+    off with Reduce motion and on small screens.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).
@@ -187,7 +213,10 @@ The browser checks use Chrome or Edge; set `BENCH_BROWSER` to a browser's path t
 - Design for the board view, parts library and UI: [`docs/design/2026-11-12-board-view-parts-ui-design.md`](docs/design/2026-11-12-board-view-parts-ui-design.md)
 - Design for 0.7 Everywhere (GitHub, folders, phones, AI help): [`docs/design/2026-11-13-release-0.7-design.md`](docs/design/2026-11-13-release-0.7-design.md)
 - Design for 0.8 True to life (3D parts, Looks like, tabs and the guide): [`docs/design/2026-11-13-release-0.8-design.md`](docs/design/2026-11-13-release-0.8-design.md)
+- Design for 0.9 Real parts (the Maker Forge Library, KiCad's 3D models, a better 3D view): [`docs/design/2026-11-14-release-0.9-design.md`](docs/design/2026-11-14-release-0.9-design.md)
 - Roadmap, including ideas for future suite apps: [`ROADMAP.md`](ROADMAP.md)
 
 MIT licence: see [`LICENSE`](LICENSE). The Atkinson Hyperlegible font is under the SIL Open Font
 Licence: see [`FONTS-LICENSE.md`](FONTS-LICENSE.md). three.js r128 is MIT: see [`THREE-LICENSE`](THREE-LICENSE).
+The 3D models converted from KiCad's library are CC-BY-SA 4.0, by the KiCad library team: see
+[`src/library/LICENSE-KICAD-3D.md`](src/library/LICENSE-KICAD-3D.md). The models made for Bench are MIT.

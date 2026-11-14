@@ -46,7 +46,7 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 0.8:</strong> the side panel is in tabs, with a guide that takes you one step at a time (Done, next step) and steps you can adjust; Looks like on each part card for what you really fitted; truer 3D parts; and Calculators and more in the Menu. The old long panel is the All tab. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 0.9:</strong> real 3D parts from KiCad's free library (Parts: Real or Simple in the 3D view), a 3D model for each part in Looks like, and a better 3D view: board colours, your soldering progress, which way round, saved views, a height check for the case, and saving it as a picture, a model or a video. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <p id="sheet-note" aria-live="polite" hidden></p>
 <section id="start" hidden aria-labelledby="start-title"></section>
@@ -115,7 +115,7 @@
           <button id="board3d-obj" class="tool" type="button" title="The board as an OBJ: a shape per part">Save OBJ</button>
           <button id="board3d-video" class="tool" type="button" hidden title="A 10-second turn of the board, saved as a WebM video">Turntable video</button>
         </div>
-        <span class="hint">Real parts: KiCad's 3D models (CC-BY-SA) · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
+        <span class="hint">Real parts: KiCad's 3D models (<a href="library/LICENSE-KICAD-3D.md" target="_blank" rel="noopener">CC-BY-SA</a>) · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
       </div>
       <p id="board3d-loading" role="status" hidden></p>
       <p id="board3d-message" hidden></p>
@@ -170,6 +170,7 @@
     <dt>Esc</dt><dd>Close the part card, or stop tapping on your photo</dd>
     <dt>?</dt><dd>This list</dd>
   </dl>
+  <p class="hint help-credit">The real 3D parts are KiCad's 3D models, by the KiCad library team, under CC-BY-SA 4.0, converted for Bench: <a href="library/LICENSE-KICAD-3D.md" target="_blank" rel="noopener">credit and licence</a>. The models made for Bench, and Bench itself, are MIT.</p>
   <button id="help-done" class="primary" type="button">Done</button>
 </dialog>
 <dialog id="palette" aria-label="Find anything">

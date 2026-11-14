@@ -53,8 +53,8 @@ standoffs, nuts). From SolidWorks Electrical: the wiring harness, wire numbers a
 3D. And a light viewer anyone can open, like eDrawings, which is what Bench already is.
 
 ### The order from here
-1. **Bench 0.9 Real parts:** the shared library's first version, KiCad's 3D models and a better 3D
-   view, all working on the website with nothing running on your computer.
+1. **Bench 0.9 Real parts** (done 2026-11-14): the shared library's first version, KiCad's 3D
+   models and a better 3D view, all working on the website with nothing running on your computer.
 2. **Bench 1.0 Launch.**
 3. **Maker Forge Circuit:** schematic, then a perfboard or stripboard board, then simulation built
    in.
@@ -210,14 +210,14 @@ Design: `docs/design/2026-11-13-release-0.8-design.md`.
   again, and the panel's main buttons (Ask here, Use this spot, Beeped) stand out again: a panel
   style had overridden them all.
 
-### 0.9 Real parts
+### 0.9 Real parts — done 2026-11-14
 Real 3D parts from KiCad's free library and a better 3D view. It all works on the website, with
 nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-design.md`.
 - **The Maker Forge Library, first version:** one list of parts that every app will share. Each
   part has its pins, its footprint (the hole spacing), its 3D model, and where it came from with its
   licence. Symbols and how-to pages join it with Parts and Circuit. It starts inside Bench and
   moves to its own home once Circuit needs it.
-- **About 150 common through-hole parts in true 3D,** converted once from KiCad's library and
+- **193 common through-hole parts in true 3D,** converted once from KiCad's library and
   shipped with Bench, with KiCad's credit: resistors, capacitors, diodes, LEDs, transistors,
   regulators, chips and sockets, headers, screw terminals, crystals, pots, buttons and connectors.
   Bench still paints its own colour bands, values and stripes on them. Looks like gets a model
@@ -228,6 +228,9 @@ nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-de
   the camera following the guide, find a part in 3D, saved views, a height check for the case,
   Check my board shown in 3D, export to GLB and OBJ, a turntable video, and a loading bar.
 - *(Opening KiCad projects was planned here too, and moved to 1.2 as an option the same day.)*
+- **★ New, along the way:** a capacitor whose holes are wider than its model's gets its legs bent
+  to them (like you would), a socketed chip sits in its socket, the guide turns the board over for
+  the wiring underneath, and Check my board's warnings show amber next to the red problems.
 
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
