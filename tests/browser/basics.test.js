@@ -2,7 +2,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { FIXTURES, copyFixture, openPage, startDevServer } from './harness.js';
+import { FIXTURES, copyFixture, openPage, startDevServer, fromMenu } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 const ready = (page) => page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
@@ -84,18 +84,18 @@ describe('basics', () => {
   });
 
   test('Keep screen on asks the browser to keep the screen awake', async () => {
-    await page.locator('#wake').click();
+    await fromMenu(page, '#wake');
     assert.equal(await page.locator('#wake').getAttribute('aria-pressed'), 'true');
     assert.deepEqual(await page.evaluate(() => window.__wake), ['screen']);
-    await page.locator('#wake').click();
+    await fromMenu(page, '#wake');
     assert.equal(await page.locator('#wake').getAttribute('aria-pressed'), 'false');
   });
 
   test('Full screen fills the screen with Bench', async () => {
-    await page.locator('#fullscreen').click();
+    await fromMenu(page, '#fullscreen');
     await page.waitForFunction(() => document.fullscreenElement !== null);
     assert.equal(await page.locator('#fullscreen').getAttribute('aria-pressed'), 'true');
-    await page.locator('#fullscreen').click();
+    await fromMenu(page, '#fullscreen');
     await page.waitForFunction(() => document.fullscreenElement === null);
   });
 

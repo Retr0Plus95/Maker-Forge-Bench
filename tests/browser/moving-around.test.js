@@ -5,7 +5,7 @@ import path from 'node:path';
 import { FIXTURES, copyFixture, openPage, startDevServer } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
-const selectedTab = (page) => page.evaluate(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent);
+const selectedTab = (page) => page.evaluate(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent);
 
 describe('moving around', () => {
   let server; let browser; let page; let problems; let dir;
@@ -37,9 +37,9 @@ describe('moving around', () => {
   test('number keys pick sheets', async () => {
     await page.locator('#stage').click({ position: { x: 5, y: 5 } });
     await page.keyboard.press('4');
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
     await page.keyboard.press('1');
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent.startsWith('SFE-01'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent.startsWith('SFE-01'));
   });
 
   test('the zoom level shows on the stage, and clicking it fits the sheet', async () => {
@@ -55,7 +55,7 @@ describe('moving around', () => {
   test('the last sheet you looked at is shown again after a reload', async () => {
     await page.locator('#stage').click({ position: { x: 5, y: 5 } });
     await page.keyboard.press('4');
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent.startsWith('SFE-04'));
     await page.reload();
     await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
     assert.match(await selectedTab(page), /^SFE-04/);

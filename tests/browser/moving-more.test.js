@@ -2,11 +2,11 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { FIXTURES, copyFixture, openPage, startDevServer } from './harness.js';
+import { FIXTURES, copyFixture, openPage, startDevServer, fromMenu } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 const cardRef = (page) => page.evaluate(() => document.querySelector('#part-card h2')?.firstChild?.textContent || null);
-const tabNow = (page) => page.evaluate(() => document.querySelector('[role=tab][aria-selected=true]')?.dataset.id);
+const tabNow = (page) => page.evaluate(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.dataset.id);
 const ready = (page) => page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0 && document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
 
 async function openCard(page, ref) {
@@ -143,7 +143,7 @@ describe('moving around, lists, and the app extras', () => {
   });
 
   test('calculators: an LED resistor, Ohm\'s law, a divider', async () => {
-    await page.locator('#calc-open').click();
+    await fromMenu(page, '#calc-open');
     await page.locator('#calc-led-supply').fill('5');
     await page.locator('#calc-led-vf').fill('2');
     await page.locator('#calc-led-ma').fill('10');
@@ -221,7 +221,7 @@ describe('a sheet that fails to load', () => {
       await page.locator('#stage-retry').waitFor({ timeout: 15000 });
       await writeFile(file, good);
       await page.waitForFunction(() => document.querySelector('[role=tab][data-id="SFE-03"]').classList.contains('flash'), null, { timeout: 15000 });
-      await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('svg') && document.querySelector('[role=tab][aria-selected=true]').dataset.id === 'SFE-03', null, { timeout: 15000 });
+      await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('svg') && document.querySelector('#tabs [role=tab][aria-selected=true]').dataset.id === 'SFE-03', null, { timeout: 15000 });
     } finally {
       await browser.close();
       await server.stop();

@@ -392,69 +392,108 @@ export function renderSteps(container, steps, o) {
   const skippedCount = a ? a.all.filter((s) => s.skipped).length : 0;
   const head = el('div', { className: 'steps-head' }, el('h2', {}, 'Build steps'));
   if (adjustButton) head.append(adjustButton);
-  const children = [head, el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done${skippedCount ? ` · ${skippedCount} skipped` : ''}`), list];
+  const bar = el('progress', { className: 'steps-bar', max: String(Math.max(steps.length, 1)), 'aria-label': 'Steps done' });
+  bar.value = doneCount;
+  const children = [head, el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done${skippedCount ? ` · ${skippedCount} skipped` : ''}`), bar];
   const step = o.current !== null ? steps[o.current] : null;
-  if (step) {
-    const box = el('div', { className: 'step-open' },
-      el('p', { className: 'step-title' }, `Step ${o.current + 1} of ${steps.length}: ${step.title}`));
-    if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
-    const what = o.whatText(step);
-    if (what) box.append(el('p', { className: 'step-what' }, what));
-    const found = step.parts.filter((r) => !step.missing.includes(r));
-    if (found.length) {
-      const parts = el('div', { className: 'step-parts' });
-      for (const ref of found) {
-        const b = el('button', { type: 'button', className: 'part-link', 'data-focus': `part-${ref}` }, ref);
-        b.addEventListener('click', () => o.onPart(ref));
-        parts.append(b);
-      }
-      box.append(parts);
-    }
-    if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
-    const back = el('button', { type: 'button', id: 'step-back', 'data-focus': 'back' }, '← Back');
-    back.disabled = o.current === 0;
-    back.addEventListener('click', () => o.onOpen(o.current - 1));
-    const next = el('button', { type: 'button', id: 'step-next', 'data-focus': 'next' }, 'Next →');
-    next.disabled = o.current === steps.length - 1;
-    next.addEventListener('click', () => o.onOpen(o.current + 1));
-    const nav = el('div', { className: 'step-nav' }, back, next);
-    if (!found.length) {
-      const doneBox = el('input', { type: 'checkbox', id: 'step-done', 'data-focus': 'step-done' });
-      doneBox.checked = o.isDone(step, o.current);
-      doneBox.addEventListener('change', () => o.onMarkDone(o.current, doneBox.checked));
-      nav.append(el('label', { className: 'check' }, doneBox, ' Done'));
-    }
-    if (o.on3D) {
-      const show = el('button', { type: 'button', id: 'step-3d', 'data-focus': 'step-3d' }, 'Show in 3D');
-      show.addEventListener('click', o.on3D);
-      nav.append(show);
-    }
-    if (found.length) {
-      const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all in this step');
-      all.addEventListener('click', () => o.onTickAll(o.current));
-      nav.append(all);
-    }
-    box.append(nav);
-    if (o.extras) {
-      const x = o.extras;
-      if (x.joints) box.append(el('p', { className: 'step-joints hint' }, `About ${x.joints} solder joints in this step.`));
-      const note = el('textarea', { id: 'step-note', rows: '2', placeholder: 'Your note on this step', 'data-focus': 'step-note' });
-      note.value = stepDraft ?? (x.note || '');
-      note.addEventListener('change', () => x.onNote(note.value));
-      const print = el('button', { type: 'button', id: 'step-print', 'data-focus': 'step-print' }, 'Print this step');
-      print.addEventListener('click', x.onPrint);
-      const auto = el('input', { type: 'checkbox', id: 'steps-auto', 'data-focus': 'steps-auto' });
-      auto.checked = x.auto;
-      auto.addEventListener('change', () => x.onAuto(auto.checked));
-      box.append(el('label', { for: 'step-note', className: 'part-own-note-label' }, 'Your note'), note,
-        el('div', { className: 'step-extras' }, print, el('label', { className: 'check' }, auto, ' Next step by itself when this one is done')));
-    }
-    box.append(el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
-    children.push(box);
+  const more = container.querySelector('.step-open details.step-more');
+  if (step) children.push(guideBox(step, steps, { ...o, moreOpen: more ? more.open : undefined }, stepDraft));
+  else if (steps.length) {
+    // nothing open yet: one button to start, or to carry on where you left off
+    const next = steps.findIndex((s, i) => !o.isDone(s, i));
+    const go = el('button', { type: 'button', id: 'step-start', className: 'primary', 'data-focus': 'step-start' },
+      next === 0 ? `Start with step 1: ${steps[0].title}` : next > 0 ? `Carry on: step ${next + 1}, ${steps[next].title}` : `Look back over step 1: ${steps[0].title}`);
+    go.addEventListener('click', () => o.onOpen(Math.max(next, 0)));
+    children.push(el('div', { className: 'guide-start' }, el('p', { className: 'hint' }, next < 0 ? 'Every step is done.' : 'One step at a time: what to do, why, and where each part goes.'), go));
   }
+  children.push(el('h3', { className: 'steps-all-title' }, 'All steps'), list);
   // the panel is rebuilt on every change: the keyboard focus goes back where it was
   keepFocus(container, () => container.replaceChildren(...children),
-    '#step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"], button');
+    '#step-done-next, #step-next:not(:disabled), #step-back:not(:disabled), .steps-list button[aria-current="true"], button');
+}
+
+/** The open step, as a guide (0.8 design §3): what to do and why, each part with a tick and where it goes, and Done, next step. */
+function guideBox(step, steps, o, stepDraft) {
+  const i = o.current;
+  const last = i === steps.length - 1;
+  const done = o.isDone(step, i);
+  const box = el('div', { className: 'step-open guide' },
+    el('p', { className: 'step-title' }, `Step ${i + 1} of ${steps.length}: ${step.title}`));
+  if (step.own) box.append(el('p', { className: 'hint' }, 'A step of your own'));
+  if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
+  const what = o.whatText(step);
+  if (what) box.append(el('p', { className: 'step-what' }, what));
+  const found = step.parts.filter((r) => !step.missing.includes(r));
+  if (found.length) {
+    const parts = el('ul', { className: 'step-parts' });
+    for (const ref of found) {
+      const info = o.partInfo ? o.partInfo(ref) : { value: '', where: '', ticked: false };
+      const tick = el('input', { type: 'checkbox', className: 'step-tick', 'data-step-ref': ref, 'aria-label': `${ref} soldered`, 'data-focus': `tick-${ref}` });
+      tick.checked = info.ticked;
+      tick.addEventListener('change', () => o.onTick(ref));
+      const b = el('button', { type: 'button', className: 'part-link', 'data-focus': `part-${ref}` }, ref);
+      b.addEventListener('click', () => o.onPart(ref));
+      const words = el('span', { className: 'step-part-words' });
+      if (info.value) words.append(el('span', { className: 'step-part-value' }, info.value));
+      if (info.where) words.append(el('span', { className: 'step-part-where' }, info.where));
+      parts.append(el('li', { className: info.ticked ? 'ticked' : '' }, tick, b, words));
+    }
+    box.append(parts);
+  }
+  if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
+  // the big one: tick this step and go on
+  if (!(last && done)) {
+    const go = el('button', { type: 'button', id: 'step-done-next', className: 'primary', 'data-focus': 'done-next' },
+      done ? 'Next step →' : last ? 'Done, that was the last step ✓' : 'Done, next step →');
+    go.addEventListener('click', () => (done ? o.onOpen(i + 1) : o.onDoneNext(i)));
+    box.append(go);
+  } else {
+    box.append(el('p', { className: 'guide-finished' }, '✓ The last step is done.'));
+  }
+  const back = el('button', { type: 'button', id: 'step-back', 'data-focus': 'back' }, '← Back');
+  back.disabled = i === 0;
+  back.addEventListener('click', () => o.onOpen(i - 1));
+  const next = el('button', { type: 'button', id: 'step-next', 'data-focus': 'next', title: 'The next step, without ticking this one' }, 'Next →');
+  next.disabled = last;
+  next.addEventListener('click', () => o.onOpen(i + 1));
+  const nav = el('div', { className: 'step-nav' }, back, next);
+  if (o.on3D) {
+    const show = el('button', { type: 'button', id: 'step-3d', 'data-focus': 'step-3d' }, 'Show in 3D');
+    show.addEventListener('click', o.on3D);
+    nav.append(show);
+  }
+  if (found.length) {
+    const all = el('button', { type: 'button', id: 'step-tick-all', 'data-focus': 'tick-all' }, 'Tick all');
+    all.addEventListener('click', () => o.onTickAll(i));
+    nav.append(all);
+  } else {
+    const doneBox = el('input', { type: 'checkbox', id: 'step-done', 'data-focus': 'step-done' });
+    doneBox.checked = done;
+    doneBox.addEventListener('change', () => o.onMarkDone(i, doneBox.checked));
+    nav.append(el('label', { className: 'check' }, doneBox, ' Done'));
+  }
+  box.append(nav);
+  if (o.extras) {
+    const x = o.extras;
+    if (x.joints) box.append(el('p', { className: 'step-joints hint' }, `About ${x.joints} solder joints in this step.`));
+    const note = el('textarea', { id: 'step-note', rows: '2', placeholder: 'Your note on this step', 'data-focus': 'step-note' });
+    note.value = stepDraft ?? (x.note || '');
+    note.addEventListener('change', () => x.onNote(note.value));
+    const print = el('button', { type: 'button', id: 'step-print', 'data-focus': 'step-print' }, 'Print this step');
+    print.addEventListener('click', x.onPrint);
+    const auto = el('input', { type: 'checkbox', id: 'steps-auto', 'data-focus': 'steps-auto' });
+    auto.checked = x.auto;
+    auto.addEventListener('change', () => x.onAuto(auto.checked));
+    // folded under one line, so the step itself stays short; open when there's a note
+    const more = el('details', { className: 'step-more' },
+      el('summary', {}, x.note ? 'Your note, print, next step by itself' : 'Add a note, print, next step by itself'),
+      el('label', { for: 'step-note', className: 'part-own-note-label' }, 'Your note'), note,
+      el('div', { className: 'step-extras' }, print, el('label', { className: 'check' }, auto, ' Next step by itself when this one is done')));
+    more.open = o.moreOpen ?? Boolean(x.note || stepDraft);
+    box.append(more);
+  }
+  box.append(el('p', { className: 'hint' }, 'Space: next step · Shift+Space: back'));
+  return box;
 }
 
 /**

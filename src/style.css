@@ -467,8 +467,8 @@ h1 {
 .badge-polarity { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: .72rem; font-weight: 700; vertical-align: middle;
   background: var(--warn); color: #1a1200; }
 .checklist-items li { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.checklist-name { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
-.checklist-name:hover, .checklist-name:focus-visible { color: var(--accent); text-decoration: underline; }
+#panel .checklist-name, .checklist-name { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+#panel .checklist-name:hover, #panel .checklist-name:focus-visible { color: var(--accent); text-decoration: underline; }
 #part-own-note { width: 100%; box-sizing: border-box; font: inherit; }
 .part-own-note-label { display: block; margin-top: 8px; font-weight: 700; }
 #find-results .find-line { border-color: #e5484d; }
@@ -499,10 +499,10 @@ h1 {
 }
 
 /* ---- basics (0.4.1) ---- */
-#panel section[data-folded] > :not(h2) { display: none !important; }
-#panel section > h2[role="button"] { cursor: pointer; display: flex; align-items: center; gap: 6px; }
-#panel section > h2[role="button"]::before { content: "▾"; font-size: .8em; color: var(--muted); }
-#panel section[data-folded] > h2[role="button"]::before { content: "▸"; }
+#panel section[data-folded] > :not(h2):not(.steps-head), #panel section[data-folded] > .steps-head > :not(h2) { display: none !important; }
+#panel section h2[role="button"] { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+#panel section h2[role="button"]::before { content: "▾"; font-size: .8em; color: var(--muted); }
+#panel section[data-folded] h2[role="button"]::before { content: "▸"; }
 #workspace[data-panel-hidden] #panel { display: none; }
 #panel-toggle[aria-pressed="true"], #wake[aria-pressed="true"], #fullscreen[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 #shopping { max-width: min(760px, 92vw); }
@@ -641,7 +641,7 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
 
 /* ---- the start screen and where the files come from (0.7) ---- */
 #start { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 16px; }
-#start[hidden], body[data-start] #workspace, body[data-start] #tabs, body[data-start] #top > .bar:nth-of-type(2) { display: none; }
+#start[hidden], body[data-start] #workspace, body[data-start] #tabs, body[data-start] #top > .bar:has(> #findbar), body[data-start] #more-tools > :not(#calc-open):not(#wake):not(#fullscreen):not(#menu-help) { display: none; }
 .start-box { max-width: 620px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; }
 .start-box h2 { margin: 0 0 6px; font-size: 1.3rem; }
 .start-box h3 { margin: 18px 0 6px; font-size: 1rem; }
@@ -719,3 +719,76 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
 .ask-answer.ai-bad { border-left-color: var(--warn); }
 .ask-who { font-weight: 700; color: var(--accent); }
 #panel .link-button { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* ---- the panel in tabs (0.8 design §3): one tab's sections at a time; All shows every one ---- */
+#panel-tabs { display: flex; flex-wrap: nowrap; gap: 2px; position: sticky; top: -12px; z-index: 2; margin: -12px -12px 0; padding: 10px 12px 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
+#panel-tabs:empty { display: none; }
+#panel #panel-tabs [role="tab"] { flex: 1 1 0; min-width: 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px; line-height: 1.15; border-radius: 8px; background: transparent; border-color: transparent; color: var(--muted); font-weight: 600; }
+#panel #panel-tabs [role="tab"]:hover { border-color: var(--line); color: var(--ink); }
+#panel #panel-tabs [role="tab"][aria-selected="true"] { background: var(--panel2); border-color: var(--accent); color: var(--ink); }
+#panel-tabs .tab-count { font-size: .75em; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+#panel-tabs .tab-done .tab-count { color: var(--good); }
+#panel-tabs .tab-done .tab-count::before { content: "✓ "; }
+@media screen {
+  #panel[data-tab="guide"] > section[data-tab-of]:not([data-tab-of="guide"]),
+  #panel[data-tab="board"] > section[data-tab-of]:not([data-tab-of="board"]),
+  #panel[data-tab="wiring"] > section[data-tab-of]:not([data-tab-of="wiring"]),
+  #panel[data-tab="checks"] > section[data-tab-of]:not([data-tab-of="checks"]),
+  #panel[data-tab="parts"] > section[data-tab-of]:not([data-tab-of="parts"]) { display: none; }
+}
+@media print { #panel-tabs { display: none !important; } }
+html[data-compact] #panel-tabs { top: -6px; margin: -6px -6px 0; padding: 6px; gap: 2px; }
+html[data-compact] #panel #panel-tabs [role="tab"] { padding: 2px 6px; }
+@media (max-width: 759px) {
+  #panel-tabs { top: 24px; margin-top: 0; flex-wrap: nowrap; overflow-x: auto; }
+  #panel #panel-tabs [role="tab"] { flex: 1 0 auto; min-height: 44px; padding: 4px 8px; }
+}
+/* in a tab, the card's "click a part" hint is one quiet line */
+#panel:not([data-tab="all"]) #part-card:has(> .hint:only-child) { padding: 6px 10px; }
+#panel:not([data-tab="all"]) #part-card > .hint:only-child { font-size: .85em; }
+
+/* ---- the guide (0.8 design §3): the open step in big plain words ---- */
+#panel .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+#panel .part-link { min-height: 26px; padding: 1px 7px; border-radius: 6px; background: var(--panel); font-size: .88rem; }
+#panel .steps-list button { min-height: 30px; padding: 3px 8px; border-color: transparent; border-radius: 6px; background: none; text-align: left; }
+#panel .steps-list button:hover { border-color: var(--line); }
+#panel .steps-list button[aria-current="true"] { border-color: #28c4ff; background: var(--panel); font-weight: 700; }
+.steps-bar { display: block; width: 100%; margin: 2px 0 4px; }
+.steps-all-title { margin: 12px 0 4px; font-size: .95rem; color: var(--muted); }
+.guide-start { display: grid; gap: 8px; margin: 8px 0; }
+.guide .step-title { font-size: 1.15rem; line-height: 1.3; }
+.guide .step-why { font-size: 1.02rem; line-height: 1.5; }
+.guide .step-parts { display: grid; gap: 4px; margin: 10px 0; padding: 0; list-style: none; }
+.guide .step-parts li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 4px 8px; }
+.guide .step-tick { width: 20px; height: 20px; margin: 0; accent-color: var(--good); }
+.guide .step-parts li.ticked .part-link { opacity: .6; }
+.step-part-words { display: flex; flex-wrap: wrap; gap: 0 6px; color: var(--muted); font-size: .88rem; min-width: 0; }
+.step-part-value { color: var(--ink); }
+.step-part-where { overflow-wrap: anywhere; }
+#panel #step-done-next { width: 100%; min-height: 46px; margin: 4px 0 2px; font-size: 1.05rem; }
+.guide-finished { margin: 8px 0; color: var(--good); font-weight: 700; }
+html[data-compact] .guide .step-title { font-size: 1rem; }
+html[data-compact] .guide .step-why { font-size: .95rem; line-height: 1.4; }
+html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem; }
+.guide .step-nav > * { flex: 1 1 auto; }
+.step-more { margin-top: 8px; }
+.step-more > summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+.step-more[open] > summary { margin-bottom: 6px; }
+@media print { body.print-step #steps .step-more > summary, body.print-step #steps .steps-all-title, body.print-step #steps #step-done-next, body.print-step #steps .guide-start { display: none !important; } }
+
+/* ---- a compact header (0.8 design §3): the everyday tools stay out, the rest wait in the Menu ---- */
+#top { position: relative; }
+#top:not([data-menu-open]) #more-tools { display: none; }
+@media (min-width: 760px) {
+  #menu-toggle { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel2); color: var(--ink); cursor: pointer; font: inherit; }
+  #menu-toggle:hover, #top[data-menu-open] #menu-toggle { border-color: var(--accent); }
+  #top[data-menu-open] #more-tools {
+    position: absolute; z-index: 30; top: 50px; right: 12px; display: grid; gap: 4px; min-width: 220px; padding: 8px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow);
+  }
+  #more-tools .tool { text-align: left; }
+  html[data-compact] #menu-toggle { min-height: 0; padding: 2px 7px; }
+  html[data-compact] #top[data-menu-open] #more-tools { top: 38px; }
+}
+/* on a phone the menu stays as short as 0.7 had it: these are in the Parts tab, and there is no keyboard */
+@media (max-width: 759px) { #menu-save, #menu-shopping, #menu-log, #menu-versions, #menu-help { display: none !important; } }

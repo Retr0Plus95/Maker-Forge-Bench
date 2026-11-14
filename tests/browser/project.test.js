@@ -5,7 +5,7 @@ import path from 'node:path';
 import { FIXTURES, copyFixture, openPage, startDevServer } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
-const tabs = (page) => page.locator('[role=tab]').allTextContents();
+const tabs = (page) => page.locator('#tabs [role=tab]').allTextContents();
 const statusIs = (page, text, timeout = 5000) => page.waitForFunction((t) => document.querySelector('#status').textContent === t, text, { timeout });
 
 describe('a project with forge-project.json', () => {

@@ -32,7 +32,7 @@ const shadowAll = (page, selector) => page.evaluate((s) => [...document.querySel
 })), selector);
 
 async function showPhoto(page) {
-  if ((await page.locator('[role=tab][aria-selected=true]').textContent()) !== 'board-top') {
+  if ((await page.locator('#tabs [role=tab][aria-selected=true]').textContent()) !== 'board-top') {
     await page.getByRole('tab', { name: 'board-top', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('img'));
   }

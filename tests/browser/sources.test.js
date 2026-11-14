@@ -8,7 +8,7 @@ import { fakeGithub } from './github-mock.js';
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 const OWNER = 'Retr0Plus95';
 const REPO = 'Solder-Fume-Extractor';
-const tabs = (page) => page.locator('[role=tab]').allTextContents();
+const tabs = (page) => page.locator('#tabs [role=tab]').allTextContents();
 
 async function makeRepo() {
   const dir = await copyFixture('fume-extractor');
@@ -69,7 +69,7 @@ describe('opening projects from GitHub, a folder, or the start screen (no dev.py
   test('a link to a part opens there, keeps the repo, and Copy link includes it', async () => {
     await page.goto(`${server.url}?repo=${OWNER}/${REPO}&sheet=SFE-04&part=R6`);
     await page.waitForFunction(() => document.querySelector('#part-card h2')?.firstChild?.textContent === 'R6');
-    assert.equal(await page.locator('[role=tab][aria-selected=true]').textContent(), 'SFE-04 Perfboard layout');
+    assert.equal(await page.locator('#tabs [role=tab][aria-selected=true]').textContent(), 'SFE-04 Perfboard layout');
     await page.waitForFunction(() => !window.location.search.includes('part='));
     assert.equal(new URL(page.url()).search, `?repo=${OWNER}/${REPO}`);
     await page.locator('#part-link').click();
@@ -129,7 +129,7 @@ describe('a repo link wins under dev.py', () => {
       before: (p) => fakeGithub(p, repoDir, OWNER, REPO),
     });
     try {
-      await page.waitForFunction(() => document.querySelectorAll('[role=tab]').length > 0);
+      await page.waitForFunction(() => document.querySelectorAll('#tabs [role=tab]').length > 0);
       assert.ok((await tabs(page)).some((t) => t.startsWith('SFE-04')));
       assert.match(await page.locator('#live').textContent(), /^From GitHub/);
       assert.deepEqual(problems, []);

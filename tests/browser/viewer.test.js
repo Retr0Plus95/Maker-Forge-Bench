@@ -18,7 +18,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 
       await writePng(dir, 'images/Verkstad ö.png');
       server = await startDevServer(dir);
       ({ browser, page, problems } = await openPage(server.url, viewport));
-      await page.locator('[role=tab]').first().waitFor();
+      await page.locator('#tabs [role=tab]').first().waitFor();
       await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
       await nextFrame(page);
     });
@@ -29,8 +29,8 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 
     });
 
     test('one tab per drawing, SVGs preferred, first selected', async () => {
-      assert.deepEqual(await page.locator('[role=tab]').allTextContents(), TABS);
-      assert.equal(await page.locator('[role=tab]').first().getAttribute('aria-selected'), 'true');
+      assert.deepEqual(await page.locator('#tabs [role=tab]').allTextContents(), TABS);
+      assert.equal(await page.locator('#tabs [role=tab]').first().getAttribute('aria-selected'), 'true');
     });
 
     test('the first sheet is shown fitted inside the stage', async () => {
@@ -172,7 +172,7 @@ describe('drawings that push the viewer', () => {
       await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
       await nextFrame(page);
       const onTop = await page.evaluate(() => {
-        const r = document.querySelector('[role=tab]').getBoundingClientRect();
+        const r = document.querySelector('#tabs [role=tab]').getBoundingClientRect();
         return document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2)?.getAttribute('role');
       });
       assert.equal(onTop, 'tab', 'the tabs can still be clicked');

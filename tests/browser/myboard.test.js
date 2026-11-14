@@ -123,7 +123,7 @@ describe('your board, from your photos', () => {
     await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('svg'));
     await openCard(page, 'R8');
     await page.locator('#part-show-photo').click();
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent.startsWith('board-'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent.startsWith('board-'));
     await nextFrame(page);
     assert.ok(await page.evaluate(() => document.querySelector('#sheet-host').shadowRoot.querySelectorAll('.bench-myboard .myboard-selected').length > 0));
   });
@@ -153,7 +153,7 @@ describe('your board: the chip before any photo is lined up', () => {
       assert.match(await page.locator('#part-card .part-myboard').textContent(), /lines up your photos/);
       assert.equal(await page.locator('#part-place').count(), 0, 'the chip is not placed by tapping 28 holes');
       await page.locator('#part-line-up').click();
-      await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]')?.textContent === 'board-top');
+      await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]')?.textContent === 'board-top');
       assert.match(await page.locator('#myboard-status').textContent(), /tap U2 pin 1/i);
       assert.deepEqual(problems, []);
     } finally {

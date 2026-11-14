@@ -38,6 +38,7 @@ import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgres
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
+import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -78,6 +79,7 @@ const state = {
   checklistOpenOnly: false, // the checklist shows only parts not soldered yet
   checks: new Set(), // ticked checks before power, and steps marked done by hand (0.4)
   folded: new Set(), // panel sections folded away (0.4.1)
+  panelTab: 'guide', // the panel tab you chose: guide, board, wiring, checks, parts or all (0.8 §3)
   startOverAt: 0, // when Start over was first clicked: a second click within 5 s does it
   continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
   looks: Object.create(null), // what each part looks like as you fitted it: { ref: { holder, colour, swap, ... } } (0.8 §2)
@@ -99,7 +101,7 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.7.0';
+const APP_VERSION = '0.8.0';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -611,6 +613,7 @@ function setNote(ref, text) {
 
 /** A line found with Find: open it in What to wire and ring its parts. */
 function openLine(net) {
+  showTab('wiring');
   state.wiringExpanded.add(net);
   state.shownNet = net;
   updateNetRings();
@@ -1728,12 +1731,17 @@ const FOLDABLE = ['myboard', 'steps', 'wiring', 'checks', 'checklist'];
 
 /** Each foldable section's heading folds it; the sections are redrawn often, so this runs after every redraw. */
 function decorateFolds() {
+  const folding = $('#panel').dataset.tab === 'all'; // in a tab, a section is never folded away
   for (const id of FOLDABLE) {
     const section = document.getElementById(id);
-    const folded = state.folded.has(id);
+    const folded = folding && state.folded.has(id);
     section.toggleAttribute('data-folded', folded);
-    const heading = section.querySelector(':scope > h2');
+    const heading = section.querySelector(':scope > h2, :scope > .steps-head > h2');
     if (!heading) continue;
+    if (!folding) {
+      for (const a of ['role', 'tabindex', 'aria-expanded', 'title']) heading.removeAttribute(a);
+      continue;
+    }
     if (heading.getAttribute('role') !== 'button') {
       heading.setAttribute('role', 'button');
       heading.tabIndex = 0;
@@ -1751,8 +1759,105 @@ function toggleFold(id) {
 }
 
 function foldTarget(e) {
-  const heading = e.target instanceof Element ? e.target.closest('section > h2[role="button"]') : null;
-  return heading && FOLDABLE.includes(heading.parentElement.id) ? heading.parentElement.id : null;
+  const heading = e.target instanceof Element ? e.target.closest('h2[role="button"]') : null;
+  const section = heading ? heading.closest('#panel > section') : null;
+  return section && FOLDABLE.includes(section.id) ? section.id : null;
+}
+
+// ---- the panel in tabs (0.8 design §3): Guide · Board · Wiring · Checks · Parts, and All ----
+function panelCounts() {
+  const steps = stepsOf();
+  const legs = currentGroups().flatMap((g) => g.members);
+  const checks = groupsFor(projectBoard()).checks;
+  return {
+    guide: { done: steps.filter((s) => stepDone(s)).length, total: steps.length },
+    wiring: { done: legs.filter((m) => state.wired.has(m.key)).length, total: legs.length },
+    checks: { done: checks.filter((c) => state.checks.has(c.id)).length, total: checks.length },
+    parts: { done: state.parts.filter((p) => state.ticked.has(p.ref)).length, total: state.parts.length },
+  };
+}
+
+/** Tabs with nothing in them now (Board without a photo open, Guide without build steps). */
+function emptyTabs() {
+  const empty = (id) => {
+    const s = document.getElementById(id);
+    return !s || s.hidden || !s.firstElementChild;
+  };
+  return PANEL_TABS.filter((t) => t.sections.length && t.sections.every(empty)).map((t) => t.id);
+}
+
+let tabsQueued = false;
+/** The sections redraw often: the tab row follows once, after they're done. */
+function queueTabs() {
+  if (tabsQueued) return;
+  tabsQueued = true;
+  queueMicrotask(renderPanelTabs);
+}
+
+function renderPanelTabs() {
+  tabsQueued = false;
+  const { tabs, open } = panelTabs(state.panelTab, panelCounts(), emptyTabs());
+  const panel = $('#panel');
+  const changed = panel.dataset.tab !== open;
+  panel.dataset.tab = open;
+  const nav = $('#panel-tabs');
+  const same = nav.children.length === tabs.length && tabs.every((t, i) => nav.children[i].dataset.tab === t.id);
+  if (!same) {
+    nav.replaceChildren(...tabs.map((t) => el('button', {
+      type: 'button', role: 'tab', id: `ptab-${t.id}`, 'data-tab': t.id,
+      'aria-controls': t.id === 'all' ? 'panel' : PANEL_TABS.find((x) => x.id === t.id).sections.join(' '),
+    })));
+  }
+  tabs.forEach((t, i) => {
+    const b = nav.children[i];
+    b.setAttribute('aria-selected', String(t.id === open));
+    b.tabIndex = t.id === open ? 0 : -1;
+    b.setAttribute('aria-label', t.aria);
+    b.title = t.title;
+    b.classList.toggle('tab-done', t.done);
+    const label = b.firstChild && b.firstChild.nodeType === 3 ? b.firstChild.textContent : null;
+    const count = b.querySelector('.tab-count');
+    if (label !== t.label || (count ? count.textContent : '') !== t.count) {
+      b.replaceChildren(t.label, ...(t.count ? [el('span', { className: 'tab-count', 'aria-hidden': 'true' }, t.count)] : []));
+    }
+  });
+  if (changed) decorateFolds();
+}
+
+/** You picked a tab. */
+function chooseTab(id, focus = false) {
+  state.panelTab = cleanTab(id);
+  store.set('panelTab', state.panelTab);
+  renderPanelTabs();
+  const panel = $('#panel');
+  if (panel.scrollTop > 0) panel.scrollTop = 0;
+  if (focus) $(`#ptab-${panel.dataset.tab}`)?.focus();
+}
+
+/** Something you did belongs in a tab (a line found, a step picked): show it, unless you chose All. */
+function showTab(id) {
+  if (state.panelTab === 'all' || $('#panel').dataset.tab === id) return;
+  state.panelTab = id;
+  store.set('panelTab', id);
+  renderPanelTabs();
+}
+
+function wirePanelTabs() {
+  const nav = $('#panel-tabs');
+  nav.addEventListener('click', (e) => {
+    const b = e.target instanceof Element ? e.target.closest('[role="tab"]') : null;
+    if (b) chooseTab(b.dataset.tab);
+  });
+  nav.addEventListener('keydown', (e) => {
+    const all = [...nav.querySelectorAll('[role="tab"]')];
+    const at = all.indexOf(document.activeElement);
+    if (at < 0) return;
+    const to = { ArrowLeft: at - 1, ArrowRight: at + 1, Home: 0, End: all.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    e.stopPropagation(); // the arrows move between tabs here, not the sheet
+    chooseTab(all[(to + all.length) % all.length].dataset.tab, true);
+  });
 }
 
 function setPanelHidden(hidden) {
@@ -1936,7 +2041,7 @@ function paletteItems() {
   for (const p of state.parts) items.push({ label: `${p.ref}${p.value ? ` ${p.value}` : ''}`, hint: 'part', run: () => selectPart(p.ref) });
   for (const g of currentGroups()) items.push({ label: `Line ${g.label}`, hint: 'line', run: () => openLine(g.net) });
   for (const s of state.sheets) items.push({ label: s.label, hint: 'sheet', run: () => selectSheet(s.id) });
-  stepsOf().forEach((s, i) => items.push({ label: `Step ${i + 1}: ${s.title}`, hint: 'step', run: () => openStep(i) }));
+  stepsOf().forEach((s, i) => items.push({ label: `Step ${i + 1}: ${s.title}`, hint: 'step', run: () => { showTab('guide'); openStep(i); } }));
   const act = (label, run) => items.push({ label, hint: 'action', run });
   if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
   act('Shopping list', openShopping);
@@ -2091,7 +2196,13 @@ function setWired(key, on) {
   history.do({ label: `${on ? 'Wired' : 'Unwired'} ${ref} ${pin}`, apply: () => setProgress({ wired: after }), revert: () => setProgress({ wired: before }) });
 }
 
-const currentGroups = () => wiringGroups(projectBoard());
+// the board is the same object until something changes it, so its lines are worked out once
+let groupsMemo = { board: undefined, groups: [], checks: [] };
+function groupsFor(board) {
+  if (groupsMemo.board !== board) groupsMemo = { board, groups: wiringGroups(board), checks: powerChecks(board) };
+  return groupsMemo;
+}
+const currentGroups = () => groupsFor(projectBoard()).groups;
 
 function updateNetRings() {
   const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
@@ -2330,8 +2441,48 @@ function renderStepsPanel() {
     onOpen: openStep,
     onPart: (ref) => selectPart(ref),
     onTickAll: tickStep,
+    onTick: toggleTick,
+    onDoneNext: doneNextStep,
+    partInfo: guidePart,
     adjust: stepsAdjustOptions(),
   });
+}
+
+/** A part in the guide: its value, whether it's soldered, and where it goes (your hole names when they're on). */
+function guidePart(ref) {
+  const part = state.partsByRef.get(ref);
+  return { value: part && part.value ? part.value : '', where: guideWhere(ref), ticked: state.ticked.has(ref) };
+}
+
+function guideWhere(ref) {
+  const board = projectBoard();
+  const drawn = board && board.parts[ref];
+  const map = holeMap();
+  const mine = map && boardOf() && boardOf().parts[ref] ? (ref === anchorRef() ? boardOf().parts[ref].pins : state.myBoard.placed[ref]) : null;
+  const holes = mine || (drawn ? drawn.pins : null);
+  if (!holes) return '';
+  const name = (h) => (mine ? holeName(map, h) || 'off the labels' : `${h[0]},${h[1]}`);
+  const pins = Object.entries(holes).sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }));
+  const text = pins.length > 3 ? `${pins.length} pins, ${pinText(pins[0][0])} at ${name(pins[0][1])}` : pins.map(([pin, h]) => `${pinText(pin)} at ${name(h)}`).join(' · ');
+  return `${mine ? 'Your board: ' : ''}${text}${drawn && drawn.side === 'bottom' ? ' · underneath' : ''}`;
+}
+
+/** Done, next step: the step's parts ticked (or the step marked done) as one undo step, then the next one opens. */
+function doneNextStep(i) {
+  const steps = stepsOf();
+  const step = steps[i];
+  if (!step) return;
+  const found = step.parts.filter((r) => !step.missing.includes(r) && isKnownRef(r));
+  if (found.length) {
+    const before = [...state.ticked];
+    const after = [...new Set([...before, ...found])];
+    if (after.length !== before.length) history.do({ label: `Step ${i + 1} done`, apply: () => setProgress({ ticked: after }), revert: () => setProgress({ ticked: before }) });
+  } else {
+    setCheck(`step:${step.id}`, true, `Step ${i + 1} done`);
+  }
+  if (state.openStep === i && i < steps.length - 1) openStep(i + 1); // (Next step by itself may have moved on already)
+  const left = stepsOf().filter((s) => !stepDone(s)).length;
+  setStatus(left ? `Step ${i + 1} done. ${left} to go.` : 'Every step is done. Time for the checks before power.');
 }
 
 /** Opening a step is a view, not a change: it's remembered, but not in the undo history. */
@@ -2899,6 +3050,7 @@ function onKey(e) {
   const control = t instanceof Element && t.closest('button, a[href], summary, [role=tab], [role=button], [tabindex]:not(#stage)');
   if (e.key === ' ' && state.openStep !== null && !control) {
     e.preventDefault();
+    showTab('guide');
     openStep(state.openStep + (e.shiftKey ? -1 : 1));
     return;
   }
@@ -2952,6 +3104,7 @@ async function start() {
     state.myBoardOpen = !state.myBoardOpen;
     if (!state.myBoardOpen && state.mode) stopTapping('');
     renderMyBoardPanel();
+    if (state.myBoardOpen) showTab('board');
   });
   viewer.onPointClick(onPhotoTap);
   viewer.setDragHandler(onPhotoDrag);
@@ -2970,7 +3123,14 @@ async function start() {
   $('#zoom-level').addEventListener('click', () => viewer.fit());
   $('#help-done').addEventListener('click', () => $('#help').close());
   state.folded = new Set((store.get('folded', []) || []).filter((id) => FOLDABLE.includes(id)));
-  new MutationObserver(decorateFolds).observe($('#panel'), { childList: true, subtree: true });
+  state.panelTab = cleanTab(store.get('panelTab', 'guide'));
+  wirePanelTabs();
+  new MutationObserver((records) => {
+    if (records.every((r) => $('#panel-tabs').contains(r.target))) return; // the tab row itself
+    decorateFolds();
+    queueTabs();
+  }).observe($('#panel'), { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  renderPanelTabs();
   decorateFolds();
   $('#panel').addEventListener('click', (e) => {
     const id = foldTarget(e);
@@ -2990,6 +3150,12 @@ async function start() {
     .restore(store.get('panelTall', false) === true);
   $('#panel-toggle').addEventListener('click', () => setPanelHidden(!$('#workspace').hasAttribute('data-panel-hidden')));
   $('#rotate').addEventListener('click', turnPhoto);
+  // the Menu's own entries (0.8): what the Parts tab's buttons do, from any tab
+  $('#menu-save').addEventListener('click', saveProgressFile);
+  $('#menu-shopping').addEventListener('click', openShopping);
+  $('#menu-log').addEventListener('click', openLog);
+  $('#menu-versions').addEventListener('click', openVersions);
+  $('#menu-help').addEventListener('click', () => $('#help').showModal());
   $('#fullscreen').hidden = !document.fullscreenEnabled;
   $('#fullscreen').addEventListener('click', toggleFullscreen);
   document.addEventListener('fullscreenchange', () => {

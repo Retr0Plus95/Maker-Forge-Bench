@@ -67,7 +67,7 @@ describe('part cards on the fume extractor', () => {
 
   test('a sheet in the card opens that sheet with the part ringed', async () => {
     await page.locator('#part-card .part-sheets button', { hasText: 'SFE-02' }).click();
-    await page.waitForFunction(() => document.querySelector('[role=tab][aria-selected=true]').textContent.startsWith('SFE-02'));
+    await page.waitForFunction(() => document.querySelector('#tabs [role=tab][aria-selected=true]').textContent.startsWith('SFE-02'));
     await page.waitForFunction(() => document.querySelector('#sheet-host').shadowRoot.querySelector('.bench-highlight rect'));
   });
 

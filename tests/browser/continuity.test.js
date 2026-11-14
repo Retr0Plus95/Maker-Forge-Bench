@@ -8,6 +8,11 @@ const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 const pair = (page) => page.locator('#continuity-now .cont-pair').textContent();
 const progress = (page) => page.locator('#continuity .progress-text').textContent();
 
+// the step's note, print and Next step by itself are folded under one line (0.8)
+async function openMore(page) {
+  if (!(await page.locator('#steps .step-more').evaluate((d) => d.open))) await page.locator('#steps .step-more > summary').click();
+}
+
 describe('the guided continuity test, and step extras', () => {
   let server; let browser; let page; let problems;
 
@@ -67,6 +72,7 @@ describe('the guided continuity test, and step extras', () => {
   test('a step says about how many joints it has, keeps your note, and can be printed alone', async () => {
     await page.locator('#steps .steps-list li button', { hasText: 'Fan drive and tach' }).click();
     assert.match(await page.locator('#steps .step-joints').textContent(), /^About \d+ solder joints in this step\.$/);
+    await openMore(page);
     await page.locator('#step-note').fill('tach wires twisted');
     await page.locator('#step-note').blur();
     await page.reload();
@@ -79,6 +85,7 @@ describe('the guided continuity test, and step extras', () => {
 
   test('"Next step by itself" opens the next step once this one is done', async () => {
     await page.locator('#steps .steps-list li button', { hasText: 'The DIP socket' }).click();
+    await openMore(page);
     await page.locator('#steps-auto').check();
     await page.locator('#checklist input[data-ref="U2"]').check();
     assert.match(await page.locator('#steps .step-title').textContent(), /^Step 5 of 10/);
