@@ -43,7 +43,8 @@ you have, building step by step, testing, and the board in its box.
 ratsnest (the lines that show what still needs joining) and design rules check (DRC); a symbol,
 footprint and 3D model linked for every part; cross-probing (pick a part in one view and it lights
 in the other); the parts list (BOM) and netlist; factory files (Gerbers, drill, placement), first by
-writing KiCad files and later our own; and export to a circuit simulator.
+writing KiCad files and later our own; and a circuit simulator (KiCad's own ngspice, built into
+Circuit later).
 
 **Taken from SolidWorks:** assemblies (the board in its case), clash checks, exploded views, 2D
 drawings, variants (the same board with different parts fitted), standard hardware (screws,
@@ -54,12 +55,15 @@ standoffs, nuts). From SolidWorks Electrical: the wiring harness, wire numbers a
 1. **Bench 0.9 Real parts:** the shared library's first version, KiCad's 3D models, a better 3D
    view, and KiCad projects opened directly, with their error checks.
 2. **Bench 1.0 Launch.**
-3. **Maker Forge Parts:** the parts you have, and the library browser with 3D.
-4. **Maker Forge Circuit:** schematic, then a perfboard or stripboard board, then KiCad files and a
-   factory pack.
-5. **The board in its box, with Shape (2.0):** assemblies, clash checks, and the wiring off the
+3. **Maker Forge Circuit:** schematic, then a perfboard or stripboard board, then KiCad files and a
+   factory pack, then simulation built in.
+4. **The board in its box, with Shape (2.0):** assemblies, clash checks, and the wiring off the
    board.
-6. **Long term:** Circuit's own copper board editor and its own factory files.
+5. **Maker Forge Parts, last:** browse the parts you have, a shopping list to print, and finding
+   parts online. (Moved last by the owner on 2026-11-14. The shared library itself starts in Bench
+   0.9, so the other apps don't wait for it.)
+
+**Long term:** Circuit's own copper board editor and its own factory files.
 
 Bench's own tools (1.1 to 1.4) and the smaller apps (Calc, Pins, Serial, Labels) come as smaller
 releases between these, when a build needs them.
@@ -71,7 +75,7 @@ releases between these, when a build needs them.
 | Build the viewer | 0.1 to 1.0 | The soldering viewer, finished and published |
 | Bench tools | 1.1 to 1.4 | Calculators on part cards, more file types, guided building, testing and fault-finding |
 | The Maker Forge suite | 2.0 and on | The home page, Bench, Shape and the website working as one project |
-| More apps | any time | Learn and plan, design, build, test, share: see "The apps in the suite". Parts, then Circuit, come first |
+| More apps | any time | Learn and plan, design, build, test, share: see "The apps in the suite". Circuit comes first, Parts last |
 
 ---
 
@@ -211,7 +215,7 @@ Design: `docs/design/2026-11-14-release-0.9-design.md`.
 - **The Maker Forge Library, first version:** one list of parts that every app will share. Each
   part has its pins, its footprint (the hole spacing), its 3D model, and where it came from with its
   licence. Symbols and how-to pages join it with Parts and Circuit. It starts inside Bench and
-  moves to its own home once Parts needs it.
+  moves to its own home once Circuit needs it.
 - **About 150 common through-hole parts in true 3D,** converted once from KiCad's library and
   shipped with Bench, with KiCad's credit: resistors, capacitors, diodes, LEDs, transistors,
   regulators, chips and sockets, headers, screw terminals, crystals, pots, buttons and connectors.
@@ -335,10 +339,10 @@ each job:
 
 | Part of a project | App | What it does | Status |
 |---|---|---|---|
-| **Learn and plan** | **Parts** | What each component is, how to use it, which ones you have, and the library in 3D | Planned, after Bench 1.0 |
+| **Learn and plan** | **Parts** | Browse every part in 3D and the ones you have, what to buy, and where to find it online | Planned, last |
 | | **Calc** | Electronics calculators | Idea |
 | | **Pins** | Plan a microcontroller's pins | Idea |
-| **Design** | **Circuit** | Draw the circuit and lay out the board: perfboard and stripboard first, copper later | Planned, after Parts |
+| **Design** | **Circuit** | Draw the circuit, simulate it and lay out the board: perfboard and stripboard first, copper later | Planned, after Bench 1.0 |
 | | **Shape** | 3D-printed cases and parts | Exists (today's Maker Forge) |
 | **Build** | **Bench** | Read the drawings and build the board | This repo |
 | | **Labels** | Labels for bins, wires and front panels | Idea |
@@ -356,7 +360,7 @@ pads), a 3D model, its pins, a datasheet link and a how-to page. Where the parts
 - **Fritzing's parts,** once their licence is checked;
 - **your own STEP, WRL or GLB files,** which stay on your device.
 
-It starts inside Bench in 0.9 and moves to its own home once Parts needs it.
+It starts inside Bench in 0.9 and moves to its own home once Circuit needs it.
 
 Copper boards go through KiCad first: Circuit writes KiCad files, and Bench opens KiCad projects.
 Circuit's own copper editor comes last (see "The order from here").
@@ -399,16 +403,39 @@ guess for you to check.
   "1N4007 and 1N4002 on hand".
 - A project's parts list then shows **"have 3 × 1N5402G, need 1"**, and what's missing becomes a
   shopping list.
+- **★ New (2026-11-14): Browse what you have.** Search and filter your parts by kind, value,
+  package or bin, each with its 3D model and a photo if you add one, how many are left, and a
+  warning when one runs low.
+- **★ New (2026-11-14): Add parts quickly:** type them, scan the barcode or QR code on the bag with
+  a phone's camera, or bring in an order file from the shop (LCSC, Mouser, DigiKey and AliExpress
+  orders can all be saved as CSV).
 - **★ New (2026-11-14): Start a project from what you have.** Pick parts from your bins, and they go
   to Circuit, which can suggest a layout from them.
+
+**★ New (2026-11-14): What to buy, and where.**
+- **One shopping list:** what your projects need and you don't have, what's running low, and
+  anything you add yourself. Grouped by shop, with how many to buy.
+- **Print it** with tick boxes for the shop counter, copy it, or save it as CSV, including the
+  parts-list file a shop's upload page takes (LCSC, Mouser and DigiKey all accept one). Bench's
+  own shopping list (0.4.1) hands over to this once Parts exists.
+- **Find it online:** a **Find online** button on any part opens the search page of the shops you
+  pick (big distributors such as LCSC, Mouser, DigiKey and Farnell, your local hobby shop,
+  AliExpress, eBay) with the value or part number already filled in. These are plain links:
+  nothing is sent anywhere until you click.
+- **Later: prices and stock in the list,** fetched with your own free key from a shop or a parts
+  search service (Mouser, DigiKey, Octopart), the way your own Claude key works, and only when you
+  ask. *Check first:* which of them answer a browser directly. For any that don't, a small helper
+  on your computer (like Bench's `dev.py`) does the looking up.
+- **Later: find a replacement.** AI (your Claude key or Ollama) suggests parts that could stand in
+  for one you can't get, shown as a guess to check against the datasheets.
 - **★ New: Filament too:** spools, colours and how much is left, so the 3D-printing side uses it
   as well.
 
 **Connects:** Bench's part cards open the library page and show have and need. Labels prints the bin
 labels. Shape says how much filament a print takes.
 
-**Order:** the library first, because every visitor can use it with nothing to type in. The
-inventory comes second.
+**Order:** Parts is the last app in "The order from here". Within it: browsing the library and
+your parts first, then the shopping list with printing and Find online, then prices and stock.
 
 #### Maker Forge Calc: electronics calculators
 *(These were planned as Bench 1.1. They're useful without any project, so they're an app of their
@@ -455,9 +482,21 @@ one project, the way KiCad keeps its schematic and board editors together.)*
   hole. Copper boards come later.
 - **Cross-probing:** pick a part or a connection in one workspace and it lights up in the other,
   and in Bench.
-- **★ Suggest a layout from the parts you have.** Pick parts from your bins in Parts; Circuit places
-  them (scored like Bench 0.6's Suggest a spot), and AI (your Claude key or Ollama) explains the
-  layout and gives tips. It's a suggestion you move around and keep.
+- **★ Suggest a layout.** Circuit places the schematic's parts (scored like Bench 0.6's Suggest a
+  spot), and AI (your Claude key or Ollama) explains the layout and gives tips. It's a suggestion
+  you move around and keep. Once Parts exists, it can start from the parts in your bins.
+- **★ New (2026-11-14): Simulate it, built in (a later step).** A **Simulate** button runs the
+  circuit in ngspice, the free simulator KiCad uses, running in the browser:
+  - the voltage at every point and the current through every part, shown right on the schematic;
+  - an LED lit or not, and a part running hot flagged (with Calc's formulas);
+  - a graph over time, like an oscilloscope: a 555 blinking, a capacitor charging, a PWM signal;
+  - **live:** turn a pot or flip a switch on the schematic and watch the numbers change.
+  - **Connects:** the voltages it expects go to Bench's measurement log (1.4), so you can compare
+    them with your meter on the real board.
+  - Chips that run code (like the fume extractor's ATmega328P) are simulated as their connections
+    only. Running the firmware stays with Wokwi, which Circuit links to.
+  - *Check first:* ngspice's size when built for the browser (other projects already run it
+    there), and its licence.
 - **What it makes:**
   - `forge-project.json`, with the drawings, board, build steps, parts and connections Bench builds
     from, and the board outline Shape uses for the case;
@@ -465,7 +504,7 @@ one project, the way KiCad keeps its schematic and board editors together.)*
   - **KiCad files** (`.kicad_sch` and `.kicad_pcb`), so a board can move on to KiCad;
   - **a factory pack** (Gerbers, drill, parts list and placement files) made through KiCad's
     command-line tool when KiCad is installed;
-  - a circuit for a simulator: KiCad's ngspice, or Falstad in the browser.
+  - a circuit for other simulators too: KiCad's own, Falstad or Wokwi.
 - **★ Variants** (from SolidWorks): the same board with different parts fitted, like the fume
   extractor with or without its USB port.
 - **Long term:** its own copper board editor (tracks, filled areas, two layers) and its own factory
@@ -524,7 +563,7 @@ the photo check.
   next to the OBS overlays already in the website's `overlays/` folder.
 
 ### Suggested order
-Parts, then Circuit, come first (see "The order from here"). The smaller apps fit between them:
+Circuit comes first and Parts last (see "The order from here"). The smaller apps fit between:
 1. **Calc:** small, useful to everyone, and Bench's part cards (1.1) use its formulas.
 2. **Serial:** finishes the testing side of Bench (1.4).
 3. **Pins:** ready before the next new electronics project.
@@ -547,8 +586,11 @@ Parts, then Circuit, come first (see "The order from here"). The smaller apps fi
 8. One shared parts library for every app, the **Maker Forge Library**.
 9. 3D: whole KiCad boards through KiCad's own export, plus about 150 common parts converted and
    shipped with Bench, and a better 3D view all round.
-10. The order: Bench 0.9 Real parts, Bench 1.0, Parts, Circuit, the board in its box, then the
-    copper editor.
+10. The order: Bench 0.9 Real parts, Bench 1.0, Circuit, the board in its box, then Parts. The
+    copper editor is long term.
+11. Simulation built into Circuit, as a later step, using ngspice in the browser.
+12. Parts is an app of its own, and comes last: browse what you have, a shopping list to print,
+    and finding parts online.
 
 **Still open**
 4. Languages: English only at first, or Swedish too.
@@ -559,8 +601,8 @@ Parts, then Circuit, come first (see "The order from here"). The smaller apps fi
 - **Racing KiCad on big copper boards.** The suite will design whole boards, but for large or
   many-layer copper boards KiCad stays the better tool, and Circuit hands them over as KiCad files.
   *(Until 2026-11-14 this said "not a KiCad replacement" and kept the suite's builders small.)*
-- **Our own circuit simulator.** KiCad's ngspice, Falstad's simulator and Wokwi already do it for
-  free. Circuit exports to them, and Bench and Circuit link to them.
+- **Writing our own simulator engine.** Circuit's built-in simulation runs ngspice, KiCad's free
+  engine, instead. Firmware simulation stays with Wokwi.
 - **Opening SolidWorks files.** Their format is closed. STEP files are the bridge: KiCad writes
   them, and Shape can read them later.
 - **A slicer.** PrusaSlicer and OrcaSlicer already do it; Shape's models go to them.
