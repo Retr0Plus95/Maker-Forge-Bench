@@ -25,9 +25,10 @@ HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 CSP = (HERE / "deploy" / "csp.txt").read_text(encoding="utf-8").strip()
 
-# Drawings, plus datasheet PDFs a project keeps next to them (never shown as sheets).
+# Drawings, plus datasheet PDFs and 3D models (0.9) a project keeps next to them (never shown as sheets).
 PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-                 ".pdf": "application/pdf"}
+                 ".pdf": "application/pdf", ".glb": "model/gltf-binary", ".wrl": "model/vrml"}
+WRL_LIMIT = 20 * 1024 * 1024  # a KiCad .wrl bigger than this isn't converted
 PROJECT_FILE = "forge-project.json"
 APP_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -37,8 +38,23 @@ APP_TYPES = {
     ".png": "image/png",
     ".json": "application/json",
     ".woff2": "font/woff2",
+    ".glb": "model/gltf-binary",  # 0.9: the Maker Forge Library's 3D models
+    ".md": "text/plain; charset=utf-8",  # the library's licence and README
 }
 APP_NAME = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9_.-]*$")
+# App files are src/<name>, plus the library: src/library/<name> and src/library/models/<name>.
+APP_FOLDERS = ((), ("library",), ("library", "models"))
+
+
+def app_path(name: str):
+    """The app file a URL path names, or None: only the folders above, each part a plain name."""
+    *folders, last = name.split("/")
+    if tuple(folders) not in APP_FOLDERS or not APP_NAME.match(last):
+        return None
+    if APP_TYPES.get(os.path.splitext(last)[1].lower()) is None:
+        return None
+    target = SRC.joinpath(*folders, last)
+    return target if target.is_file() else None
 WATCH_INTERVAL = 0.5
 PING_INTERVAL = 15.0
 
@@ -89,6 +105,23 @@ def resolve_project_path(root: Path, url_path: str) -> Path | None:
     if base not in target.parents or not target.is_file():
         return None
     return target
+
+
+_converted: dict = {}  # (path, mtime) → GLB bytes
+
+
+def wrl_to_glb(target: Path) -> bytes:
+    """A KiCad .wrl from the project as GLB, by the library's own converter (tools/kicad3d.py)."""
+    key = (str(target), target.stat().st_mtime)
+    if key not in _converted:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("kicad3d", HERE / "tools" / "kicad3d.py")
+        kicad3d = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(kicad3d)
+        glb, _ = kicad3d.convert(target.read_text(encoding="utf-8", errors="replace"), None, id="project")
+        _converted.clear()  # one at a time is plenty
+        _converted[key] = glb
+    return _converted[key]
 
 
 def host_allowed(host: str | None, port: int) -> bool:
@@ -209,6 +242,20 @@ class BenchHandler(BaseHTTPRequestHandler):
                 self._send(200, "text/event-stream; charset=utf-8", b"", head)
             else:
                 self._events()
+        elif path.startswith("/api/glb/"):
+            target = resolve_project_path(self.server.root, path[len("/api/glb/"):])
+            if target is None or target.suffix.lower() != ".wrl":
+                self.send_error(404, "Not a .wrl in the project folder.")
+                return
+            if target.stat().st_size > WRL_LIMIT:
+                self.send_error(413, "That .wrl is too big to convert.")
+                return
+            try:
+                body = wrl_to_glb(target)
+            except Exception:  # a .wrl the converter can't read
+                self.send_error(422, "That .wrl couldn't be turned into a model.")
+                return
+            self._send(200, "model/gltf-binary", body, head)
         elif path.startswith("/project/"):
             target = resolve_project_path(self.server.root, path[len("/project/"):])
             if target is None:
@@ -216,13 +263,12 @@ class BenchHandler(BaseHTTPRequestHandler):
                 return
             self._send(200, _project_type(target.name), target.read_bytes(), head)
         else:
-            name = path.lstrip("/") or "index.html"
-            ctype = APP_TYPES.get(os.path.splitext(name)[1].lower())
-            target = SRC / name
-            if not APP_NAME.match(name) or ctype is None or not target.is_file():
+            name = path[1:] if path.startswith("/") else path
+            target = app_path(name or "index.html")
+            if target is None:
                 self.send_error(404, "Not part of the app.")
                 return
-            self._send(200, ctype, target.read_bytes(), head)
+            self._send(200, APP_TYPES[target.suffix.lower()], target.read_bytes(), head)
 
     def _send(self, status: int, ctype: str, body: bytes, head: bool) -> None:
         self.send_response(status)

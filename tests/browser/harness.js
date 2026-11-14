@@ -77,7 +77,7 @@ async function launchBrowser(args = []) {
 }
 
 /**
- * options: { args, reducedMotion, context: extra newPage options (hasTouch, isMobile…),
+ * options: { args, reducedMotion, realParts: true for the library's parts in 3D (else Simple), context: extra newPage options (hasTouch, isMobile…),
  *            before(page): runs before the page loads, e.g. to answer for GitHub with page.route,
  *            tabs: true to open the side panel in its tabs; without it the panel starts on All,
  *            every section in one list, as before 0.8, so a test can reach any section }
@@ -90,6 +90,14 @@ export async function openPage(url, viewport, options = {}) {
       try {
         if (localStorage.getItem('bench.panelTab') === null) localStorage.setItem('bench.panelTab', '"all"');
       } catch { /* no storage: the app forgets anyway */ }
+    });
+  }
+  // the 3D view draws 0.8's parts unless a test asks for the library's (0.9), so older checks see what they always saw
+  if (!options.realParts) {
+    await page.addInitScript(() => {
+      try {
+        if (localStorage.getItem('bench.parts3d') === null) localStorage.setItem('bench.parts3d', '"simple"');
+      } catch { /* no storage */ }
     });
   }
   if (options.before) await options.before(page);

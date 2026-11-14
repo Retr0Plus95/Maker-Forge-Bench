@@ -63,6 +63,7 @@ describe('3D board extras', () => {
   });
 
   test('double-click a part to turn to it; Reset view goes back', async () => {
+    await page.locator('#board3d-reset').click(); // Find (0.9) flew to the part it found: start from the whole board
     await nextFrame(page);
     const start = (await info(page)).target;
     const at = await page.evaluate(() => window.makerForge.board3d.screenOf('R8'));

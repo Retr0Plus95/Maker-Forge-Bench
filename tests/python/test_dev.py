@@ -204,6 +204,47 @@ class TestLiveServer(DevServerTestCase):
         resp, _ = self.request("GET", "/project/%2e%2e/secret.svg")
         self.assertEqual(resp.status, 404)
 
+    def test_library_served(self):  # 0.9: the Maker Forge Library
+        resp, body = self.request("GET", "/library/index.json")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "application/json")
+        first = json.loads(body)["parts"][0]
+        resp, body = self.request("GET", f"/library/{first['model']['file']}")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "model/gltf-binary")
+        self.assertEqual(body[:4], b"glTF")
+        resp, body = self.request("GET", "/library/LICENSE-KICAD-3D.md")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "text/plain; charset=utf-8")
+        self.assertIn(b"CC-BY-SA", body)
+
+    def test_glb_from_a_wrl_in_the_project(self):  # 0.9: your own KiCad models, dev.py only
+        (self.root / "models").mkdir(exist_ok=True)
+        shutil.copy(REPO / "tests" / "fixtures" / "kicad3d" / "tiny.wrl", self.root / "models" / "tiny.wrl")
+        resp, body = self.request("GET", "/api/glb/models/tiny.wrl")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "model/gltf-binary")
+        self.assertEqual(body[:4], b"glTF")
+        for bad in ["/api/glb/../x.wrl", "/api/glb/%2e%2e/secret.wrl", "/api/glb/models/missing.wrl", "/api/glb/docs/a.svg",
+                    "/api/glb/notes.txt"]:
+            resp, _ = self.request("GET", bad)
+            self.assertEqual(resp.status, 404, bad)
+
+    def test_project_models_listed_and_served(self):
+        (self.root / "models").mkdir(exist_ok=True)
+        (self.root / "models" / "mine.glb").write_bytes(b"glTF" + bytes(16))
+        self.assertIn("models/mine.glb", [f["path"] for f in dev.list_files(self.root)])
+        resp, body = self.request("GET", "/project/models/mine.glb")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "model/gltf-binary")
+
+    def test_library_only_its_own_files(self):
+        for bad in ["/library/../dev.py", "/library/models/../../dev.py", "/library/x/y.glb",
+                    "/library/%2e%2e/dev.py", "/library/models/x/y.glb", "/library/", "/library/models/",
+                    "/three.module.js/../dev.py"]:
+            resp, _ = self.request("GET", bad)
+            self.assertEqual(resp.status, 404, bad)
+
     def test_change_event(self):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
         conn.request("GET", "/api/events")

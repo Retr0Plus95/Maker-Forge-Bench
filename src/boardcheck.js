@@ -43,7 +43,9 @@ export function footprint(part, pitch, ref) {
 }
 
 /**
- * Findings for your placement: [{ kind, level: 'problem' | 'warning' | 'todo', refs, text }].
+ * Findings for your placement: [{ kind, level: 'problem' | 'warning' | 'todo', refs, text, at, side }].
+ * at: the hole [c, r] it's about (between two holes for neighbours), side: where to look from
+ * ('top', or 'bottom' for soldering), for marks on the 3D board (0.9); the to-do list has neither.
  * - clash: two legs in one hole (not an underside part soldered onto a leg of its own line)
  * - overlap: two parts' bodies on top of each other (typical sizes)
  * - neighbours: legs of different lines on neighbouring holes (solder carefully)
@@ -77,7 +79,8 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
   for (const group of byHole.values()) {
     if (group.length < 2 || soldered(group)) continue;
     findings.push({ kind: 'clash', level: 'problem', refs: [...new Set(group.map((l) => l.ref))],
-      text: `Two legs in one hole${at(group[0].hole)}: ${group.map((l) => `${l.ref} ${pinText(l.pin)}`).join(' and ')}.` });
+      text: `Two legs in one hole${at(group[0].hole)}: ${group.map((l) => `${l.ref} ${pinText(l.pin)}`).join(' and ')}.`,
+      at: [...group[0].hole], side: 'top' });
   }
   // bodies on top of each other, same side of the board
   const parts = Object.entries({ ...Object.fromEntries((placed && Object.keys(placed)) ? Object.keys(placed).map((r) => [r, true]) : []), [anchor]: true })
@@ -96,7 +99,12 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
       const ox = Math.min(a.box[2], b.box[2]) - Math.max(a.box[0], b.box[0]);
       const oy = Math.min(a.box[3], b.box[3]) - Math.max(a.box[1], b.box[1]);
       if (ox > 0.4 && oy > 0.4) {
-        findings.push({ kind: 'overlap', level: 'problem', refs: [a.ref, b.ref], text: `${a.ref} and ${b.ref} sit on top of each other (typical sizes): move one of them.` });
+        // the middle of where they overlap, in holes
+        const mx = (Math.max(a.box[0], b.box[0]) + Math.min(a.box[2], b.box[2])) / 2;
+        const my = (Math.max(a.box[1], b.box[1]) + Math.min(a.box[3], b.box[3])) / 2;
+        const pitch = projectBoard.pitch;
+        findings.push({ kind: 'overlap', level: 'problem', refs: [a.ref, b.ref], text: `${a.ref} and ${b.ref} sit on top of each other (typical sizes): move one of them.`,
+          at: [mx / pitch + 1, my / pitch + 1], side: a.side === 'bottom' ? 'bottom' : 'top' });
       }
     }
   }
@@ -116,7 +124,8 @@ export function checkPlacement(projectBoard, placed, anchor, name = () => null) 
         if (seen.has(id)) continue;
         seen.add(id);
         findings.push({ kind: 'neighbours', level: 'warning', refs: [l.ref, o.ref],
-          text: `${l.ref} ${pinText(l.pin)}${at(l.hole)} on ${n1} is next to ${o.ref} ${pinText(o.pin)}${at(o.hole)} on ${n2}: solder these carefully, no bridge.` });
+          text: `${l.ref} ${pinText(l.pin)}${at(l.hole)} on ${n1} is next to ${o.ref} ${pinText(o.pin)}${at(o.hole)} on ${n2}: solder these carefully, no bridge.`,
+          at: [(l.hole[0] + o.hole[0]) / 2, (l.hole[1] + o.hole[1]) / 2], side: 'bottom' });
       }
     }
   }

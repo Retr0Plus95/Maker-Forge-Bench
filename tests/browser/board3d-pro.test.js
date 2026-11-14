@@ -32,7 +32,7 @@ describe('the 3D board: look, controls and tools', () => {
     const i = await info(page);
     assert.equal(i.env, true);
     assert.equal(i.shadows, true);
-    assert.ok(i.joints > 80, `${i.joints} joints`);
+    assert.ok(i.joints.soldered + i.joints.bare > 80, `${JSON.stringify(i.joints)} joints`);
     assert.equal(await page.locator('#zoom-level').isVisible(), false, "the sheet's zoom badge steps aside");
   });
 

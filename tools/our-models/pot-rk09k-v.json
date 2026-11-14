@@ -1,0 +1,25 @@
+{
+ "id": "pot-rk09k-v",
+ "name": "Potentiometer, 9 mm, standing (Alps RK09K style)",
+ "kind": "pot",
+ "mount": "tht",
+ "about": "KiCad has a footprint for the Alps RK09K but its 3D model only as STEP, which the converter can't read. Measured from the footprint's outline (12 x 9.8 mm body, 6 mm shaft) and the RK09K datasheet. Pins as KiCad's Potentiometer_Alps_RK09K_Single_Vertical footprint: 1, 2, 3 in a row 2.5 mm apart; the two mounting tabs aren't pins.",
+ "fit": {"style": "9mm"},
+ "paint": null,
+ "body": "POT-BODY",
+ "footprint": {"pins": [[0, 0], [0, -2.5], [0, -5]], "pitch": 2.54, "drill": 1.0},
+ "shapes": [
+  {"name": "POT-BODY", "box": [1, -7.4, 0, 12, 9.8, 6.5], "colour": [0.12, 0.12, 0.12]},
+  {"name": "MET-FRAME", "box": [1, -7.4, 6.5, 12, 9.8, 0.5], "colour": [0.75, 0.75, 0.77], "metal": true},
+  {"name": "MET-FRAME", "box": [6.4, 1.6, -2.5, 1.2, 0.6, 9.5], "colour": [0.75, 0.75, 0.77], "metal": true},
+  {"name": "MET-FRAME", "box": [6.4, -7.2, -2.5, 1.2, 0.6, 9.5], "colour": [0.75, 0.75, 0.77], "metal": true},
+  {"name": "MET-FRAME", "cyl": [7.5, -2.5, 7.0, 3.5, 5.0], "colour": [0.75, 0.75, 0.77], "metal": true},
+  {"name": "MET-SHAFT", "cyl": [7.5, -2.5, 12.0, 3.0, 10.0], "colour": [0.82, 0.82, 0.84], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -0.15, -3.0, 1.0, 0.3, 3.8], "colour": [0.824, 0.82, 0.781], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -2.65, -3.0, 1.0, 0.3, 3.8], "colour": [0.824, 0.82, 0.781], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -5.15, -3.0, 1.0, 0.3, 3.8], "colour": [0.824, 0.82, 0.781], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -0.5, 0.5, 1.6, 1.0, 0.3], "colour": [0.824, 0.82, 0.781], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -3.0, 0.5, 1.6, 1.0, 0.3], "colour": [0.824, 0.82, 0.781], "metal": true},
+  {"name": "PIN-01", "box": [-0.5, -5.5, 0.5, 1.6, 1.0, 0.3], "colour": [0.824, 0.82, 0.781], "metal": true}
+ ]
+}

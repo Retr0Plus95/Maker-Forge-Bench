@@ -24,6 +24,7 @@ import { svgSize } from './zoom.js';
 import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
 import { createBoard3D } from './board3d.js';
+import { BOARD_COLOURS } from './board3d-geometry.js';
 import { indexSheet } from './search.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
@@ -37,6 +38,8 @@ import { createStore, projectKey } from './store.js';
 import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
+import { modelFor, modelsThatFit } from './library-match.js';
+import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 
@@ -101,7 +104,7 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
 };
-const APP_VERSION = '0.8.0';
+const APP_VERSION = '0.9.0';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -338,6 +341,7 @@ async function goTo(label, query) {
   if (ref) {
     pushTrail(ref);
     state.selected = ref;
+    flyTo3D([ref]);
   }
   if (!(await selectSheet(label.sheetId)) || !label.el.isConnected) return false;
   viewer.zoomToRect(viewer.labelRect(label.el));
@@ -402,16 +406,126 @@ function cardPart(ref) {
   return card ? { ...part, ...card } : part || null;
 }
 
+// ---- Looks like → 3D model (0.9): the library's models that fit, the project's, your own
+let libraryNow = null; // the library's index once fetched, for the choices on a part's card
+let libraryAsked = false;
+let ownModels = null; // your own models in this browser: [{ id, name, bytes }], once read
+let ownModelsRead = false; // the list above has been read (until then a missing one isn't missing yet)
+const modelStatus = { ref: null, text: '' }; // why your file was refused, on that part's card
+
+const sizeOf = (e) => {
+  const b = e.model && e.model.box;
+  if (!b) return '';
+  return `${[0, 1, 2].map((k) => (b[1][k] - b[0][k]).toFixed(1).replace(/\.0$/, '')).join(' × ')} mm`;
+};
+
+function modelChoices(ref, look) {
+  if (!libraryNow && !libraryAsked) {
+    libraryAsked = true;
+    libraryFor3D().then((index) => {
+      libraryNow = index;
+      if (index && state.selected) renderPartCard();
+    });
+  }
+  if (ownModels === null) {
+    ownModels = [];
+    listOwnModels().then((list) => {
+      ownModels = list;
+      ownModelsRead = true;
+      if (state.selected) renderPartCard();
+    });
+  }
+  const board = projectBoard();
+  const part = board ? board.parts[ref] : null;
+  if (!part) return null;
+  const { model: _chosen, ...bare } = part;
+  const value = (cardPart(ref) || {}).value || '';
+  const auto = libraryNow ? modelFor({ ...bare, ref, value }, {}, libraryNow) : null;
+  const choices = [{ value: '', label: auto ? `Automatic: ${auto.name}` : "Automatic: Bench's own drawing", group: null }];
+  for (const e of libraryNow ? modelsThatFit(bare, libraryNow, { ref }) : []) {
+    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e), group: 'Maker Forge Library' });
+  }
+  for (const path of state.modelFiles || []) {
+    if (source && (source.wrl || !/\.wrl$/i.test(path))) choices.push({ value: `project:${path}`, label: path, group: 'In the project' });
+  }
+  for (const m of ownModels || []) {
+    choices.push({ value: `own:${m.id}`, label: m.name, detail: `${Math.max(1, Math.round(m.bytes / 1024))} KB`, group: 'Your own (in this browser)' });
+  }
+  // a model chosen before that isn't here (kept in another browser, a file that's gone, a library
+  // model that was renamed) says so in words, and shows as chosen: Bench draws the part meanwhile
+  const away = look.model && !choices.some((c) => c.value === look.model) ? missingModel(look.model) : null;
+  if (away) choices.push({ value: look.model, label: away.label, group: 'Chosen before, not here' });
+  return {
+    choices,
+    current: look.model || '',
+    status: modelStatus.ref === ref ? modelStatus.text : away ? away.note : '',
+    onPick: (v, label) => {
+      modelStatus.ref = null;
+      setLook(ref, 'model', v, v ? `3D model ${label}` : 'automatic 3D model');
+    },
+    onOwnFile: async (file) => {
+      try {
+        const saved = await saveOwnModel(file);
+        ownModels = await listOwnModels();
+        modelStatus.ref = null;
+        setLook(ref, 'model', `own:${saved.id}`, `your own 3D model ${saved.name}`);
+      } catch (error) {
+        modelStatus.ref = ref;
+        modelStatus.text = error instanceof OwnModelError ? error.message : "That file couldn't be kept in this browser.";
+        renderPartCard();
+      }
+    },
+  };
+}
+
+/** A chosen model that isn't among the choices, in words: { label, note }, or null while it may still turn up. */
+function missingModel(choice) {
+  if (choice.startsWith('own:')) {
+    if (!ownModelsRead) return null;
+    return { label: 'Your own model, not in this browser',
+      note: "That model isn't in this browser (it was kept in another one), so Bench draws the part. Use my own model… to add it here." };
+  }
+  if (choice.startsWith('project:')) {
+    const path = choice.slice('project:'.length);
+    if (!state.project) return null;
+    if (/\.wrl$/i.test(path) && (state.modelFiles || []).includes(path)) {
+      return { label: `${path}, needs dev.py`, note: 'A KiCad .wrl becomes a model only with Bench running on your computer (dev.py), so Bench draws the part.' };
+    }
+    return { label: `${path}, not found here`, note: "That file isn't in the project here, so Bench draws the part." };
+  }
+  if (!libraryNow) return null;
+  return { label: "A model this library doesn't have", note: "That model isn't in this version of the library, so Bench uses the automatic one." };
+}
+
+/** The project's 3D models (.glb, and .wrl with dev.py), for Looks like → 3D model. */
+const modelFilesIn = (files) => files.map((f) => f.path).filter((path) => /\.(glb|wrl)$/i.test(path));
+
+/** A chosen model's bytes for the 3D view: your own from this browser, the project's from its source. */
+async function customModelBytes(choice) {
+  try {
+    if (choice.startsWith('own:')) return await ownModelBytes(choice.slice(4));
+    if (choice.startsWith('project:') && source && typeof source.bytes === 'function') return await source.bytes(choice.slice(8));
+  } catch { /* gone: Bench draws its own */ }
+  return null;
+}
+
 function looksCardOptions(ref) {
   const base = state.project && state.project.board ? state.project.board.parts[ref] : null;
   if (!base) return null;
   const look = state.looks[ref] || {};
   const fields = lookFields(base, look, state.partsByRef.get(ref) || null);
-  if (!fields.length) return null;
+  const models = modelChoices(ref, look);
+  if (!fields.length && !models) return null;
   const card = builtLooks().cards[ref];
+  // the box as it is on screen wins: its toggle event comes a moment after a click, and the card can
+  // be drawn again in between (the library arriving does that)
+  const live = document.querySelector('#part-looks');
+  if (live) state.looksOpen = live.open;
+  const chosen = look.model && models ? (models.choices.find((c) => c.value === look.model) || { label: 'a chosen model' }).label : '';
   return {
     fields,
-    summary: lookSummary(fields),
+    models,
+    summary: [lookSummary(fields), chosen && `3D: ${chosen}`].filter(Boolean).join(' · ') || 'As drawn',
     changed: Object.keys(look).length > 0,
     open: state.looksOpen,
     warning: card ? card.warning : null,
@@ -459,6 +573,7 @@ function setLook(ref, field, value, words = String(value)) {
   let mine = { ...(looks[ref] || {}) };
   if (field === null) mine = {};
   else if (field === 'swap') mine = value ? { swap: value } : {}; // another part starts from its own look
+  else if (field === 'model' && !value) delete mine.model; // back to the automatic one
   else mine[field] = value;
   if (Object.keys(mine).length) looks[ref] = mine;
   else delete looks[ref];
@@ -717,6 +832,8 @@ window.makerForge = Object.freeze({
     view: () => (board3d && board3dOn ? board3d.getView() : null),
     screenOf: (ref) => (board3d && board3dOn ? board3d.screenOf(ref) : null),
     info: () => (board3d && board3dOn ? board3d.info() : null),
+    boxOf: (refs) => (board3d && board3dOn ? board3d.boxOf(refs) : null),
+    heights: () => (board3d && board3dOn ? board3d.heights() : null),
   }),
 });
 
@@ -875,7 +992,7 @@ const find = createFindBar({
   extras: (query) => [
     ...findLines(projectBoard(), query)
       .map((l) => ({ cls: 'find-line', text: `Line ${l.label}: ${l.legs} legs`, onPick: () => openLine(l.net) })),
-    ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => selectPart(p.ref) })),
+    ...findValues(state.parts, query).map((p) => ({ cls: 'find-value', text: `${p.ref} ${p.value}`, onPick: () => { selectPart(p.ref); flyTo3D([p.ref]); } })),
   ],
 });
 
@@ -936,6 +1053,13 @@ function updateBoard3DButton() {
   $('#board3d-toggle').hidden = !(state.project && state.project.board);
 }
 
+let step3DFlown = null; // the guide step the 3D camera last turned to
+
+function openStepId() {
+  const steps = stepsOf();
+  return state.openStep !== null && steps[state.openStep] ? steps[state.openStep].id : null;
+}
+
 function syncStep3D() {
   if (!board3d || !board3dOn) return;
   const steps = stepsOf();
@@ -943,6 +1067,204 @@ function syncStep3D() {
   const now = open !== null ? steps[open].parts : [];
   const later = open !== null ? steps.slice(open + 1).flatMap((s) => s.parts) : [];
   board3d.setStep(now, later, { hideLater: open !== null && ($('#board3d-upto').checked || Boolean(stepPlayer)) });
+  // the camera follows the guide (0.9): opening another step turns the view to its parts, or over
+  // to the underside for the wiring there
+  const id = openStepId();
+  if (id !== step3DFlown) {
+    step3DFlown = id;
+    const step = open !== null ? steps[open] : null;
+    if (step && now.length) board3d.flyToParts(now);
+    else if (step && ['buses', 'links', 'bridges'].some((w) => (step.what || []).includes(w))) board3d.view('bottom');
+  }
+}
+
+/** Find in 3D (0.9): the camera flies to the part found. */
+function flyTo3D(refs) {
+  if (board3d && board3dOn) board3d.flyToParts(refs);
+}
+
+// the board's colour, kept per project; Which way round, kept for every project
+const boardColourKey = () => `boardColour:${projectName()}`;
+function boardColourNow() {
+  const name = store.get(boardColourKey(), 'green');
+  return Object.hasOwn(BOARD_COLOURS, name) ? name : 'green';
+}
+function setBoardColour(name) {
+  store.set(boardColourKey(), Object.hasOwn(BOARD_COLOURS, name) ? name : 'green');
+  $('#board3d-colour').value = boardColourNow();
+  if (board3d) board3d.setBoardColour(boardColourNow());
+}
+// saved views (0.9): up to nine per project, by name (views: is the drawing's zoom per sheet, so 3D has its own)
+const viewsKey = () => `views3d:${projectName()}`;
+const goodView = (v) => v && typeof v.name === 'string' && v.name.trim() && v.camera && Array.isArray(v.camera.position) && Array.isArray(v.camera.target);
+function savedViews() {
+  const list = store.get(viewsKey(), []);
+  return Array.isArray(list) ? list.filter(goodView).slice(-9) : [];
+}
+let lastView = null; // the saved view you chose last: Forget forgets it
+function renderSavedViews() {
+  const views = savedViews();
+  if (lastView && !views.some((v) => v.name === lastView)) lastView = null;
+  $('#board3d-views').replaceChildren(el('option', { value: '' }, views.length ? 'Saved views…' : 'No saved views yet'),
+    ...views.map((v, i) => el('option', { value: String(i) }, v.name)));
+  $('#board3d-views').value = '';
+  const forget = $('#board3d-view-forget');
+  forget.disabled = !lastView;
+  forget.textContent = lastView ? `Forget “${lastView}”` : 'Forget';
+}
+function saveView() {
+  if (!board3d) return;
+  const input = $('#board3d-view-name');
+  const views = savedViews();
+  const name = input.value.trim().slice(0, 40) || `View ${views.length + 1}`;
+  const rest = views.filter((v) => v.name !== name); // the same name saves over it; the oldest makes way for a tenth
+  store.set(viewsKey(), [...rest, { name, camera: board3d.camera() }].slice(-9));
+  input.value = '';
+  lastView = name;
+  renderSavedViews();
+}
+function chooseView(value) {
+  const view = savedViews()[Number(value)];
+  if (value !== '' && view && board3d) {
+    board3d.setCamera(view.camera);
+    lastView = view.name;
+  }
+  renderSavedViews();
+}
+function forgetView() {
+  if (!lastView) return;
+  store.set(viewsKey(), savedViews().filter((v) => v.name !== lastView));
+  lastView = null;
+  renderSavedViews();
+}
+
+// the height check (0.9): the tallest part on each side, and what pokes through a lid
+function showHeights() {
+  if (!board3d) return;
+  const h = board3d.heights();
+  const parts = [];
+  if (h.top) parts.push(`${h.top.ref} ${h.top.h.toFixed(1)} mm on top`);
+  if (h.bottom) parts.push(`${h.bottom.ref} ${h.bottom.h.toFixed(1)} mm underneath`);
+  $('#board3d-heights').textContent = parts.length ? `Tallest: ${parts.join(', ')}` : '';
+  setLid($('#board3d-lid').value);
+}
+function setLid(value) {
+  if (!board3d) return;
+  const lid = value === '' ? null : Number(value);
+  const refs = board3d.setLid(lid);
+  const on = lid !== null && Number.isFinite(lid) && lid > 0 && lid < 1000;
+  $('#board3d-lid-note').textContent = !on ? '' : refs.length ? `Pokes through: ${refs.join(', ')}` : 'Nothing pokes through.';
+}
+
+// findings in 3D (0.9): Check my board's problems as marks on your board; clicking one opens it
+let findings3D = new Map();
+const findingId = (f) => `${f.kind}:${f.refs.join(',')}`;
+function marksFor3D() {
+  findings3D = new Map();
+  if (board3dSource !== 'mine') return [];
+  const mine = myBoardFor3D();
+  const board = boardOf();
+  if (!mine || !board) return [];
+  const [dc, dr] = mine.shift || [0, 0];
+  const marks = [];
+  for (const f of checkPlacement(board, state.myBoard.placed, anchorRef(), nameOfHole)) {
+    if (!f.at || f.level === 'todo') continue;
+    const id = findingId(f);
+    findings3D.set(id, f);
+    marks.push({ id, x: (f.at[0] + dc - 1) * mine.pitch, y: (f.at[1] + dr - 1) * mine.pitch, side: f.side, level: f.level, text: f.text });
+  }
+  return marks;
+}
+async function openFinding(id) {
+  const f = findings3D.get(id);
+  if (!f) return;
+  state.openFinding = id;
+  showTab('board');
+  // the findings list shows with your photo: go to the lined-up one if another sheet is showing
+  const photo = transformFor(state.current) ? state.current : Object.keys(state.myBoard.photos).find((sheet) => transformFor(sheet));
+  if (photo && photo !== state.current) await selectSheet(photo);
+  state.myBoardOpen = true;
+  selectPart(f.refs[0]);
+  renderMyBoardPanel();
+  const li = document.querySelector(`#myboard-check li[data-finding="${CSS.escape(id)}"]`);
+  if (li) li.scrollIntoView({ block: 'nearest' });
+}
+
+const canRecord = () => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm') &&
+  typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype;
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  download(url, name);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+async function saveTurntable() {
+  const button = $('#board3d-video');
+  if (!board3d || button.disabled) return;
+  button.disabled = true;
+  button.textContent = 'Recording… 10 s';
+  try {
+    const blob = await board3d.turntable(10);
+    if (blob) saveBlob(blob, `${fileSafe(projectName())}-board.webm`);
+    else setStatus("This browser couldn't record the video.");
+  } catch {
+    setStatus("This browser couldn't record the video.");
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Turntable video';
+  }
+}
+
+const polarity3dOn = () => store.get('polarity3d', false) === true;
+function setPolarity3d(on) {
+  store.set('polarity3d', Boolean(on));
+  $('#board3d-polarity').checked = polarity3dOn();
+  if (board3d) board3d.setPolarity(polarity3dOn());
+}
+
+/** Real parts (0.9): the library's index, fetched once when 3D first opens (null if it can't be read). */
+let libraryIndex = null;
+function libraryFor3D() {
+  if (!libraryIndex) {
+    libraryIndex = fetch('library/index.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => (j && j.format === 'maker-forge-library' && Array.isArray(j.parts) ? j : null))
+      .catch(() => null);
+  }
+  return libraryIndex;
+}
+/** The library's models, loaded once each however often the 3D view is rebuilt. */
+let models3d = null;
+function modelsFor3D() {
+  if (!models3d) {
+    const fetchBytes = (file) => fetch(`library/${file}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+    models3d = Promise.all([import('./three.module.js'), import('./three-gltf-loader.js'), import('./models3d.js')])
+      .then(([THREE, { GLTFLoader }, { createModels }]) => createModels(THREE, { GLTFLoader, fetchBytes }))
+      .catch(() => null);
+  }
+  return models3d;
+}
+const parts3dMode = () => (store.get('parts3d', 'real') === 'simple' ? 'simple' : 'real');
+
+function showParts3dMode() {
+  const mode = parts3dMode();
+  $('#board3d-parts-real').setAttribute('aria-pressed', String(mode === 'real'));
+  $('#board3d-parts-simple').setAttribute('aria-pressed', String(mode === 'simple'));
+}
+
+/** Real or Simple parts: a setting, kept for next time (not an undo step). */
+function setParts3d(mode) {
+  store.set('parts3d', mode === 'simple' ? 'simple' : 'real');
+  showParts3dMode();
+  if (mode === 'simple') $('#board3d-loading').hidden = true;
+  if (board3d) board3d.setParts3d(parts3dMode());
+}
+
+/** The loading bar: "Real parts 12 of 31", gone when they're all in (or couldn't load). */
+function showRealProgress({ done, total }) {
+  if (total && done >= total) setTimeout(showHeights, 0); // real parts change the heights
+  const bar = $('#board3d-loading');
+  bar.hidden = parts3dMode() !== 'real' || !total || done >= total;
+  bar.textContent = `Real parts ${done} of ${total}`;
 }
 
 /** What the 3D view prints and names: each part's value. */
@@ -1051,6 +1373,8 @@ async function setBoard3D(on) {
   if (!board3d) {
     if (!board3dBuilding) {
       message.hidden = true;
+      $('#board3d-colour').value = boardColourNow();
+      $('#board3d-polarity').checked = polarity3dOn();
       const board = board3dData();
       const cameraKey = `camera:${projectName()}:${board3dSource}`;
       board3dBuilding = createBoard3D($('#board3d-view'), board, {
@@ -1058,6 +1382,15 @@ async function setBoard3D(on) {
         camera: store.get(cameraKey, null),
         onCamera: (camera) => store.set(cameraKey, camera),
         details: partDetails(),
+        parts3d: parts3dMode(),
+        library: libraryFor3D(),
+        models: modelsFor3D(),
+        modelBytes: customModelBytes,
+        onProgress: showRealProgress,
+        boardColour: boardColourNow(),
+        soldered: [...state.ticked],
+        polarity: polarity3dOn(),
+        onMark: openFinding,
       }).then((view) => {
         if (view) {
           view.showWiring($('#board3d-wiring').checked);
@@ -1070,6 +1403,12 @@ async function setBoard3D(on) {
         board3d = view;
         board3dBoard = JSON.stringify(board);
         board3dBuilding = null;
+        step3DFlown = openStepId(); // a new view keeps its saved camera: only the next step turns it
+        if (view) {
+          view.setMarks(marksFor3D());
+          renderSavedViews();
+          showHeights();
+        }
         return view;
       });
     }
@@ -1090,7 +1429,10 @@ async function resetBoard3D() {
   if (board3dBuilding) await board3dBuilding;
   updateBoard3DSource();
   const board = board3dData();
-  if (board3d && board && JSON.stringify(board) === board3dBoard) return;
+  if (board3d && board && JSON.stringify(board) === board3dBoard) {
+    board3d.setMarks(marksFor3D());
+    return;
+  }
   if (board3d) board3d.dispose();
   board3d = null;
   board3dBoard = '';
@@ -1284,7 +1626,7 @@ function myBoardMore() {
     lineLabels: store.get('lineLabels', false) === true,
     wires: store.get('showWires', false) === true,
     routes,
-    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole),
+    findings: checkPlacement(board, state.myBoard.placed, anchor, nameOfHole).map((f) => ({ ...f, id: findingId(f), open: findingId(f) === state.openFinding })),
     labels: holeLabelsOptions(),
     suggest: suggestOptions(),
     onSuggest: () => {
@@ -1300,7 +1642,10 @@ function myBoardMore() {
     onLineLabels: (on) => { store.set('lineLabels', on); updateMyBoard(); },
     onWires: (on) => { store.set('showWires', on); updateMyBoard(); resetBoard3D(); },
     onRoute: (net, shape, label) => changeMyBoard(`Wires for ${label}: ${shape}`, (b) => { b.routes = { ...(b.routes || {}), [net]: shape }; }),
-    onShow: (ref) => selectPart(ref),
+    onShow: (ref) => {
+      state.openFinding = null;
+      selectPart(ref);
+    },
     onNext: () => {
       const ref = placingOrder().find((r) => !state.myBoard.placed[r]);
       if (ref) {
@@ -2598,6 +2943,7 @@ function acknowledgeNotes() {
 
 /** Ticked parts' labels turn green on every sheet that has been read. */
 function applyTickMarks() {
+  if (board3d) board3d.setSoldered([...state.ticked]); // your progress in 3D: ticked parts are soldered
   const done = (text) => labelDone(text, isKnownRef, (r) => state.ticked.has(r));
   for (const entry of state.loaded.values()) {
     if (entry.kind !== 'svg') continue;
@@ -2758,6 +3104,9 @@ function saveProgressFile() {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (Object.values(state.looks).some((l) => l && typeof l.model === 'string' && l.model.startsWith('own:'))) {
+    setStatus("Progress saved. Your own 3D models stay in this browser: the file names them but doesn't hold them.");
+  }
 }
 
 async function openProgressFile(input) {
@@ -2905,6 +3254,7 @@ async function relist(listing = null) {
   } catch {
     return;
   }
+  state.modelFiles = modelFilesIn(project.files);
   const sheets = sheetsFor(project.files);
   const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
     s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing &&
@@ -3227,9 +3577,38 @@ async function start() {
   }
   $('#board3d-fit').addEventListener('click', () => board3d && board3d.fit());
   $('#board3d-sheet4').addEventListener('click', () => setBoard3DSource('sheet4'));
+  $('#board3d-parts-real').addEventListener('click', () => setParts3d('real'));
+  $('#board3d-parts-simple').addEventListener('click', () => setParts3d('simple'));
+  showParts3dMode();
   $('#board3d-mine').addEventListener('click', () => setBoard3DSource('mine'));
   $('#board3d-labels').addEventListener('change', (e) => board3d && board3d.showLabels(e.target.checked));
   $('#board3d-xray').addEventListener('change', (e) => board3d && board3d.setXray(e.target.checked));
+  $('#board3d-colour').addEventListener('change', (e) => setBoardColour(e.target.value));
+  $('#board3d-view-save').addEventListener('click', saveView);
+  $('#board3d-view-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveView();
+  });
+  $('#board3d-views').addEventListener('change', (e) => chooseView(e.target.value));
+  $('#board3d-view-forget').addEventListener('click', forgetView);
+  $('#board3d-lid').addEventListener('input', (e) => setLid(e.target.value));
+  $('#board3d-glb').addEventListener('click', async () => {
+    if (!board3d) return;
+    const button = $('#board3d-glb');
+    button.disabled = true;
+    try {
+      saveBlob(await board3d.exportGlb(), `${fileSafe(projectName())}-board.glb`);
+    } catch {
+      setStatus("The GLB couldn't be made in this browser. Save STL or OBJ instead.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+  $('#board3d-obj').addEventListener('click', () => {
+    if (board3d) saveBlob(board3d.exportObj(), `${fileSafe(projectName())}-board.obj`);
+  });
+  $('#board3d-video').hidden = !canRecord();
+  $('#board3d-video').addEventListener('click', saveTurntable);
+  $('#board3d-polarity').addEventListener('change', (e) => setPolarity3d(e.target.checked));
   $('#board3d-upto').addEventListener('change', syncStep3D);
   $('#board3d-explode').addEventListener('input', (e) => board3d && board3d.setExplode(Number(e.target.value)));
   $('#board3d-clip').addEventListener('input', (e) => board3d && board3d.setClip(Number(e.target.value) >= 1 ? null : Number(e.target.value)));
@@ -3372,6 +3751,7 @@ async function openProject(src, listing = null) {
   updateBoard3DButton();
   setStatus(project.truncated ? 'GitHub sent only part of this big repo\'s file list: some drawings may be missing. A link to its folder opens less.' : '');
   state.sheets = sheetsFor(project.files);
+  state.modelFiles = modelFilesIn(project.files);
   loadProgress();
   loadOpenStep();
   renderTabs();

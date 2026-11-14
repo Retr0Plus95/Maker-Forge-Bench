@@ -17,16 +17,34 @@ export const LOOK_OPTIONS = {
   to220: { facing: ['down', 'up', 'left', 'right'] },
 };
 
+const LIBRARY_ID = /^[a-z0-9][a-z0-9.-]{0,79}$/;
+const OWN_ID = /^own:[0-9a-f]{16}$/;
+
+/**
+ * A look's 3D model (0.9), or null: a Maker Forge Library id, own:<16 hex> (a GLB you keep in this
+ * browser) or project:<path> (a .glb or .wrl in the project, a plain path inside it).
+ */
+export function cleanModelChoice(v) {
+  if (typeof v !== 'string') return null;
+  if (OWN_ID.test(v) || LIBRARY_ID.test(v)) return v;
+  if (!v.startsWith('project:')) return null;
+  const path = v.slice('project:'.length);
+  if (path.length > 300 || !/\.(glb|wrl)$/i.test(path) || /[\\:]/.test(path) || path.startsWith('/')) return null;
+  return path.split('/').every((seg) => seg && seg !== '.' && seg !== '..') ? v : null;
+}
+
 const allowed = (rule, v) => (Array.isArray(rule) ? rule.includes(v) : typeof v === 'number' && Number.isFinite(v) && v >= rule.min && v <= rule.max);
 
 /** Only the look fields that suit a part of this type, with allowed values: anything else is dropped. */
 export function cleanLook(type, raw) {
   const out = {};
-  const options = Object.hasOwn(LOOK_OPTIONS, type) ? LOOK_OPTIONS[type] : null;
-  if (!options || !raw || typeof raw !== 'object') return out;
+  if (!raw || typeof raw !== 'object') return out;
+  const options = Object.hasOwn(LOOK_OPTIONS, type) ? LOOK_OPTIONS[type] : {};
   for (const [field, rule] of Object.entries(options)) {
     if (Object.hasOwn(raw, field) && allowed(rule, raw[field])) out[field] = raw[field];
   }
+  const model = Object.hasOwn(raw, 'model') ? cleanModelChoice(raw.model) : null; // any part can have its 3D model chosen
+  if (model) out.model = model;
   return out;
 }
 
@@ -52,7 +70,7 @@ export function alternativesFor(projectPart) {
   return lib && Object.hasOwn(ALTERNATIVES, lib.id) ? ALTERNATIVES[lib.id] : [];
 }
 
-const LOOK_FIELDS = new Set(['holder', 'mount', 'colour', 'D', 'H', 'style', 'female', 'facing', 'swap']);
+const LOOK_FIELDS = new Set(['holder', 'mount', 'colour', 'D', 'H', 'style', 'female', 'facing', 'swap', 'model']);
 
 /** Saved looks (from progress), checked for shape: { ref: { field: value } }. The board decides later what applies. */
 export function cleanLooks(raw, isRef = () => true) {
@@ -63,6 +81,10 @@ export function cleanLooks(raw, isRef = () => true) {
     const clean = {};
     for (const [field, v] of Object.entries(look)) {
       if (!LOOK_FIELDS.has(field)) continue;
+      if (field === 'model') {
+        if (cleanModelChoice(v)) clean.model = v;
+        continue;
+      }
       if ((typeof v === 'string' && v.length > 0 && v.length <= 40) || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v))) clean[field] = v;
     }
     if (Object.keys(clean).length) out[ref] = clean;
