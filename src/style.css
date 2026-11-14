@@ -624,3 +624,15 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
 .look-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.35rem 0.6rem; align-items: center; margin: 0.5rem 0; }
 .look-rows select { min-width: 0; max-width: 100%; font: inherit; padding: 0.2rem 0.3rem; }
 .part-looks-warning { border-left: 3px solid #e0a020; padding-left: 0.5rem; }
+
+/* Adjust steps (0.8 design §3) */
+.steps-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.steps-head h2 { margin-right: auto; }
+.steps-adjust { padding-left: 1.4rem; margin: 0.5rem 0; }
+.steps-adjust li { display: flex; align-items: center; gap: 0.4rem; padding: 0.15rem 0; }
+.steps-adjust .adjust-title { flex: 1; min-width: 0; }
+.steps-adjust li.skipped .adjust-title { text-decoration: line-through; opacity: 0.6; }
+.steps-adjust .adjust-tools { display: flex; gap: 0.25rem; flex: none; }
+.steps-adjust .step-up, .steps-adjust .step-down { min-width: 2rem; }
+.own-step { display: grid; gap: 0.35rem; margin: 0.6rem 0; }
+.own-step input, .own-step textarea { font: inherit; width: 100%; box-sizing: border-box; }

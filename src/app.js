@@ -32,6 +32,7 @@ import { createStore, projectKey } from './store.js';
 import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgress, importBoard, importProgress, sheetPrint } from './checklist.js';
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
+import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -76,6 +77,8 @@ const state = {
   continuity: {}, // continuity test answers: { id: 'pass' | 'fail' } (0.5 big improvement B6)
   looks: Object.create(null), // what each part looks like as you fitted it: { ref: { holder, colour, swap, ... } } (0.8 §2)
   looksOpen: false, // the card's Looks like is open
+  stepEdits: NO_EDITS, // your changes to the build steps: { order, skipped, added } (0.8 §3)
+  stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
   clearAt: 0, // when Clear my board was first clicked
@@ -465,8 +468,7 @@ function renderPartCard() {
   }
   const board = projectBoard();
   const onBoard = board ? board.parts[part.ref] : null;
-  const build = state.project ? state.project.build : [];
-  const stepIndex = build.findIndex((s) => s.parts.includes(part.ref));
+  const stepIndex = stepsOf().findIndex((s) => s.parts.includes(part.ref));
   renderCard($('#part-card'), part, {
     connections: connectionsOf(board, part.ref),
     where: onBoard ? { pins: Object.entries(onBoard.pins), body: onBoard.body, mount: onBoard.mount, side: onBoard.side } : null,
@@ -568,7 +570,7 @@ function cardExtras(part, board) {
 }
 
 function stepCardOptions(ref, stepIndex) {
-  const build = state.project.build;
+  const build = stepsOf();
   const next = nextInStep(build[stepIndex], ref, state.ticked);
   return {
     number: stepIndex + 1, total: build.length, title: build[stepIndex].title,
@@ -1780,6 +1782,7 @@ const snapshot = () => JSON.parse(exportProgress({
   project: projectName(), revision: state.project ? state.project.revision : null,
   ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
+  looks: state.looks, steps: state.stepEdits,
 }));
 
 function renderVersions() {
@@ -1824,8 +1827,8 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
@@ -2090,7 +2093,49 @@ function renderWiringPanel() {
 }
 
 // ---- build steps (board-view design §5), one at a time ----
-const stepsOf = () => (state.project ? state.project.build : []);
+let stepsCache = { build: null, edits: null, all: [], shown: [] };
+/** Every build step in your order, skipped ones too, and your own (0.8 §3). */
+function allSteps() {
+  const build = state.project ? state.project.build : [];
+  if (stepsCache.build !== build || stepsCache.edits !== state.stepEdits) {
+    const all = stepsWithEdits(build, state.stepEdits);
+    stepsCache = { build, edits: state.stepEdits, all, shown: all.filter((s) => !s.skipped) };
+  }
+  return stepsCache.all;
+}
+/** The build steps you follow: in your order, without the ones you skipped. */
+function stepsOf() {
+  allSteps();
+  return stepsCache.shown;
+}
+
+/** Changes your steps as one undo step. */
+function setSteps(edits, label) {
+  if (!edits || edits === state.stepEdits) return;
+  const before = state.stepEdits;
+  history.do({ label, apply: () => setProgress({ steps: edits }), revert: () => setProgress({ steps: before }) });
+}
+
+function stepsAdjustOptions() {
+  const build = state.project ? state.project.build : [];
+  const open = state.openStep !== null ? stepsOf()[state.openStep] : null;
+  return {
+    on: state.stepsAdjusting,
+    all: allSteps(),
+    changed: hasEdits(state.stepEdits),
+    after: open ? open.title : null,
+    onToggle: () => { state.stepsAdjusting = !state.stepsAdjusting; renderStepsPanel(); },
+    onMove: (id, delta) => setSteps(moveStep(build, state.stepEdits, id, delta), `Move a step ${delta < 0 ? 'up' : 'down'}`),
+    onSkip: (id, on) => setSteps(setSkipped(state.stepEdits, id, on), on ? 'Skip a step' : 'Bring a step back'),
+    onAdd: (title, text) => {
+      const added = addOwnStep(build, state.stepEdits, { title, text }, open ? open.id : null);
+      if (added) setSteps(added.edits, `Add the step ${added.edits.added.at(-1).title}`);
+      return Boolean(added);
+    },
+    onRemove: (id) => setSteps(removeOwnStep(state.stepEdits, id), 'Take out your step'),
+    onReset: () => setSteps(NO_EDITS, "Back to the project's steps"),
+  };
+}
 const stepKey = () => `${state.progressKey}:step`;
 
 function stepWhatText(step) {
@@ -2231,6 +2276,7 @@ function renderStepsPanel() {
     onOpen: openStep,
     onPart: (ref) => selectPart(ref),
     onTickAll: tickStep,
+    adjust: stepsAdjustOptions(),
   });
 }
 
@@ -2296,6 +2342,7 @@ function loadProgress() {
   state.continuity = data ? data.continuity : {};
   state.log = data ? data.log : [];
   state.looks = data ? data.looks : Object.create(null);
+  state.stepEdits = data ? data.steps : NO_EDITS;
   refreshNotes();
 }
 
@@ -2310,7 +2357,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits });
   if (saved) flashSaved();
 }
 
@@ -2361,8 +2408,14 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps }) {
   const stepWasDone = autoStepWasDone();
+  if (steps) {
+    const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
+    state.stepEdits = steps;
+    const at = openId ? stepsOf().findIndex((s) => s.id === openId) : -1;
+    state.openStep = at >= 0 ? at : null; // the open step follows its id, or closes when skipped
+  }
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -2402,6 +2455,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   updateMyBoard();
   updateTabCounts();
   if (looks) resetBoard3D();
+  if (steps) updateStepRings();
   autoNextStep(stepWasDone);
 }
 
@@ -2491,7 +2545,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -2516,8 +2570,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 

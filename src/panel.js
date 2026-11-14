@@ -295,12 +295,62 @@ export function renderCard(container, part, o) {
  * The build steps (board-view design §5): the list, and the open step with its why, its parts,
  * Back / Next and "Tick all in this step".
  */
+/** Adjust steps (0.8 design §3): every step with up, down and skip; add your own; back to the project's. */
+function adjustSteps(a, drafts) {
+  const list = el('ol', { className: 'steps-adjust' });
+  a.all.forEach((step, i) => {
+    const item = el('li', { 'data-step': step.id, className: step.skipped ? 'skipped' : '' },
+      el('span', { className: 'adjust-title' }, step.title, step.own ? el('span', { className: 'hint' }, ' (yours)') : ''));
+    const button = (cls, label, aria, run, disabled = false) => {
+      const b = el('button', { type: 'button', className: cls, 'aria-label': aria, 'data-focus': `${cls}-${step.id}` }, label);
+      b.disabled = disabled;
+      b.addEventListener('click', run);
+      return b;
+    };
+    const tools = el('span', { className: 'adjust-tools' },
+      button('step-up', '↑', `Move ${step.title} up`, () => a.onMove(step.id, -1), i === 0),
+      button('step-down', '↓', `Move ${step.title} down`, () => a.onMove(step.id, 1), i === a.all.length - 1));
+    if (step.own) tools.append(button('step-remove', 'Take out', `Take out ${step.title}`, () => a.onRemove(step.id)));
+    else tools.append(button('step-skip', step.skipped ? 'Bring back' : 'Skip', `${step.skipped ? 'Bring back' : 'Skip'} ${step.title}`, () => a.onSkip(step.id, !step.skipped)));
+    item.append(tools);
+    list.append(item);
+  });
+  const title = el('input', { id: 'own-step-title', type: 'text', maxlength: '120', placeholder: 'Title, like "Test the 5 V rail"', 'data-focus': 'own-step-title' });
+  const body = el('textarea', { id: 'own-step-text', rows: '2', maxlength: '1000', placeholder: 'What to do (optional)', 'data-focus': 'own-step-text' });
+  title.value = drafts.title || '';
+  body.value = drafts.text || '';
+  const add = el('button', { id: 'own-step-add', type: 'button', 'data-focus': 'own-step-add' }, 'Add this step');
+  add.addEventListener('click', () => {
+    if (!a.onAdd(title.value, body.value)) title.focus();
+  });
+  title.addEventListener('keydown', (e) => { if (e.key === 'Enter') add.click(); });
+  const form = el('div', { className: 'own-step' },
+    el('label', { for: 'own-step-title' }, a.after ? `Add your own step after "${a.after}"` : 'Add your own step at the end'),
+    title, body, add);
+  const parts = [el('p', { className: 'hint' }, 'Move steps into the order you build in, skip what you don\'t need, or add your own.'), list, form];
+  if (a.changed) {
+    const reset = el('button', { id: 'steps-reset', type: 'button', 'data-focus': 'steps-reset' }, "Back to the project's steps");
+    reset.addEventListener('click', a.onReset);
+    parts.push(reset);
+  }
+  return parts;
+}
+
 export function renderSteps(container, steps, o) {
   // a step note being typed survives a redraw (only while you're in it, so undo shows what it brings back)
   const typing = container.querySelector('#step-note');
   const stepDraft = typing && document.activeElement === typing ? typing.value : null;
-  if (!steps.length) {
+  // so does a step of your own being written (it's only kept once added)
+  const ownDrafts = { title: container.querySelector('#own-step-title')?.value, text: container.querySelector('#own-step-text')?.value };
+  const a = o.adjust;
+  if (!steps.length && !(a && a.all.length)) {
     container.replaceChildren();
+    return;
+  }
+  const adjustButton = a ? el('button', { id: 'steps-adjust', type: 'button', 'aria-pressed': String(a.on), 'data-focus': 'steps-adjust' }, a.on ? 'Done adjusting' : 'Adjust steps') : null;
+  if (adjustButton) adjustButton.addEventListener('click', a.onToggle);
+  if (a && a.on) {
+    keepFocus(container, () => container.replaceChildren(el('div', { className: 'steps-head' }, el('h2', {}, 'Build steps'), adjustButton), ...adjustSteps(a, ownDrafts)), '#steps-adjust');
     return;
   }
   const list = el('ol', { className: 'steps-list' });
@@ -317,7 +367,10 @@ export function renderSteps(container, steps, o) {
     if (found) item.append(el('span', { className: 'step-count' }, ` ${o.doneIn(step)} of ${found} soldered`));
     list.append(item);
   });
-  const children = [el('h2', {}, 'Build steps'), el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done`), list];
+  const skippedCount = a ? a.all.filter((s) => s.skipped).length : 0;
+  const head = el('div', { className: 'steps-head' }, el('h2', {}, 'Build steps'));
+  if (adjustButton) head.append(adjustButton);
+  const children = [head, el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done${skippedCount ? ` · ${skippedCount} skipped` : ''}`), list];
   const step = o.current !== null ? steps[o.current] : null;
   if (step) {
     const box = el('div', { className: 'step-open' },
