@@ -1,8 +1,10 @@
 # Maker Forge Bench roadmap
 
-*Written 2026-11-12, with names, hosting and future apps updated the same day. A plan, not a
-promise: each release gets its own pull request and can be reordered. The design for release 1 is
-in `docs/design/2026-11-12-maker-forge-bench-design.md`.*
+*Written 2026-11-12, with names, hosting and future apps updated the same day. Rewritten on
+2026-11-14 with the plan to build around KiCad: real 3D parts, a shared parts library, and one
+design app for schematics and boards. A plan, not a promise: each release gets its own pull request
+and can be reordered. The design for release 1 is in
+`docs/design/2026-11-12-maker-forge-bench-design.md`.*
 
 **Names:** **Maker Forge** is the suite and its home page. This app is **Maker Forge Bench**
 ("Bench"). **Shape** is today's Maker Forge 3D app, which takes the name Maker Forge Shape at 2.0.
@@ -19,6 +21,49 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 - **Works at the bench.** Big touch targets, readable at arm's length, Easy reading, phone and tablet.
 - **Plain words.** Every release updates the manual and says what it fixed.
 
+## Where this is going (agreed 2026-11-14)
+
+The goal: the suite ends up able to design a whole board from scratch, then build it, test it and
+fit it in its case, with many of the features people know from KiCad and SolidWorks. It's built
+**around KiCad, not as a copy of it.** KiCad is free and very good at copper boards, so the suite
+reads and writes KiCad's files, and owns what KiCad doesn't do: perfboard and stripboard, the parts
+you have, building step by step, testing, and the board in its box.
+
+- **One shared parts library, the Maker Forge Library,** used by every app (see "The apps in the
+  suite"). Each part has its symbol, footprint, 3D model, pins, datasheet and a how-to page.
+- **One design app, Maker Forge Circuit,** with two workspaces: Schematic and Board. Perfboard and
+  stripboard first, copper boards later. It saves `forge-project.json`, which Bench builds from.
+  (Circuit and Layout were two ideas; they're one app now, the way KiCad keeps the schematic and
+  the board in one project.)
+- **Copper boards go through KiCad first.** Bench opens KiCad projects (0.9), and Circuit writes
+  KiCad files so KiCad can make the factory files. The suite's own copper editor and factory files
+  come last.
+
+**Taken from KiCad:** the schematic with its electrical rules check (ERC); the board with its
+ratsnest (the lines that show what still needs joining) and design rules check (DRC); a symbol,
+footprint and 3D model linked for every part; cross-probing (pick a part in one view and it lights
+in the other); the parts list (BOM) and netlist; factory files (Gerbers, drill, placement), first by
+writing KiCad files and later our own; and export to a circuit simulator.
+
+**Taken from SolidWorks:** assemblies (the board in its case), clash checks, exploded views, 2D
+drawings, variants (the same board with different parts fitted), standard hardware (screws,
+standoffs, nuts). From SolidWorks Electrical: the wiring harness, wire numbers and wires routed in
+3D. And a light viewer anyone can open, like eDrawings, which is what Bench already is.
+
+### The order from here
+1. **Bench 0.9 Real parts:** the shared library's first version, KiCad's 3D models, a better 3D
+   view, and KiCad projects opened directly, with their error checks.
+2. **Bench 1.0 Launch.**
+3. **Maker Forge Parts:** the parts you have, and the library browser with 3D.
+4. **Maker Forge Circuit:** schematic, then a perfboard or stripboard board, then KiCad files and a
+   factory pack.
+5. **The board in its box, with Shape (2.0):** assemblies, clash checks, and the wiring off the
+   board.
+6. **Long term:** Circuit's own copper board editor and its own factory files.
+
+Bench's own tools (1.1 to 1.4) and the smaller apps (Calc, Pins, Serial, Labels) come as smaller
+releases between these, when a build needs them.
+
 ## The stages
 
 | Stage | Releases | What it is for |
@@ -26,7 +71,7 @@ Ideas marked **★ New** were added while writing this roadmap. The others came 
 | Build the viewer | 0.1 to 1.0 | The soldering viewer, finished and published |
 | Bench tools | 1.1 to 1.4 | Calculators on part cards, more file types, guided building, testing and fault-finding |
 | The Maker Forge suite | 2.0 and on | The home page, Bench, Shape and the website working as one project |
-| More apps | any time | Learn and plan, design, build, test, share: see "The apps in the suite" |
+| More apps | any time | Learn and plan, design, build, test, share: see "The apps in the suite". Parts, then Circuit, come first |
 
 ---
 
@@ -160,6 +205,30 @@ Design: `docs/design/2026-11-13-release-0.8-design.md`.
   again, and the panel's main buttons (Ask here, Use this spot, Beeped) stand out again: a panel
   style had overridden them all.
 
+### 0.9 Real parts
+Real 3D parts from KiCad's free library, a better 3D view, and KiCad projects opened directly.
+Design: `docs/design/2026-11-14-release-0.9-design.md`.
+- **The Maker Forge Library, first version:** one list of parts that every app will share. Each
+  part has its pins, its footprint (the hole spacing), its 3D model, and where it came from with its
+  licence. Symbols and how-to pages join it with Parts and Circuit. It starts inside Bench and
+  moves to its own home once Parts needs it.
+- **About 150 common through-hole parts in true 3D,** converted once from KiCad's library and
+  shipped with Bench, with KiCad's credit: resistors, capacitors, diodes, LEDs, transistors,
+  regulators, chips and sockets, headers, screw terminals, crystals, pots, buttons and connectors.
+  Bench still paints its own colour bands, values and stripes on them. Looks like gets a model
+  picker, and you can use your own `.glb` model for a part, kept on your device.
+- **Open a KiCad project:** a folder with a `.kicad_pro`. With `dev.py` and KiCad on the computer,
+  Bench runs KiCad's own command-line tool for the sheets, the 3D board, the checks and the parts
+  list. Without them (a GitHub link or a picked folder), Bench reads KiCad's text files itself for
+  the parts and connections. *(This was "KiCad parts list" and "Read KiCad schematic files" in 1.2.)*
+- **Errors found, and help fixing them:** KiCad's schematic check (ERC) and board check (DRC) in the
+  Checks tab, each with **Show me** and **Ask AI how to fix** (your Claude key or Ollama).
+- **★ New: Factory files** for a KiCad board (with `dev.py` and KiCad): one button makes a zip of
+  the Gerbers, drill files, parts list and placement file, ready to upload to a board maker.
+- **A better 3D view:** truer light and materials, board colours, solder joints, polarity marks,
+  the camera following the guide, find a part in 3D, saved views, a height check for the case,
+  Check my board shown in 3D, export to GLB and OBJ, a turntable video, and a loading bar.
+
 ### 1.0 Launch
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
   manual inside the app.
@@ -186,12 +255,7 @@ answers always match. Bench adds the calculations that belong to a part:
 
 ### 1.2 More files, and offline
 - **PDF**, with its text searchable. KiCad's PDF exports keep text, which fixes the KiCad risk for good.
-- **KiCad parts list (BOM CSV)** as a parts source, so KiCad projects get part cards without
-  writing a project file.
-- **★ New: Read KiCad schematic files directly.** KiCad saves schematics (`.kicad_sch`) as plain
-  text, so Bench can read every part and every connection from them, with no export step. That
-  gives part cards and connection highlighting (1.4) without a project file. *Check first:* how much
-  work drawing the sheet itself is. Reading the parts and connections is worth it on its own.
+- *(Reading KiCad's parts list and schematic files moved to 0.9, "Open a KiCad project".)*
 - **Install on phone and tablet**, and work with no internet at the bench.
 - **One-file download**, like Shape's releases.
 - **★ New: Print the checklist and wire list** on paper, with tick boxes, for builders who prefer it.
@@ -212,8 +276,8 @@ answers always match. Bench adds the calculations that belong to a part:
 
 ### 1.4 Test and find faults
 - **Highlight a connection:** click +5 V or a pin, and every hole and wire on that connection
-  lights up, ready for continuity checks with your meter. This needs connection data: KiCad's
-  netlist, or `board.py` for the fume extractor.
+  lights up, ready for continuity checks with your meter. This needs connection data: a KiCad
+  project (0.9 reads its connections), or `board.py` for the fume extractor.
 - **★ New: Measurement log with expected values.** Bring-up checks come from the project file
   ("U1 output: 5.00 V ± 0.05"). Type what your meter shows, and anything out of range turns red.
   The log can go along with a question to Claude. Later, Maker Forge Serial can fill in readings
@@ -246,6 +310,12 @@ needs work in the other app's own repo and Claude session.
   box can follow. This is the link SolidWorks users pay extra for.
 - **Shape → Bench:** the box's printed parts appear in the project, so the build checklist can
   include "fit the board on its standoffs".
+- **★ New (2026-11-14): The board in its box, the SolidWorks way.** The board with its real 3D
+  parts sits in the case as one assembly: a clash check ("C1 hits the lid by 2 mm"), an exploded
+  view, and standard screws, standoffs and nuts from the Maker Forge Library.
+- **★ New (2026-11-14): The wiring off the board.** Each wire from the board to the fans, the LCD,
+  the pot and the sockets, with its colour, thickness, length (measured in the case), the connector
+  pins at each end and a wire number, routed in 3D. Labels prints the wire tags.
 
 ### 2.1 Publish
 - **★ New: Project page from the project file.** retr0plus.se builds a project's page (drawings,
@@ -265,11 +335,10 @@ each job:
 
 | Part of a project | App | What it does | Status |
 |---|---|---|---|
-| **Learn and plan** | **Parts** | What each component is, how to use it, and which ones you have | Idea |
+| **Learn and plan** | **Parts** | What each component is, how to use it, which ones you have, and the library in 3D | Planned, after Bench 1.0 |
 | | **Calc** | Electronics calculators | Idea |
 | | **Pins** | Plan a microcontroller's pins | Idea |
-| **Design** | **Circuit** | Draw small circuits (schematics) | Idea |
-| | **Layout** | Perfboard and stripboard layouts | Idea |
+| **Design** | **Circuit** | Draw the circuit and lay out the board: perfboard and stripboard first, copper later | Planned, after Parts |
 | | **Shape** | 3D-printed cases and parts | Exists (today's Maker Forge) |
 | **Build** | **Bench** | Read the drawings and build the board | This repo |
 | | **Labels** | Labels for bins, wires and front panels | Idea |
@@ -278,11 +347,24 @@ each job:
 | | **Live** | A stream page for OBS | Idea |
 | **The whole project** | **Maker Forge** (home) | The assembly: every piece of one project | Planned for 2.0 |
 
-Copper circuit boards and large schematics stay in KiCad (see "Not planned").
+**The Maker Forge Library ★ New (2026-11-14)** isn't an app: it's one set of parts that Bench,
+Parts, Circuit and Shape all read. Each part has a symbol (for Circuit), a footprint (holes and
+pads), a 3D model, its pins, a datasheet link and a how-to page. Where the parts come from:
+- **KiCad's libraries,** free to share with a credit (CC-BY-SA 4.0, with an exception that leaves
+  your own designs yours);
+- **mechanical hardware** we draw ourselves: screws, standoffs, nuts and washers;
+- **Fritzing's parts,** once their licence is checked;
+- **your own STEP, WRL or GLB files,** which stay on your device.
+
+It starts inside Bench in 0.9 and moves to its own home once Parts needs it.
+
+Copper boards go through KiCad first: Circuit writes KiCad files, and Bench opens KiCad projects.
+Circuit's own copper editor comes last (see "The order from here").
 
 **Considered, and kept as features instead:** the power budget (Bench 1.1, using Calc's formulas),
 project cost (the home page, once Parts knows prices), front panels (Labels and Shape together),
-off-board wiring (Bench's wire list) and reading circuits (Bench is the reader).
+off-board wiring (the board in its box, 2.0), reading circuits (Bench is the reader) and Layout
+(now Circuit's Board workspace).
 
 ### Learn and plan
 
@@ -304,6 +386,10 @@ and motors, buzzers and displays. Each page covers:
 Where the same part comes with different pin orders (some small transistors do), the page says so
 and points to the exact part's datasheet.
 
+**★ New (2026-11-14): The library in 3D.** Browse every part in the Maker Forge Library: turn its 3D
+model, measure it, see its footprint and pins, and open its datasheet and how-to page. It's the same
+library Bench and Circuit use, so a part you look at here is the part they draw.
+
 **★ New: Identify a part from a photo.** Photograph a resistor's bands or a chip's markings, and
 Claude (with your own key) reads the value or part number and opens its page. It's shown as a
 guess for you to check.
@@ -313,6 +399,8 @@ guess for you to check.
   "1N4007 and 1N4002 on hand".
 - A project's parts list then shows **"have 3 × 1N5402G, need 1"**, and what's missing becomes a
   shopping list.
+- **★ New (2026-11-14): Start a project from what you have.** Pick parts from your bins, and they go
+  to Circuit, which can suggest a layout from them.
 - **★ New: Filament too:** spools, colours and how much is left, so the 3D-printing side uses it
   as well.
 
@@ -353,31 +441,40 @@ Each one shows its working in plain words, not just the answer.
 
 ### Design
 
-#### Maker Forge Circuit: draw small circuits ★ New
-- A simple schematic builder for small circuits, about 50 parts or fewer, made for beginners. Parts
-  come from the Parts library, wires snap into place, and it points out common mistakes as you
-  draw: an LED with no resistor, a pin connected to nothing, two outputs wired together.
-- Saves the drawing (as SVG, which Bench reads) and the list of connections (the netlist) in the
-  project file. Layout builds on that list, and Bench uses it to highlight a connection (1.4).
-- Exports a netlist for KiCad, for when a project outgrows it. *Check first:* which KiCad netlist
-  format to write.
-- Maybe later: **Try it in Falstad**, which opens the circuit in Falstad's free simulator.
-- **Useful on its own** for sketching any small circuit.
-- **The biggest app on this list**, so it comes late. Layout works without it first, using a
-  netlist from KiCad or one typed in.
+#### Maker Forge Circuit: draw the circuit and lay out the board ★ New
+*(Circuit and Layout were two ideas until 2026-11-14. They're one app now, with two workspaces on
+one project, the way KiCad keeps its schematic and board editors together.)*
 
-#### Maker Forge Layout: perfboard and stripboard layouts ★ New
-- What `board.py`, `pcb.py` and `render.py` do for the fume extractor, as an app for any project.
-  Place parts on a perfboard or stripboard grid, draw links and wires, and mark stripboard track
-  cuts.
-- Checks the layout against the circuit's connections as you go, the way `pcb.py` checks the fume
-  extractor: a missing connection, a short, two parts in one hole.
-- Produces the layout drawing and the build order that Bench uses for step-by-step mode (1.3), and
-  the board outline that Shape uses for the case.
-- KiCad is built for copper boards and is awkward for perfboard and stripboard. Free desktop tools
-  such as VeroRoute and DIY Layout Creator exist. This one runs in the browser, on a tablet too,
-  and is tied to the rest of the project.
-- **Useful on its own** for any perfboard or stripboard build.
+- **Schematic:** draw the circuit with parts from the Maker Forge Library. Wires snap into place,
+  and it points out mistakes as you draw (its electrical rules check): an LED with no resistor, a
+  pin connected to nothing, two outputs wired together, a chip with no power.
+- **Board:** perfboard and stripboard first, which is what `board.py`, `pcb.py` and `render.py` do
+  for the fume extractor, as an app for any project. Place parts on the grid, follow the ratsnest
+  (lines showing what still needs joining), draw links and wires, and mark stripboard track cuts.
+  It checks as you go (its design rules check): a missing connection, a short, two legs in one
+  hole. Copper boards come later.
+- **Cross-probing:** pick a part or a connection in one workspace and it lights up in the other,
+  and in Bench.
+- **★ Suggest a layout from the parts you have.** Pick parts from your bins in Parts; Circuit places
+  them (scored like Bench 0.6's Suggest a spot), and AI (your Claude key or Ollama) explains the
+  layout and gives tips. It's a suggestion you move around and keep.
+- **What it makes:**
+  - `forge-project.json`, with the drawings, board, build steps, parts and connections Bench builds
+    from, and the board outline Shape uses for the case;
+  - the parts list (BOM) and the netlist;
+  - **KiCad files** (`.kicad_sch` and `.kicad_pcb`), so a board can move on to KiCad;
+  - **a factory pack** (Gerbers, drill, parts list and placement files) made through KiCad's
+    command-line tool when KiCad is installed;
+  - a circuit for a simulator: KiCad's ngspice, or Falstad in the browser.
+- **★ Variants** (from SolidWorks): the same board with different parts fitted, like the fume
+  extractor with or without its USB port.
+- **Long term:** its own copper board editor (tracks, filled areas, two layers) and its own factory
+  files, so KiCad becomes a choice rather than a step.
+- **Useful on its own** for any small circuit and any perfboard or stripboard build. KiCad is
+  awkward for perfboard; free desktop tools such as VeroRoute and DIY Layout Creator exist. This one
+  runs in the browser, on a tablet too, and is tied to the rest of the project.
+- *Check first:* which KiCad file version to write, and that KiCad's command-line tool makes the
+  factory files from a written board without opening KiCad.
 
 #### Maker Forge Shape: 3D-printed cases and parts
 Today's Maker Forge, with its own roadmap (fully parametric at its 2.0). It takes the Shape name at
@@ -427,15 +524,13 @@ the photo check.
   next to the OBS overlays already in the website's `overlays/` folder.
 
 ### Suggested order
+Parts, then Circuit, come first (see "The order from here"). The smaller apps fit between them:
 1. **Calc:** small, useful to everyone, and Bench's part cards (1.1) use its formulas.
-2. **Parts:** the library first, then the inventory.
-3. **Serial:** finishes the testing side of Bench (1.4).
-4. **Pins:** ready before the next new electronics project.
-5. **Layout:** turns the fume extractor's layout tools into an app for every project.
-6. **Labels:** once Parts exists, for the bin QR codes.
-7. **Circuit:** the biggest, so it comes once Layout has proved the connection list.
-8. **Journal:** once at least two apps have something to write into it.
-9. **Live:** whenever streaming builds becomes a priority.
+2. **Serial:** finishes the testing side of Bench (1.4).
+3. **Pins:** ready before the next new electronics project.
+4. **Labels:** once Parts exists, for the bin QR codes and the wire tags.
+5. **Journal:** once at least two apps have something to write into it.
+6. **Live:** whenever streaming builds becomes a priority.
 
 ---
 
@@ -446,17 +541,28 @@ the photo check.
 2. Hosting: the folder `forge.retr0plus.se/bench/`, which keeps the plan's last free website spare.
 3. The project file's name: `forge-project.json`.
 
+**Decided on 2026-11-14**
+6. Build around KiCad, and let the suite design a whole board from scratch in time.
+7. One design app, **Maker Forge Circuit**, with Schematic and Board workspaces (Layout joins it).
+8. One shared parts library for every app, the **Maker Forge Library**.
+9. 3D: whole KiCad boards through KiCad's own export, plus about 150 common parts converted and
+   shipped with Bench, and a better 3D view all round.
+10. The order: Bench 0.9 Real parts, Bench 1.0, Parts, Circuit, the board in its box, then the
+    copper editor.
+
 **Still open**
 4. Languages: English only at first, or Swedish too.
-5. Which future apps to keep, and in what order.
+5. The order of the smaller apps (Calc, Pins, Serial, Labels, Journal, Live) around the main plan.
 
 ## Not planned
 
-- **A KiCad replacement.** Copper circuit boards and large schematics stay in KiCad, which does
-  them for free, and Bench reads its output. The suite's own builders stay small: Circuit for small
-  schematics, and Layout for perfboard and stripboard.
-- **A circuit simulator.** Falstad's circuit simulator and Wokwi already do it for free in the
-  browser. Bench and Circuit can link to them.
+- **Racing KiCad on big copper boards.** The suite will design whole boards, but for large or
+  many-layer copper boards KiCad stays the better tool, and Circuit hands them over as KiCad files.
+  *(Until 2026-11-14 this said "not a KiCad replacement" and kept the suite's builders small.)*
+- **Our own circuit simulator.** KiCad's ngspice, Falstad's simulator and Wokwi already do it for
+  free. Circuit exports to them, and Bench and Circuit link to them.
+- **Opening SolidWorks files.** Their format is closed. STEP files are the bridge: KiCad writes
+  them, and Shape can read them later.
 - **A slicer.** PrusaSlicer and OrcaSlicer already do it; Shape's models go to them.
 - **A code editor.** VS Code and the Arduino IDE already do it.
 - **Accounts, cloud storage or syncing through a server.** Moving progress between devices is done
