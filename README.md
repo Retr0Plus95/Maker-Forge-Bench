@@ -9,7 +9,7 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.7 works on PC, phone and tablet, from a local folder, a public GitHub repo,
+**Status:** release 0.8 works on PC, phone and tablet, from a local folder, a public GitHub repo,
 or a folder picked in the browser. The website comes with 1.0 (see the roadmap).
 
 ## Try it
@@ -113,6 +113,26 @@ repo straight away.
     answer shows in the card. Your key stays in this browser: in memory, or in its storage if
     you tick Remember. It's never put in a progress file, a board file or a link, and using it
     is billed to your Anthropic account.
+- **True to life (0.8):**
+  - **The panel in tabs:** **Guide · Board · Wiring · Checks · Parts**, each with how much is done
+    (Guide 3/10). The part card stays on top of every tab. **All** shows every section in one long
+    list, as before. Finding a line opens Wiring; My board opens Board. Arrow keys move between
+    tabs.
+  - **The guide:** the open step in bigger words, with a progress bar, each part with its value
+    and where it goes (with hole names on, where on your board) and a tick, and a big
+    **Done, next step** that ticks the step's parts in one undo step and opens the next one. With
+    no step open, one button starts at step 1 or carries on where you left off. Your note, Print
+    this step and Next step by itself are folded under one line.
+  - **Adjust steps:** move a step up or down, skip one you don't need, add a step of your own after
+    the open one, or go back to the project's steps. Kept with your progress, undoable.
+  - **Looks like:** on a part card, set what you really fitted: an electrolytic's size, a
+    resistor's colour or upright mount, a socket or not, a ceramic's style, an LED's colour, a
+    female header, the TO-220's facing, or another part in its place (an L7805 for the MP1584
+    buck module, with a warning about the heat). The 3D board and Check my board follow.
+  - **Truer 3D parts:** resistors, capacitors, diodes and LEDs are turned shapes from their
+    datasheets; the chip has its real legs; TO-220, headers and the crystal are to size.
+  - **The Menu on a computer too:** Calculators, Keep screen on and Full screen are in it, with
+    Save progress, Shopping list, Build log, Versions and Keyboard shortcuts.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).
@@ -166,6 +186,7 @@ The browser checks use Chrome or Edge; set `BENCH_BROWSER` to a browser's path t
 - Design for release 1: [`docs/design/2026-11-12-maker-forge-bench-design.md`](docs/design/2026-11-12-maker-forge-bench-design.md)
 - Design for the board view, parts library and UI: [`docs/design/2026-11-12-board-view-parts-ui-design.md`](docs/design/2026-11-12-board-view-parts-ui-design.md)
 - Design for 0.7 Everywhere (GitHub, folders, phones, AI help): [`docs/design/2026-11-13-release-0.7-design.md`](docs/design/2026-11-13-release-0.7-design.md)
+- Design for 0.8 True to life (3D parts, Looks like, tabs and the guide): [`docs/design/2026-11-13-release-0.8-design.md`](docs/design/2026-11-13-release-0.8-design.md)
 - Roadmap, including ideas for future suite apps: [`ROADMAP.md`](ROADMAP.md)
 
 MIT licence: see [`LICENSE`](LICENSE). The Atkinson Hyperlegible font is under the SIL Open Font
