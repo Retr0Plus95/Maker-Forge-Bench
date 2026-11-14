@@ -37,8 +37,23 @@ APP_TYPES = {
     ".png": "image/png",
     ".json": "application/json",
     ".woff2": "font/woff2",
+    ".glb": "model/gltf-binary",  # 0.9: the Maker Forge Library's 3D models
+    ".md": "text/plain; charset=utf-8",  # the library's licence and README
 }
 APP_NAME = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9_.-]*$")
+# App files are src/<name>, plus the library: src/library/<name> and src/library/models/<name>.
+APP_FOLDERS = ((), ("library",), ("library", "models"))
+
+
+def app_path(name: str):
+    """The app file a URL path names, or None: only the folders above, each part a plain name."""
+    *folders, last = name.split("/")
+    if tuple(folders) not in APP_FOLDERS or not APP_NAME.match(last):
+        return None
+    if APP_TYPES.get(os.path.splitext(last)[1].lower()) is None:
+        return None
+    target = SRC.joinpath(*folders, last)
+    return target if target.is_file() else None
 WATCH_INTERVAL = 0.5
 PING_INTERVAL = 15.0
 
@@ -216,13 +231,12 @@ class BenchHandler(BaseHTTPRequestHandler):
                 return
             self._send(200, _project_type(target.name), target.read_bytes(), head)
         else:
-            name = path.lstrip("/") or "index.html"
-            ctype = APP_TYPES.get(os.path.splitext(name)[1].lower())
-            target = SRC / name
-            if not APP_NAME.match(name) or ctype is None or not target.is_file():
+            name = path[1:] if path.startswith("/") else path
+            target = app_path(name or "index.html")
+            if target is None:
                 self.send_error(404, "Not part of the app.")
                 return
-            self._send(200, ctype, target.read_bytes(), head)
+            self._send(200, APP_TYPES[target.suffix.lower()], target.read_bytes(), head)
 
     def _send(self, status: int, ctype: str, body: bytes, head: bool) -> None:
         self.send_response(status)

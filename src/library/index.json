@@ -1,0 +1,12674 @@
+{
+ "format": "maker-forge-library",
+ "parts": [
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0204"
+   },
+   "footprint": {
+    "drill": 0.7,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0204-l3.6-d1.6-p5.08-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.249,
+      -0.8,
+      -3
+     ],
+     [
+      5.329,
+      0.8,
+      1.6
+     ]
+    ],
+    "bytes": 44428,
+    "file": "models/r-axial-din0204-l3.6-d1.6-p5.08-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/8 W, lying flat, 5.08 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0204"
+   },
+   "footprint": {
+    "drill": 0.7,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0204-l3.6-d1.6-p7.62-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.249,
+      -0.8,
+      -3
+     ],
+     [
+      7.869,
+      0.8,
+      1.6
+     ]
+    ],
+    "bytes": 45004,
+    "file": "models/r-axial-din0204-l3.6-d1.6-p7.62-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/8 W, lying flat, 7.62 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0207"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0207-l6.3-d2.5-p7.62-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.297,
+      -1.25,
+      -3
+     ],
+     [
+      7.917,
+      1.25,
+      2.499
+     ]
+    ],
+    "bytes": 49136,
+    "file": "models/r-axial-din0207-l6.3-d2.5-p7.62-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/4 W, lying flat, 7.62 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0207"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0207-l6.3-d2.5-p10.16-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.297,
+      -1.25,
+      -3
+     ],
+     [
+      10.457,
+      1.25,
+      2.499
+     ]
+    ],
+    "bytes": 49904,
+    "file": "models/r-axial-din0207-l6.3-d2.5-p10.16-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/4 W, lying flat, 10.16 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0207"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0207-l6.3-d2.5-p15.24-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.297,
+      -1.25,
+      -3
+     ],
+     [
+      15.537,
+      1.25,
+      2.499
+     ]
+    ],
+    "bytes": 49904,
+    "file": "models/r-axial-din0207-l6.3-d2.5-p15.24-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/4 W, lying flat, 15.24 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P15.24mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0309"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0309-l9.0-d3.2-p12.70-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.348,
+      -1.6,
+      -3
+     ],
+     [
+      13.048,
+      1.6,
+      3.2
+     ]
+    ],
+    "bytes": 48944,
+    "file": "models/r-axial-din0309-l9.0-d3.2-p12.70-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/2 W, lying flat, 12.7 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0309"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0309-l9.0-d3.2-p15.24-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.348,
+      -1.6,
+      -3
+     ],
+     [
+      15.588,
+      1.6,
+      3.2
+     ]
+    ],
+    "bytes": 48944,
+    "file": "models/r-axial-din0309-l9.0-d3.2-p15.24-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/2 W, lying flat, 15.24 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0309_L9.0mm_D3.2mm_P15.24mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0411"
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0411-l9.9-d3.6-p12.70-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.396,
+      -1.801,
+      -3
+     ],
+     [
+      13.096,
+      1.801,
+      3.599
+     ]
+    ],
+    "bytes": 48944,
+    "file": "models/r-axial-din0411-l9.9-d3.6-p12.70-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1 W, lying flat, 12.7 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0411"
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0411-l9.9-d3.6-p15.24-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.396,
+      -1.801,
+      -3
+     ],
+     [
+      15.636,
+      1.801,
+      3.599
+     ]
+    ],
+    "bytes": 48944,
+    "file": "models/r-axial-din0411-l9.9-d3.6-p15.24-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1 W, lying flat, 15.24 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0411_L9.9mm_D3.6mm_P15.24mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": "0414"
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0414-l11.9-d4.5-p15.24-h",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.396,
+      -2.25,
+      -3
+     ],
+     [
+      15.636,
+      2.25,
+      4.498
+     ]
+    ],
+    "bytes": 49808,
+    "file": "models/r-axial-din0414-l11.9-d4.5-p15.24-h.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 2 W, lying flat, 15.24 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0414_L11.9mm_D4.5mm_P15.24mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0204"
+   },
+   "footprint": {
+    "drill": 0.7,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0204-l3.6-d1.6-p2.54-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -0.8,
+      -0.8,
+      -3
+     ],
+     [
+      2.789,
+      0.8,
+      6.599
+     ]
+    ],
+    "bytes": 45008,
+    "file": "models/r-axial-din0204-l3.6-d1.6-p2.54-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/8 W, standing, 2.54 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0207"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0207-l6.3-d2.5-p2.54-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -1.25,
+      -1.25,
+      -3
+     ],
+     [
+      2.837,
+      1.25,
+      9.497
+     ]
+    ],
+    "bytes": 49908,
+    "file": "models/r-axial-din0207-l6.3-d2.5-p2.54-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/4 W, standing, 2.54 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0207"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0207-l6.3-d2.5-p5.08-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -1.25,
+      -1.25,
+      -3
+     ],
+     [
+      5.377,
+      1.25,
+      9.497
+     ]
+    ],
+    "bytes": 49908,
+    "file": "models/r-axial-din0207-l6.3-d2.5-p5.08-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/4 W, standing, 5.08 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0309"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0309-l9.0-d3.2-p2.54-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -1.6,
+      -1.6,
+      -3
+     ],
+     [
+      2.888,
+      1.6,
+      12.398
+     ]
+    ],
+    "bytes": 48948,
+    "file": "models/r-axial-din0309-l9.0-d3.2-p2.54-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/2 W, standing, 2.54 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0309_L9.0mm_D3.2mm_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0309"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0309-l9.0-d3.2-p5.08-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -1.6,
+      -1.6,
+      -3
+     ],
+     [
+      5.428,
+      1.6,
+      12.398
+     ]
+    ],
+    "bytes": 48948,
+    "file": "models/r-axial-din0309-l9.0-d3.2-p5.08-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1/2 W, standing, 5.08 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0309_L9.0mm_D3.2mm_P5.08mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0411"
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0411-l9.9-d3.6-p5.08-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -1.801,
+      -1.801,
+      -3
+     ],
+     [
+      5.476,
+      1.801,
+      13.498
+     ]
+    ],
+    "bytes": 48948,
+    "file": "models/r-axial-din0411-l9.9-d3.6-p5.08-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 1 W, standing, 5.08 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0411_L9.9mm_D3.6mm_P5.08mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand",
+    "size": "0414"
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "r-axial-din0414-l11.9-d4.5-p5.08-v",
+   "kind": "res",
+   "model": {
+    "body": "RES-THT-01",
+    "box": [
+     [
+      -2.25,
+      -2.248,
+      -3
+     ],
+     [
+      5.476,
+      2.248,
+      15.497
+     ]
+    ],
+    "bytes": 49812,
+    "file": "models/r-axial-din0414-l11.9-d4.5-p5.08-v.glb"
+   },
+   "mount": "tht",
+   "name": "Resistor, 2 W, standing, 5.08 mm",
+   "paint": "bands",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Resistor_THT.3dshapes/R_Axial_DIN0414_L11.9mm_D4.5mm_P5.08mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d3.0-w1.6-p2.50",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -0.249,
+      -0.8,
+      -1.999
+     ],
+     [
+      2.748,
+      0.8,
+      3.099
+     ]
+    ],
+    "bytes": 16800,
+    "file": "models/c-disc-d3.0-w1.6-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 3 mm, pins 2.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D3.0mm_W1.6mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d3.8-w2.6-p2.50",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -0.65,
+      -1.3,
+      -1.999
+     ],
+     [
+      3.147,
+      1.3,
+      3.899
+     ]
+    ],
+    "bytes": 16380,
+    "file": "models/c-disc-d3.8-w2.6-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 3.8 mm, pins 2.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D3.8mm_W2.6mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d5.0-w2.5-p2.50",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -1.25,
+      -1.25,
+      -1.999
+     ],
+     [
+      3.749,
+      1.25,
+      5.098
+     ]
+    ],
+    "bytes": 18084,
+    "file": "models/c-disc-d5.0-w2.5-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 5 mm, pins 2.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D5.0mm_W2.5mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d4.7-w2.5-p5.00",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -0.249,
+      -1.25,
+      -1.999
+     ],
+     [
+      5.25,
+      1.25,
+      4.798
+     ]
+    ],
+    "bytes": 20236,
+    "file": "models/c-disc-d4.7-w2.5-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 4.7 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D4.7mm_W2.5mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d5.0-w2.5-p5.00",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -0.249,
+      -1.25,
+      -1.999
+     ],
+     [
+      5.25,
+      1.25,
+      5.098
+     ]
+    ],
+    "bytes": 20904,
+    "file": "models/c-disc-d5.0-w2.5-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D5.0mm_W2.5mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d5.1-w3.2-p5.00",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -0.249,
+      -1.6,
+      -1.999
+     ],
+     [
+      5.25,
+      1.6,
+      5.199
+     ]
+    ],
+    "bytes": 20812,
+    "file": "models/c-disc-d5.1-w3.2-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 5.1 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D5.1mm_W3.2mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "disc"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-disc-d7.5-w5.0-p5.00",
+   "kind": "cer",
+   "model": {
+    "body": "PLASTIC-ORANGE-01",
+    "box": [
+     [
+      -1.25,
+      -2.499,
+      -1.999
+     ],
+     [
+      6.248,
+      2.499,
+      7.6
+     ]
+    ],
+    "bytes": 23896,
+    "file": "models/c-disc-d7.5-w5.0-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic disc, 7.5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Disc_D7.5mm_W5.0mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "dipped"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l4.0-w2.5-p2.50",
+   "kind": "cer",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -0.749,
+      -1.25,
+      -1.9
+     ],
+     [
+      3.251,
+      1.25,
+      10
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l4.0-w2.5-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic, dipped, 4 x 2.5 mm, pins 2.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L4.0mm_W2.5mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "dipped"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l7.0-w2.5-p5.00",
+   "kind": "cer",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.001,
+      -1.25,
+      -1.9
+     ],
+     [
+      5.999,
+      1.25,
+      10
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l7.0-w2.5-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Ceramic, dipped, 7 x 2.5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L7.0mm_W2.5mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 0.7,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l4.6-w3.0-p2.50-mks02-fkp02",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.049,
+      -1.501,
+      -1.9
+     ],
+     [
+      3.551,
+      1.501,
+      7
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l4.6-w3.0-p2.50-mks02-fkp02.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 4.6 x 3 mm, pins 2.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L4.6mm_W3.0mm_P2.50mm_MKS02_FKP02.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l7.2-w2.5-p5.00-fks2-fkp2-mks2-mkp2",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.1,
+      -1.25,
+      -1.9
+     ],
+     [
+      6.101,
+      1.25,
+      8.999
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l7.2-w2.5-p5.00-fks2-fkp2-mks2-mkp2.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 7.2 x 2.5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L7.2mm_W2.5mm_P5.00mm_FKS2_FKP2_MKS2_MKP2.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l7.2-w3.5-p5.00-fks2-fkp2-mks2-mkp2",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.1,
+      -1.75,
+      -1.9
+     ],
+     [
+      6.101,
+      1.75,
+      8.999
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l7.2-w3.5-p5.00-fks2-fkp2-mks2-mkp2.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 7.2 x 3.5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L7.2mm_W3.5mm_P5.00mm_FKS2_FKP2_MKS2_MKP2.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l7.2-w4.5-p5.00-fks2-fkp2-mks2-mkp2",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.1,
+      -2.25,
+      -1.9
+     ],
+     [
+      6.101,
+      2.25,
+      8.999
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l7.2-w4.5-p5.00-fks2-fkp2-mks2-mkp2.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 7.2 x 4.5 mm, pins 5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L7.2mm_W4.5mm_P5.00mm_FKS2_FKP2_MKS2_MKP2.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l10.0-w3.0-p7.50-fks3-fkp3",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.25,
+      -1.501,
+      -1.9
+     ],
+     [
+      8.75,
+      1.501,
+      8.499
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l10.0-w3.0-p7.50-fks3-fkp3.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 10 x 3 mm, pins 7.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L10.0mm_W3.0mm_P7.50mm_FKS3_FKP3.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l10.0-w4.0-p7.50-fks3-fkp3",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.25,
+      -1.999,
+      -1.9
+     ],
+     [
+      8.75,
+      1.999,
+      8.499
+     ]
+    ],
+    "bytes": 10424,
+    "file": "models/c-rect-l10.0-w4.0-p7.50-fks3-fkp3.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 10 x 4 mm, pins 7.5 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L10.0mm_W4.0mm_P7.50mm_FKS3_FKP3.wrl"
+   }
+  },
+  {
+   "fit": {},
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      10,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "c-rect-l13.0-w5.0-p10.00-fks3-fkp3-mks4",
+   "kind": "film",
+   "model": {
+    "body": "RED-BODY",
+    "box": [
+     [
+      -1.501,
+      -2.499,
+      -1.9
+     ],
+     [
+      11.501,
+      2.499,
+      10
+     ]
+    ],
+    "bytes": 9792,
+    "file": "models/c-rect-l13.0-w5.0-p10.00-fks3-fkp3-mks4.glb"
+   },
+   "mount": "tht",
+   "name": "Film box, 13 x 5 mm, pins 10 mm",
+   "paint": "value",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/C_Rect_L13.0mm_W5.0mm_P10.00mm_FKS3_FKP3_MKS4.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 4
+   },
+   "footprint": {
+    "drill": 0.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      1.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d4.0-p1.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.25,
+      -1.996,
+      -1.999
+     ],
+     [
+      2.751,
+      1.996,
+      4
+     ]
+    ],
+    "bytes": 41732,
+    "file": "models/cp-radial-d4.0-p1.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 4 mm, pins 1.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D4.0mm_P1.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 4
+   },
+   "footprint": {
+    "drill": 0.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d4.0-p2.00",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.001,
+      -1.996,
+      -1.999
+     ],
+     [
+      3,
+      1.996,
+      4
+     ]
+    ],
+    "bytes": 41588,
+    "file": "models/cp-radial-d4.0-p2.00.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 4 mm, pins 2 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D4.0mm_P2.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 5
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d5.0-p2.00",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.501,
+      -2.499,
+      -1.999
+     ],
+     [
+      3.5,
+      2.489,
+      5.001
+     ]
+    ],
+    "bytes": 43868,
+    "file": "models/cp-radial-d5.0-p2.00.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 5 mm, pins 2 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D5.0mm_P2.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 5
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d5.0-p2.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.25,
+      -2.499,
+      -1.999
+     ],
+     [
+      3.749,
+      2.489,
+      5.001
+     ]
+    ],
+    "bytes": 43712,
+    "file": "models/cp-radial-d5.0-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 5 mm, pins 2.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D5.0mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 6.3
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d6.3-p2.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.895,
+      -3.147,
+      -1.999
+     ],
+     [
+      4.399,
+      3.147,
+      6.299
+     ]
+    ],
+    "bytes": 50048,
+    "file": "models/cp-radial-d6.3-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 6.3 mm, pins 2.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D6.3mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 8
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d8.0-p2.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.751,
+      -3.998,
+      -1.999
+     ],
+     [
+      5.25,
+      3.998,
+      8.001
+     ]
+    ],
+    "bytes": 56988,
+    "file": "models/cp-radial-d8.0-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 8 mm, pins 2.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D8.0mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 8
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d8.0-p3.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.25,
+      -3.998,
+      -1.999
+     ],
+     [
+      5.751,
+      3.998,
+      8.001
+     ]
+    ],
+    "bytes": 56904,
+    "file": "models/cp-radial-d8.0-p3.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 8 mm, pins 3.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D8.0mm_P3.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 8
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.8,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d8.0-p3.80",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.101,
+      -3.998,
+      -1.999
+     ],
+     [
+      5.9,
+      3.998,
+      8.001
+     ]
+    ],
+    "bytes": 57060,
+    "file": "models/cp-radial-d8.0-p3.80.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 8 mm, pins 3.8 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D8.0mm_P3.80mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 8
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d8.0-p5.00",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.501,
+      -3.998,
+      -1.999
+     ],
+     [
+      6.5,
+      3.998,
+      8.001
+     ]
+    ],
+    "bytes": 57060,
+    "file": "models/cp-radial-d8.0-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 8 mm, pins 5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D8.0mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 10
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d10.0-p2.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -3.749,
+      -4.999,
+      -1.999
+     ],
+     [
+      6.251,
+      4.996,
+      10
+     ]
+    ],
+    "bytes": 63088,
+    "file": "models/cp-radial-d10.0-p2.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 10 mm, pins 2.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P2.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 10
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d10.0-p3.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -3.251,
+      -4.999,
+      -1.999
+     ],
+     [
+      6.749,
+      4.996,
+      10
+     ]
+    ],
+    "bytes": 63724,
+    "file": "models/cp-radial-d10.0-p3.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 10 mm, pins 3.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P3.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 10
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.8,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d10.0-p3.80",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -3.099,
+      -4.999,
+      -1.999
+     ],
+     [
+      6.901,
+      4.996,
+      10
+     ]
+    ],
+    "bytes": 63328,
+    "file": "models/cp-radial-d10.0-p3.80.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 10 mm, pins 3.8 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P3.80mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 10
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d10.0-p5.00",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.499,
+      -4.999,
+      -1.999
+     ],
+     [
+      7.501,
+      4.996,
+      10
+     ]
+    ],
+    "bytes": 63472,
+    "file": "models/cp-radial-d10.0-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 10 mm, pins 5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 12.5
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d12.5-p5.00",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -3.749,
+      -6.251,
+      -1.999
+     ],
+     [
+      8.75,
+      6.243,
+      12.499
+     ]
+    ],
+    "bytes": 52400,
+    "file": "models/cp-radial-d12.5-p5.00.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 12.5 mm, pins 5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D12.5mm_P5.00mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "D": 16
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "cp-radial-d16.0-p7.50",
+   "kind": "elec",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -4.249,
+      -7.998,
+      -1.999
+     ],
+     [
+      11.75,
+      7.998,
+      15.999
+     ]
+    ],
+    "bytes": 59712,
+    "file": "models/cp-radial-d16.0-p7.50.glb"
+   },
+   "mount": "tht",
+   "name": "Electrolytic, 16 mm, pins 7.5 mm",
+   "paint": "stripe",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Capacitor_THT.3dshapes/CP_Radial_D16.0mm_P7.50mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p7.62-h",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -0.25,
+      -1.003,
+      -2.5
+     ],
+     [
+      7.87,
+      1.003,
+      2.51
+     ]
+    ],
+    "bytes": 28120,
+    "file": "models/d-do-35-sod27-p7.62-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), lying flat, 7.62 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P7.62mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p10.16-h",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -0.25,
+      -1.009,
+      -2.5
+     ],
+     [
+      10.41,
+      1.009,
+      2.51
+     ]
+    ],
+    "bytes": 34744,
+    "file": "models/d-do-35-sod27-p10.16-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), lying flat, 10.16 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P10.16mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p12.70-h",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -0.25,
+      -1.009,
+      -2.5
+     ],
+     [
+      12.95,
+      1.009,
+      2.51
+     ]
+    ],
+    "bytes": 34748,
+    "file": "models/d-do-35-sod27-p12.70-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), lying flat, 12.7 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P12.70mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "stand",
+    "up": "K"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p2.54-v-kathodeup",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -0.25,
+      -1.009,
+      -3
+     ],
+     [
+      3.55,
+      1.009,
+      5.75
+     ]
+    ],
+    "bytes": 34748,
+    "file": "models/d-do-35-sod27-p2.54-v-kathodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), standing, cathode up, 2.54 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P2.54mm_Vertical_KathodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "stand",
+    "up": "A"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p2.54-v-anodeup",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -1.006,
+      -1.009,
+      -3
+     ],
+     [
+      2.79,
+      1.009,
+      5.75
+     ]
+    ],
+    "bytes": 34748,
+    "file": "models/d-do-35-sod27-p2.54-v-anodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), standing, anode up, 2.54 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P2.54mm_Vertical_AnodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "stand",
+    "up": "K"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p5.08-v-kathodeup",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -0.25,
+      -1.009,
+      -3
+     ],
+     [
+      6.09,
+      1.009,
+      5.75
+     ]
+    ],
+    "bytes": 34748,
+    "file": "models/d-do-35-sod27-p5.08-v-kathodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), standing, cathode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P5.08mm_Vertical_KathodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-35",
+    "mount": "stand",
+    "up": "A"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-35-sod27-p5.08-v-anodeup",
+   "kind": "diode",
+   "model": {
+    "body": "GLASS-13",
+    "box": [
+     [
+      -1.006,
+      -1.009,
+      -3
+     ],
+     [
+      5.33,
+      1.009,
+      5.75
+     ]
+    ],
+    "bytes": 34748,
+    "file": "models/d-do-35-sod27-p5.08-v-anodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, small signal (DO-35, 1N4148), standing, anode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-35_SOD27_P5.08mm_Vertical_AnodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p7.62-h",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.4,
+      -1.359,
+      -2.5
+     ],
+     [
+      8.02,
+      1.359,
+      3.21
+     ]
+    ],
+    "bytes": 22684,
+    "file": "models/d-do-41-sod81-p7.62-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), lying flat, 7.62 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P7.62mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p10.16-h",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.4,
+      -1.359,
+      -2.5
+     ],
+     [
+      10.56,
+      1.359,
+      3.21
+     ]
+    ],
+    "bytes": 22688,
+    "file": "models/d-do-41-sod81-p10.16-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), lying flat, 10.16 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P10.16mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p12.70-h",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.4,
+      -1.359,
+      -2.5
+     ],
+     [
+      13.1,
+      1.359,
+      3.21
+     ]
+    ],
+    "bytes": 22688,
+    "file": "models/d-do-41-sod81-p12.70-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), lying flat, 12.7 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P12.70mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "stand",
+    "up": "K"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p2.54-v-kathodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.4,
+      -1.359,
+      -3
+     ],
+     [
+      3.9,
+      1.359,
+      7.4
+     ]
+    ],
+    "bytes": 22692,
+    "file": "models/d-do-41-sod81-p2.54-v-kathodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), standing, cathode up, 2.54 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P2.54mm_Vertical_KathodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "stand",
+    "up": "A"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p2.54-v-anodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.355,
+      -1.359,
+      -3
+     ],
+     [
+      2.94,
+      1.359,
+      7.4
+     ]
+    ],
+    "bytes": 22692,
+    "file": "models/d-do-41-sod81-p2.54-v-anodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), standing, anode up, 2.54 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P2.54mm_Vertical_AnodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "stand",
+    "up": "K"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p5.08-v-kathodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.4,
+      -1.359,
+      -3
+     ],
+     [
+      6.44,
+      1.359,
+      7.4
+     ]
+    ],
+    "bytes": 22692,
+    "file": "models/d-do-41-sod81-p5.08-v-kathodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), standing, cathode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P5.08mm_Vertical_KathodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-41",
+    "mount": "stand",
+    "up": "A"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-41-sod81-p5.08-v-anodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.355,
+      -1.359,
+      -3
+     ],
+     [
+      5.48,
+      1.359,
+      7.4
+     ]
+    ],
+    "bytes": 22692,
+    "file": "models/d-do-41-sod81-p5.08-v-anodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 1 A (DO-41, 1N4007), standing, anode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-41_SOD81_P5.08mm_Vertical_AnodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-201AD",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 1.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-201ad-p12.70-h",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.65,
+      -2.607,
+      -2.5
+     ],
+     [
+      13.35,
+      2.607,
+      5.71
+     ]
+    ],
+    "bytes": 24236,
+    "file": "models/d-do-201ad-p12.70-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 3 A (DO-201AD, 1N5402), lying flat, 12.7 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-201AD_P12.70mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-201AD",
+    "mount": "flat"
+   },
+   "footprint": {
+    "drill": 1.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-201ad-p15.24-h",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.65,
+      -2.61,
+      -2.5
+     ],
+     [
+      15.89,
+      2.61,
+      5.71
+     ]
+    ],
+    "bytes": 24020,
+    "file": "models/d-do-201ad-p15.24-h.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 3 A (DO-201AD, 1N5402), lying flat, 15.24 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-201AD_P15.24mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-201AD",
+    "mount": "stand",
+    "up": "K"
+   },
+   "footprint": {
+    "drill": 1.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-201ad-p5.08-v-kathodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.65,
+      -2.61,
+      -3
+     ],
+     [
+      7.69,
+      2.61,
+      12.45
+     ]
+    ],
+    "bytes": 24024,
+    "file": "models/d-do-201ad-p5.08-v-kathodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 3 A (DO-201AD, 1N5402), standing, cathode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-201AD_P5.08mm_Vertical_KathodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "family": "DO-201AD",
+    "mount": "stand",
+    "up": "A"
+   },
+   "footprint": {
+    "drill": 1.6,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "d-do-201ad-p5.08-v-anodeup",
+   "kind": "diode",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.61,
+      -2.61,
+      -3
+     ],
+     [
+      5.73,
+      2.61,
+      12.45
+     ]
+    ],
+    "bytes": 24024,
+    "file": "models/d-do-201ad-p5.08-v-anodeup.glb"
+   },
+   "mount": "tht",
+   "name": "Diode, 3 A (DO-201AD, 1N5402), standing, anode up, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Diode_THT.3dshapes/D_DO-201AD_P5.08mm_Vertical_AnodeUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 3
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "led-d3.0",
+   "kind": "led",
+   "model": {
+    "body": "LED-RED",
+    "box": [
+     [
+      -0.23,
+      -1.899,
+      -2.5
+     ],
+     [
+      3.17,
+      1.899,
+      8.3
+     ]
+    ],
+    "bytes": 12540,
+    "file": "models/led-d3.0.glb"
+   },
+   "mount": "tht",
+   "name": "LED, 3 mm",
+   "paint": "colour",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "LED_THT.3dshapes/LED_D3.0mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "clear": true,
+    "size": 3
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "led-d3.0-clear",
+   "kind": "led",
+   "model": {
+    "body": "LED-WHITE",
+    "box": [
+     [
+      -0.23,
+      -1.9,
+      -2.5
+     ],
+     [
+      3.17,
+      1.9,
+      8.3
+     ]
+    ],
+    "bytes": 10468,
+    "file": "models/led-d3.0-clear.glb"
+   },
+   "mount": "tht",
+   "name": "LED, 3 mm, clear",
+   "paint": "colour",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "LED_THT.3dshapes/LED_D3.0mm_Clear.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 5
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "led-d5.0",
+   "kind": "led",
+   "model": {
+    "body": "LED-RED",
+    "box": [
+     [
+      -1.23,
+      -2.9,
+      -2.5
+     ],
+     [
+      4.17,
+      2.9,
+      11.6
+     ]
+    ],
+    "bytes": 15392,
+    "file": "models/led-d5.0.glb"
+   },
+   "mount": "tht",
+   "name": "LED, 5 mm",
+   "paint": "colour",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "LED_THT.3dshapes/LED_D5.0mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "clear": true,
+    "size": 5
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "led-d5.0-clear",
+   "kind": "led",
+   "model": {
+    "body": "LED-WHITE",
+    "box": [
+     [
+      -1.23,
+      -2.9,
+      -2.5
+     ],
+     [
+      4.17,
+      2.9,
+      11.6
+     ]
+    ],
+    "bytes": 14768,
+    "file": "models/led-d5.0-clear.glb"
+   },
+   "mount": "tht",
+   "name": "LED, 5 mm, clear",
+   "paint": "colour",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "LED_THT.3dshapes/LED_D5.0mm_Clear.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "size": 5
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "led-d5.0-h-o1.27-z3.0",
+   "kind": "led",
+   "model": {
+    "body": "LED-GREEN",
+    "box": [
+     [
+      -1.23,
+      -9.87,
+      -2
+     ],
+     [
+      4.17,
+      0.3,
+      5.9
+     ]
+    ],
+    "bytes": 17368,
+    "file": "models/led-d5.0-h-o1.27-z3.0.glb"
+   },
+   "mount": "tht",
+   "name": "LED, 5 mm, lying down",
+   "paint": "colour",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "LED_THT.3dshapes/LED_D5.0mm_Horizontal_O1.27mm_Z3.0mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "legs": "inline"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-92-inline-wide",
+   "kind": "to92",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.25,
+      -1.33,
+      -2.7
+     ],
+     [
+      5.33,
+      2.415,
+      7.3
+     ]
+    ],
+    "bytes": 6872,
+    "file": "models/to-92-inline-wide.glb"
+   },
+   "mount": "tht",
+   "name": "TO-92, legs 2.54 mm apart",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-92_Inline_Wide.wrl"
+   }
+  },
+  {
+   "fit": {
+    "legs": "narrow"
+   },
+   "footprint": {
+    "drill": 0.75,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      1.27,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-92-inline",
+   "kind": "to92",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.144,
+      -1.33,
+      -2.5
+     ],
+     [
+      3.684,
+      2.415,
+      7.3
+     ]
+    ],
+    "bytes": 6100,
+    "file": "models/to-92-inline.glb"
+   },
+   "mount": "tht",
+   "name": "TO-92, legs 1.27 mm apart",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-92_Inline.wrl"
+   }
+  },
+  {
+   "fit": {
+    "legs": "bent"
+   },
+   "footprint": {
+    "drill": 0.75,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      1.27,
+      1.27
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-92",
+   "kind": "to92",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.144,
+      -1.33,
+      -2.5
+     ],
+     [
+      3.684,
+      2.415,
+      7.3
+     ]
+    ],
+    "bytes": 6488,
+    "file": "models/to-92.glb"
+   },
+   "mount": "tht",
+   "name": "TO-92, middle leg bent out",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-92.wrl"
+   }
+  },
+  {
+   "fit": {
+    "legs": "inline",
+    "long": true
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-92l-inline-wide",
+   "kind": "to92",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.25,
+      -1.33,
+      -2.7
+     ],
+     [
+      5.33,
+      2.415,
+      10.5
+     ]
+    ],
+    "bytes": 5900,
+    "file": "models/to-92l-inline-wide.glb"
+   },
+   "mount": "tht",
+   "name": "TO-92L (long body), legs 2.54 mm apart",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-92L_Inline_Wide.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-220-3-v",
+   "kind": "to220",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.585,
+      -1.295,
+      -9.75
+     ],
+     [
+      7.665,
+      3.16,
+      18.775
+     ]
+    ],
+    "bytes": 7832,
+    "file": "models/to-220-3-v.glb"
+   },
+   "mount": "tht",
+   "name": "TO-220, standing",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-220-3_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "tab": "down"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-220-3-h-tabdown",
+   "kind": "to220",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.585,
+      -0.262,
+      -6.33
+     ],
+     [
+      7.665,
+      19.475,
+      4.445
+     ]
+    ],
+    "bytes": 10484,
+    "file": "models/to-220-3-h-tabdown.glb"
+   },
+   "mount": "tht",
+   "name": "TO-220, lying, tab down",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-220-3_Horizontal_TabDown.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "flat",
+    "tab": "up"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-220-3-h-tabup",
+   "kind": "to220",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.585,
+      -19.475,
+      -8.13
+     ],
+     [
+      7.665,
+      0.262,
+      4.455
+     ]
+    ],
+    "bytes": 10484,
+    "file": "models/to-220-3-h-tabup.glb"
+   },
+   "mount": "tht",
+   "name": "TO-220, lying, tab up",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-220-3_Horizontal_TabUp.wrl"
+   }
+  },
+  {
+   "fit": {
+    "mount": "stand"
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "to-220-2-v",
+   "kind": "to220",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.585,
+      -1.295,
+      -9.75
+     ],
+     [
+      7.665,
+      3.16,
+      18.775
+     ]
+    ],
+    "bytes": 6824,
+    "file": "models/to-220-2-v.glb"
+   },
+   "mount": "tht",
+   "name": "TO-220, 2 legs, standing",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_TO_SOT_THT.3dshapes/TO-220-2_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 8,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-8-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -8.446,
+      -3.299
+     ],
+     [
+      7.747,
+      0.826,
+      3.68
+     ]
+    ],
+    "bytes": 29108,
+    "file": "models/dip-8-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-8",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-8_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 8,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-8-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -8.89,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 78440,
+    "file": "models/dip-8-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-8, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-8_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 14,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-14-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -17.145,
+      -3.299
+     ],
+     [
+      7.747,
+      1.905,
+      3.68
+     ]
+    ],
+    "bytes": 37480,
+    "file": "models/dip-14-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-14",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-14_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 14,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-14-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -16.51,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 123416,
+    "file": "models/dip-14-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-14, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-14_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 16,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-16-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -18.478,
+      -3.299
+     ],
+     [
+      7.747,
+      0.699,
+      3.68
+     ]
+    ],
+    "bytes": 40644,
+    "file": "models/dip-16-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-16",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-16_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 16,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-16-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -19.05,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 132820,
+    "file": "models/dip-16-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-16, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-16_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 18,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-18-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -21.59,
+      -3.299
+     ],
+     [
+      7.747,
+      1.27,
+      3.68
+     ]
+    ],
+    "bytes": 45012,
+    "file": "models/dip-18-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-18",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-18_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 18,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-18-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -21.59,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 144020,
+    "file": "models/dip-18-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-18, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-18_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 20,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-20-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -24.511,
+      -3.299
+     ],
+     [
+      7.747,
+      1.651,
+      3.68
+     ]
+    ],
+    "bytes": 50276,
+    "file": "models/dip-20-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-20",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-20_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 20,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-20-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -24.13,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 148764,
+    "file": "models/dip-20-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-20, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-20_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 24,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      7.62,
+      -27.94
+     ],
+     [
+      7.62,
+      -25.4
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-24-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -29.845,
+      -3.299
+     ],
+     [
+      7.747,
+      1.905,
+      3.68
+     ]
+    ],
+    "bytes": 49052,
+    "file": "models/dip-24-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-24",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-24_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 24,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      7.62,
+      -27.94
+     ],
+     [
+      7.62,
+      -25.4
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-24-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -29.21,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 162816,
+    "file": "models/dip-24-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-24, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-24_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 24,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-24-w15.24",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -29.21,
+      -3.299
+     ],
+     [
+      15.113,
+      1.27,
+      3.68
+     ]
+    ],
+    "bytes": 44980,
+    "file": "models/dip-24-w15.24.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-24, wide",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-24_W15.24mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 24,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-24-w15.24-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -29.21,
+      -3.78
+     ],
+     [
+      16.51,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 161604,
+    "file": "models/dip-24-w15.24-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-24, wide, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-24_W15.24mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 28,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      7.62,
+      -33.02
+     ],
+     [
+      7.62,
+      -30.48
+     ],
+     [
+      7.62,
+      -27.94
+     ],
+     [
+      7.62,
+      -25.4
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-28-w7.62",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -34.29,
+      -3.299
+     ],
+     [
+      7.747,
+      1.27,
+      3.68
+     ]
+    ],
+    "bytes": 55676,
+    "file": "models/dip-28-w7.62.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-28",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-28_W7.62mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 28,
+    "width": 7.62
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      7.62,
+      -33.02
+     ],
+     [
+      7.62,
+      -30.48
+     ],
+     [
+      7.62,
+      -27.94
+     ],
+     [
+      7.62,
+      -25.4
+     ],
+     [
+      7.62,
+      -22.86
+     ],
+     [
+      7.62,
+      -20.32
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-28-w7.62-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -34.29,
+      -3.78
+     ],
+     [
+      8.89,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 184012,
+    "file": "models/dip-28-w7.62-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-28, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-28_W7.62mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 28,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      15.24,
+      -33.02
+     ],
+     [
+      15.24,
+      -30.48
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-28-w15.24",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -34.29,
+      -3.299
+     ],
+     [
+      15.367,
+      1.27,
+      3.68
+     ]
+    ],
+    "bytes": 52668,
+    "file": "models/dip-28-w15.24.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-28, wide",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-28_W15.24mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 28,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      15.24,
+      -33.02
+     ],
+     [
+      15.24,
+      -30.48
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-28-w15.24-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -34.29,
+      -3.78
+     ],
+     [
+      16.51,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 175624,
+    "file": "models/dip-28-w15.24-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-28, wide, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-28_W15.24mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "none",
+    "pins": 40,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ],
+     [
+      15.24,
+      -48.26
+     ],
+     [
+      15.24,
+      -45.72
+     ],
+     [
+      15.24,
+      -43.18
+     ],
+     [
+      15.24,
+      -40.64
+     ],
+     [
+      15.24,
+      -38.1
+     ],
+     [
+      15.24,
+      -35.56
+     ],
+     [
+      15.24,
+      -33.02
+     ],
+     [
+      15.24,
+      -30.48
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-40-w15.24",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.127,
+      -49.53,
+      -3.299
+     ],
+     [
+      15.367,
+      1.27,
+      3.68
+     ]
+    ],
+    "bytes": 66796,
+    "file": "models/dip-40-w15.24.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-40, wide",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-40_W15.24mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "holder": "socket",
+    "pins": 40,
+    "width": 15.24
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ],
+     [
+      15.24,
+      -48.26
+     ],
+     [
+      15.24,
+      -45.72
+     ],
+     [
+      15.24,
+      -43.18
+     ],
+     [
+      15.24,
+      -40.64
+     ],
+     [
+      15.24,
+      -38.1
+     ],
+     [
+      15.24,
+      -35.56
+     ],
+     [
+      15.24,
+      -33.02
+     ],
+     [
+      15.24,
+      -30.48
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-40-w15.24-socket",
+   "kind": "dip",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -49.53,
+      -3.78
+     ],
+     [
+      16.51,
+      1.27,
+      4.008
+     ]
+    ],
+    "bytes": 226680,
+    "file": "models/dip-40-w15.24-socket.glb"
+   },
+   "mount": "tht",
+   "name": "Chip, DIP-40, wide, in a socket",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Package_DIP.3dshapes/DIP-40_W15.24mm_Socket.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x02",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -3.81,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 5644,
+    "file": "models/header-1x02.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 2",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x02",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -3.81,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 6748,
+    "file": "models/socket-1x02.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 2",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x02_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x03",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -6.35,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 7472,
+    "file": "models/header-1x03.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 3",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x03_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x03",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -6.35,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 9056,
+    "file": "models/socket-1x03.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 3",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x03_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x04",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -8.89,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 9296,
+    "file": "models/header-1x04.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 4",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x04_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x04",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -8.89,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 11036,
+    "file": "models/socket-1x04.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 4",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x04_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 5,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x05",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -11.43,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 11124,
+    "file": "models/header-1x05.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 5",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x05_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 5,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x05",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -11.43,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 12760,
+    "file": "models/socket-1x05.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 5",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x05_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x06",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -13.97,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 12948,
+    "file": "models/header-1x06.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 6",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x06_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x06",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -13.97,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 14860,
+    "file": "models/socket-1x06.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 6",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x06_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 7,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x07",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -16.51,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 14776,
+    "file": "models/header-1x07.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 7",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x07_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 7,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x07",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -16.51,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 16948,
+    "file": "models/socket-1x07.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 7",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x07_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 8,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x08",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -19.05,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 16600,
+    "file": "models/header-1x08.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 8",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x08_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 8,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x08",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -19.05,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 19756,
+    "file": "models/socket-1x08.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 8",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x08_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 9,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x09",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -21.59,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 18424,
+    "file": "models/header-1x09.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 9",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x09_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 9,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x09",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -21.59,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 21844,
+    "file": "models/socket-1x09.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 9",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x09_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 10,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x10",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -24.13,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 20248,
+    "file": "models/header-1x10.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 10",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x10_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 10,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x10",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -24.13,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 23932,
+    "file": "models/socket-1x10.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 10",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x10_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 12,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x12",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -29.21,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 23896,
+    "file": "models/header-1x12.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 12",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x12_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 12,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x12",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -29.21,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 27056,
+    "file": "models/socket-1x12.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 12",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x12_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 15,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x15",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -36.83,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 29368,
+    "file": "models/header-1x15.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 15",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x15_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 15,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x15",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -36.83,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 31900,
+    "file": "models/socket-1x15.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 15",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x15_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 16,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x16",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -39.37,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 31192,
+    "file": "models/header-1x16.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 16",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x16_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 16,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x16",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -39.37,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 33520,
+    "file": "models/socket-1x16.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 16",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x16_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 20,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x20",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -49.53,
+      -3
+     ],
+     [
+      1.27,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 38492,
+    "file": "models/header-1x20.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 20",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x20_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 20,
+    "female": true,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-1x20",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -49.53,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 41172,
+    "file": "models/socket-1x20.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 1 x 20",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x20_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x02",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -3.81,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 8144,
+    "file": "models/header-2x02.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 2",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x02_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x02",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -3.81,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 10928,
+    "file": "models/socket-2x02.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 2",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x02_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x03",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -6.35,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 11216,
+    "file": "models/header-2x03.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 3",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x03_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x03",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -6.35,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 15580,
+    "file": "models/socket-2x03.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 3",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x03_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 8,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x04",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -8.89,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 14292,
+    "file": "models/header-2x04.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 4",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x04_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 8,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x04",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -8.89,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 19276,
+    "file": "models/socket-2x04.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 4",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x04_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 10,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x05",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -11.43,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 17368,
+    "file": "models/header-2x05.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 5",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x05_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 10,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x05",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -11.43,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 22992,
+    "file": "models/socket-2x05.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 5",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x05_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 12,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      2.54,
+      -12.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x06",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -13.97,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 20440,
+    "file": "models/header-2x06.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 6",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x06_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 12,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      -2.54,
+      -12.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x06",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -13.97,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 27168,
+    "file": "models/socket-2x06.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 6",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x06_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 14,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      2.54,
+      -15.24
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x07",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -16.51,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 23516,
+    "file": "models/header-2x07.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 7",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x07_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 14,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      -2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      -2.54,
+      -15.24
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x07",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -16.51,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 31348,
+    "file": "models/socket-2x07.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 7",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x07_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 16,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      2.54,
+      -17.78
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x08",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -19.05,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 26588,
+    "file": "models/header-2x08.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 8",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x08_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 16,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      -2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      -2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      -2.54,
+      -17.78
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x08",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -19.05,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 36728,
+    "file": "models/socket-2x08.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 8",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x08_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 20,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      2.54,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      2.54,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      2.54,
+      -22.86
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x10",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -24.13,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 32732,
+    "file": "models/header-2x10.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 10",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x10_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 20,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      -2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      -2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      -2.54,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      -2.54,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      -2.54,
+      -22.86
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x10",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -24.13,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 45328,
+    "file": "models/socket-2x10.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 10",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x10_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 40,
+    "female": false,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      2.54,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      2.54,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      2.54,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      2.54,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      2.54,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      2.54,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      2.54,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      2.54,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      2.54,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      2.54,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      2.54,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      2.54,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ],
+     [
+      2.54,
+      -48.26
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-2x20",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.27,
+      -49.53,
+      -3
+     ],
+     [
+      3.81,
+      1.27,
+      8.539
+     ]
+    ],
+    "bytes": 63456,
+    "file": "models/header-2x20.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 2 x 20",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x20_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 40,
+    "female": true,
+    "rows": 2
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      -2.54,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      -2.54,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      -2.54,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      -2.54,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      -2.54,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      -2.54,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      -2.54,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      -2.54,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      -2.54,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      -2.54,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      -2.54,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      -2.54,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      -2.54,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      -2.54,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      -2.54,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      -2.54,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      -2.54,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ],
+     [
+      -2.54,
+      -48.26
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "socket-2x20",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -3.81,
+      -49.53,
+      -3.099
+     ],
+     [
+      1.27,
+      1.27,
+      8.499
+     ]
+    ],
+    "bytes": 81248,
+    "file": "models/socket-2x20.glb"
+   },
+   "mount": "tht",
+   "name": "Female header, 2 x 20",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinSocket_2.54mm.3dshapes/PinSocket_2x20_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "count": 2,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x02-bent",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.32,
+      -3.81,
+      -3
+     ],
+     [
+      10.041,
+      1.27,
+      2.54
+     ]
+    ],
+    "bytes": 6988,
+    "file": "models/header-1x02-bent.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 2, bent 90 degrees",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "count": 3,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x03-bent",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.32,
+      -6.35,
+      -3
+     ],
+     [
+      10.041,
+      1.27,
+      2.54
+     ]
+    ],
+    "bytes": 9740,
+    "file": "models/header-1x03-bent.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 3, bent 90 degrees",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x03_P2.54mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "count": 4,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x04-bent",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.32,
+      -8.89,
+      -3
+     ],
+     [
+      10.041,
+      1.27,
+      2.54
+     ]
+    ],
+    "bytes": 12140,
+    "file": "models/header-1x04-bent.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 4, bent 90 degrees",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x04_P2.54mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "count": 6,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x06-bent",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.32,
+      -13.97,
+      -3
+     ],
+     [
+      10.041,
+      1.27,
+      2.54
+     ]
+    ],
+    "bytes": 16040,
+    "file": "models/header-1x06-bent.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 6, bent 90 degrees",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x06_P2.54mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "count": 8,
+    "female": false,
+    "rows": 1
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "header-1x08-bent",
+   "kind": "header",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.32,
+      -19.05,
+      -3
+     ],
+     [
+      10.041,
+      1.27,
+      2.54
+     ]
+    ],
+    "bytes": 19936,
+    "file": "models/header-1x08-bent.glb"
+   },
+   "mount": "tht",
+   "name": "Pin header, 1 x 8, bent 90 degrees",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x08_P2.54mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "pitch": 5.08
+   },
+   "footprint": {
+    "drill": 1.3,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-2-p5.08",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -3.279,
+      -4.6,
+      -3.5
+     ],
+     [
+      7.62,
+      5.199,
+      13.8
+     ]
+    ],
+    "bytes": 18456,
+    "file": "models/terminal-2-p5.08.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 2-way, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "pitch": 3.5
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-2-p3.5",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -1.75,
+      -4.501,
+      -4.501
+     ],
+     [
+      5.819,
+      3.051,
+      9.2
+     ]
+    ],
+    "bytes": 27044,
+    "file": "models/terminal-2-p3.5.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 2-way, 3.5 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "pitch": 5.08
+   },
+   "footprint": {
+    "drill": 1.3,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-3-p5.08",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -3.279,
+      -4.6,
+      -3.5
+     ],
+     [
+      12.7,
+      5.199,
+      13.8
+     ]
+    ],
+    "bytes": 22388,
+    "file": "models/terminal-3-p5.08.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 3-way, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "pitch": 3.5
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.5,
+      0.0
+     ],
+     [
+      7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-3-p3.5",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -1.75,
+      -4.501,
+      -4.501
+     ],
+     [
+      9.319,
+      3.051,
+      9.2
+     ]
+    ],
+    "bytes": 37904,
+    "file": "models/terminal-3-p3.5.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 3-way, 3.5 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_PT-1,5-3-3.5-H_1x03_P3.50mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "pitch": 5.08
+   },
+   "footprint": {
+    "drill": 1.3,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-4-p5.08",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -3.279,
+      -4.6,
+      -3.5
+     ],
+     [
+      17.78,
+      5.199,
+      13.8
+     ]
+    ],
+    "bytes": 28164,
+    "file": "models/terminal-4-p5.08.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 4-way, 5.08 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_MKDS-1,5-4-5.08_1x04_P5.08mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "pitch": 3.5
+   },
+   "footprint": {
+    "drill": 1.2,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      3.5,
+      0.0
+     ],
+     [
+      7,
+      0.0
+     ],
+     [
+      10.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "terminal-4-p3.5",
+   "kind": "terminal",
+   "model": {
+    "body": "PLASTIC-GREEN-01",
+    "box": [
+     [
+      -1.75,
+      -4.501,
+      -4.501
+     ],
+     [
+      12.819,
+      3.051,
+      9.2
+     ]
+    ],
+    "bytes": 48084,
+    "file": "models/terminal-4-p3.5.glb"
+   },
+   "mount": "tht",
+   "name": "Screw terminal, 4-way, 3.5 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "hc49s"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      4.88,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "crystal-hc49-4h-v",
+   "kind": "crystal",
+   "model": {
+    "body": "MAT-717171",
+    "box": [
+     [
+      -3.085,
+      -2.325,
+      -2.9
+     ],
+     [
+      7.965,
+      2.325,
+      4.1
+     ]
+    ],
+    "bytes": 18124,
+    "file": "models/crystal-hc49-4h-v.glb"
+   },
+   "mount": "tht",
+   "name": "Crystal, HC-49/S (low)",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Crystal.3dshapes/Crystal_HC49-4H_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "hc49u"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      4.88,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "crystal-hc49-u-v",
+   "kind": "crystal",
+   "model": {
+    "body": "MAT-717171",
+    "box": [
+     [
+      -3.01,
+      -2.325,
+      -2.9
+     ],
+     [
+      7.89,
+      2.325,
+      13.1
+     ]
+    ],
+    "bytes": 18124,
+    "file": "models/crystal-hc49-u-v.glb"
+   },
+   "mount": "tht",
+   "name": "Crystal, HC-49/U",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Crystal.3dshapes/Crystal_HC49-U_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "hc18u"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      4.9,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "crystal-hc18-u-v",
+   "kind": "crystal",
+   "model": {
+    "body": "MAT-717171",
+    "box": [
+     [
+      -3,
+      -2.325,
+      -2.9
+     ],
+     [
+      7.9,
+      2.325,
+      13.1
+     ]
+    ],
+    "bytes": 18124,
+    "file": "models/crystal-hc18-u-v.glb"
+   },
+   "mount": "tht",
+   "name": "Crystal, HC-18/U",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Crystal.3dshapes/Crystal_HC18-U_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "trimmer"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      0.0
+     ],
+     [
+      -5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "potentiometer-bourns-3296w-v",
+   "kind": "pot",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -7.305,
+      -2.42,
+      -6.02
+     ],
+     [
+      2.225,
+      2.41,
+      11.05
+     ]
+    ],
+    "bytes": 10744,
+    "file": "models/potentiometer-bourns-3296w-v.glb"
+   },
+   "mount": "tht",
+   "name": "Trimmer, multi-turn (3296W), screw on top",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Potentiometer_THT.3dshapes/Potentiometer_Bourns_3296W_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "trimmer"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      -5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "potentiometer-bourns-3296y-v",
+   "kind": "pot",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -7.305,
+      -3.69,
+      -6.02
+     ],
+     [
+      2.225,
+      1.14,
+      11.05
+     ]
+    ],
+    "bytes": 11764,
+    "file": "models/potentiometer-bourns-3296y-v.glb"
+   },
+   "mount": "tht",
+   "name": "Trimmer, multi-turn (3296Y), screw on the side",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Potentiometer_THT.3dshapes/Potentiometer_Bourns_3296Y_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "trimmer"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      -2.54
+     ],
+     [
+      -5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "potentiometer-bourns-3266w-v",
+   "kind": "pot",
+   "model": {
+    "body": "MAT-00ABFF",
+    "box": [
+     [
+      -5.895,
+      -3.52,
+      -4.88
+     ],
+     [
+      0.815,
+      0.98,
+      8.26
+     ]
+    ],
+    "bytes": 11632,
+    "file": "models/potentiometer-bourns-3266w-v.glb"
+   },
+   "mount": "tht",
+   "name": "Trimmer, small multi-turn (3266W)",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Potentiometer_THT.3dshapes/Potentiometer_Bourns_3266W_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "trimmer"
+   },
+   "footprint": {
+    "drill": 0.7,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -2.54,
+      2.54
+     ],
+     [
+      0.0,
+      5.08
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "potentiometer-bourns-3339p-v",
+   "kind": "pot",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -3.81,
+      -1.27,
+      -4.78
+     ],
+     [
+      3.81,
+      6.348,
+      6.35
+     ]
+    ],
+    "bytes": 31952,
+    "file": "models/potentiometer-bourns-3339p-v.glb"
+   },
+   "mount": "tht",
+   "name": "Trimmer, round (3339P)",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Potentiometer_THT.3dshapes/Potentiometer_Bourns_3339P_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "trimmer"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "potentiometer-bourns-3386w-h",
+   "kind": "pot",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.225,
+      -2.39,
+      -5.96
+     ],
+     [
+      7.305,
+      2.44,
+      9.54
+     ]
+    ],
+    "bytes": 25228,
+    "file": "models/potentiometer-bourns-3386w-h.glb"
+   },
+   "mount": "tht",
+   "name": "Trimmer, single-turn (3386W)",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Potentiometer_THT.3dshapes/Potentiometer_Bourns_3386W_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 6
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -4.5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-push-6",
+   "kind": "button",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.436,
+      -5.25,
+      -3.5
+     ],
+     [
+      6.736,
+      0.75,
+      4.3
+     ]
+    ],
+    "bytes": 25756,
+    "file": "models/sw-push-6.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 6 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_PUSH_6mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 6
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -4.5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-push-6-h5",
+   "kind": "button",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.436,
+      -5.25,
+      -3.5
+     ],
+     [
+      6.736,
+      0.75,
+      5
+     ]
+    ],
+    "bytes": 25756,
+    "file": "models/sw-push-6-h5.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 6 mm, 5 mm tall",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_PUSH_6mm_H5mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 6
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -4.5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-push-6-h8",
+   "kind": "button",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.436,
+      -5.25,
+      -3.5
+     ],
+     [
+      6.736,
+      0.75,
+      8
+     ]
+    ],
+    "bytes": 25756,
+    "file": "models/sw-push-6-h8.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 6 mm, 8 mm tall",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_PUSH_6mm_H8mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 6
+   },
+   "footprint": {
+    "drill": 1.1,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -4.5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-push-6-h13",
+   "kind": "button",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -0.436,
+      -5.25,
+      -3.5
+     ],
+     [
+      6.736,
+      0.75,
+      13
+     ]
+    ],
+    "bytes": 25760,
+    "file": "models/sw-push-6-h13.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 6 mm, 13 mm tall",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_PUSH_6mm_H13mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "size": 6
+   },
+   "footprint": {
+    "drill": 0.99,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      4.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-tactile-spst-angled-pts645vx31-2lfs",
+   "kind": "button",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.45,
+      -4.15,
+      -3.992
+     ],
+     [
+      5.95,
+      3.05,
+      7.008
+     ]
+    ],
+    "bytes": 51300,
+    "file": "models/sw-tactile-spst-angled-pts645vx31-2lfs.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 6 mm, side-pressed",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_Tactile_SPST_Angled_PTS645Vx31-2LFS.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "slide"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2,
+      0.0
+     ],
+     [
+      4,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-slide-spdt-straight-ck-os102011ms2q",
+   "kind": "switch",
+   "model": {
+    "body": "CAP-CERAMIC-05",
+    "box": [
+     [
+      -2.3,
+      -2.15,
+      -2.8
+     ],
+     [
+      6.3,
+      2.15,
+      8.7
+     ]
+    ],
+    "bytes": 50968,
+    "file": "models/sw-slide-spdt-straight-ck-os102011ms2q.glb"
+   },
+   "mount": "tht",
+   "name": "Slide switch, on/off",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_Slide_SPDT_Straight_CK_OS102011MS2Q.wrl"
+   }
+  },
+  {
+   "fit": {
+    "bent": true,
+    "style": "slide"
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2,
+      0.0
+     ],
+     [
+      4,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "sw-slide-spdt-angled-ck-os102011ma1q",
+   "kind": "switch",
+   "model": {
+    "body": "CAP-CERAMIC-05",
+    "box": [
+     [
+      -2.3,
+      -6.2,
+      -2.8
+     ],
+     [
+      6.3,
+      2.2,
+      4.7
+     ]
+    ],
+    "bytes": 22844,
+    "file": "models/sw-slide-spdt-angled-ck-os102011ma1q.glb"
+   },
+   "mount": "tht",
+   "name": "Slide switch, on/off, at the edge",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_Slide_SPDT_Angled_CK_OS102011MA1Q.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "style": "dip"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-switch-2",
+   "kind": "switch",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.4,
+      -1.141,
+      -3.2
+     ],
+     [
+      4.859,
+      8.761,
+      6.749
+     ]
+    ],
+    "bytes": 11436,
+    "file": "models/dip-switch-2.glb"
+   },
+   "mount": "tht",
+   "name": "DIP switch, 2 ways",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_DIP_SPSTx02_Slide_9.78x7.26mm_W7.62mm_P2.54mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "style": "dip"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-switch-4",
+   "kind": "switch",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.4,
+      -1.141,
+      -3.2
+     ],
+     [
+      9.939,
+      8.761,
+      6.749
+     ]
+    ],
+    "bytes": 16472,
+    "file": "models/dip-switch-4.glb"
+   },
+   "mount": "tht",
+   "name": "DIP switch, 4 ways",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 8,
+    "style": "dip"
+   },
+   "footprint": {
+    "drill": 0.8,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      7.62,
+      -17.78
+     ],
+     [
+      7.62,
+      -15.24
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      -7.62
+     ],
+     [
+      7.62,
+      -5.08
+     ],
+     [
+      7.62,
+      -2.54
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "dip-switch-8",
+   "kind": "switch",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -2.4,
+      -1.141,
+      -3.2
+     ],
+     [
+      20.099,
+      8.761,
+      6.749
+     ]
+    ],
+    "bytes": 24860,
+    "file": "models/dip-switch-8.glb"
+   },
+   "mount": "tht",
+   "name": "DIP switch, 8 ways",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Button_Switch_THT.3dshapes/SW_DIP_SPSTx08_Slide_9.78x22.5mm_W7.62mm_P2.54mm.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "style": "kk"
+   },
+   "footprint": {
+    "drill": 1.19,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "molex-kk-2",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -1.27,
+      -2.901,
+      -3.561
+     ],
+     [
+      3.81,
+      2.901,
+      11.699
+     ]
+    ],
+    "bytes": 6320,
+    "file": "models/molex-kk-2.glb"
+   },
+   "mount": "tht",
+   "name": "Molex KK, 2 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_Molex.3dshapes/Molex_KK-254_AE-6410-02A_1x02_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 2,
+    "style": "xh"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "jst-xh-2",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -2.451,
+      -3.401,
+      -3.401
+     ],
+     [
+      4.951,
+      2.35,
+      7
+     ]
+    ],
+    "bytes": 17608,
+    "file": "models/jst-xh-2.glb"
+   },
+   "mount": "tht",
+   "name": "JST XH, 2 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_JST.3dshapes/JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "style": "kk"
+   },
+   "footprint": {
+    "drill": 1.19,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "molex-kk-3",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -1.27,
+      -2.901,
+      -3.561
+     ],
+     [
+      6.35,
+      2.901,
+      11.699
+     ]
+    ],
+    "bytes": 7952,
+    "file": "models/molex-kk-3.glb"
+   },
+   "mount": "tht",
+   "name": "Molex KK, 3 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_Molex.3dshapes/Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 3,
+    "style": "xh"
+   },
+   "footprint": {
+    "drill": 0.95,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "jst-xh-3",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -2.451,
+      -3.401,
+      -3.401
+     ],
+     [
+      7.45,
+      2.35,
+      7
+     ]
+    ],
+    "bytes": 19432,
+    "file": "models/jst-xh-3.glb"
+   },
+   "mount": "tht",
+   "name": "JST XH, 3 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_JST.3dshapes/JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "style": "kk"
+   },
+   "footprint": {
+    "drill": 1.19,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "molex-kk-4",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -1.27,
+      -2.901,
+      -3.561
+     ],
+     [
+      8.89,
+      2.901,
+      11.699
+     ]
+    ],
+    "bytes": 9584,
+    "file": "models/molex-kk-4.glb"
+   },
+   "mount": "tht",
+   "name": "Molex KK, 4 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_Molex.3dshapes/Molex_KK-254_AE-6410-04A_1x04_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 4,
+    "style": "xh"
+   },
+   "footprint": {
+    "drill": 0.95,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "jst-xh-4",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -2.451,
+      -3.401,
+      -3.401
+     ],
+     [
+      9.949,
+      2.35,
+      7
+     ]
+    ],
+    "bytes": 21304,
+    "file": "models/jst-xh-4.glb"
+   },
+   "mount": "tht",
+   "name": "JST XH, 4 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_JST.3dshapes/JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 5,
+    "style": "kk"
+   },
+   "footprint": {
+    "drill": 1.19,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "molex-kk-5",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -1.27,
+      -2.901,
+      -3.561
+     ],
+     [
+      11.43,
+      2.901,
+      11.699
+     ]
+    ],
+    "bytes": 11220,
+    "file": "models/molex-kk-5.glb"
+   },
+   "mount": "tht",
+   "name": "Molex KK, 5 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_Molex.3dshapes/Molex_KK-254_AE-6410-05A_1x05_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 5,
+    "style": "xh"
+   },
+   "footprint": {
+    "drill": 0.95,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ],
+     [
+      10,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "jst-xh-5",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -2.451,
+      -3.401,
+      -3.401
+     ],
+     [
+      12.451,
+      2.35,
+      7
+     ]
+    ],
+    "bytes": 22124,
+    "file": "models/jst-xh-5.glb"
+   },
+   "mount": "tht",
+   "name": "JST XH, 5 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_JST.3dshapes/JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "style": "kk"
+   },
+   "footprint": {
+    "drill": 1.19,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.54,
+      0.0
+     ],
+     [
+      5.08,
+      0.0
+     ],
+     [
+      7.62,
+      0.0
+     ],
+     [
+      10.16,
+      0.0
+     ],
+     [
+      12.7,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "molex-kk-6",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -1.27,
+      -2.901,
+      -3.561
+     ],
+     [
+      13.97,
+      2.901,
+      11.699
+     ]
+    ],
+    "bytes": 13028,
+    "file": "models/molex-kk-6.glb"
+   },
+   "mount": "tht",
+   "name": "Molex KK, 6 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_Molex.3dshapes/Molex_KK-254_AE-6410-06A_1x06_P2.54mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "count": 6,
+    "style": "xh"
+   },
+   "footprint": {
+    "drill": 0.95,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ],
+     [
+      5,
+      0.0
+     ],
+     [
+      7.5,
+      0.0
+     ],
+     [
+      10,
+      0.0
+     ],
+     [
+      12.5,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "jst-xh-6",
+   "kind": "connector",
+   "model": {
+    "body": "PLASTIC-WHITE-01",
+    "box": [
+     [
+      -2.451,
+      -3.401,
+      -3.401
+     ],
+     [
+      14.951,
+      2.35,
+      7
+     ]
+    ],
+    "bytes": 23468,
+    "file": "models/jst-xh-6.glb"
+   },
+   "mount": "tht",
+   "name": "JST XH, 6 pins",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_JST.3dshapes/JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "barrel"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -6,
+      0.0
+     ],
+     [
+      -3,
+      -4.7
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "barrel-jack",
+   "kind": "jack",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -13.8,
+      -4.8,
+      -3.9
+     ],
+     [
+      0.4,
+      4.5,
+      10.7
+     ]
+    ],
+    "bytes": 156512,
+    "file": "models/barrel-jack.glb"
+   },
+   "mount": "tht",
+   "name": "DC barrel jack (5.5/2.1 mm)",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_BarrelJack.3dshapes/BarrelJack_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "barrel"
+   },
+   "footprint": {
+    "drill": 2.3,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -6
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "barrel-jack-cui",
+   "kind": "jack",
+   "model": {
+    "body": "CAP-CERAMIC-05",
+    "box": [
+     [
+      -5,
+      -12,
+      -3
+     ],
+     [
+      5,
+      1,
+      9
+     ]
+    ],
+    "bytes": 26252,
+    "file": "models/barrel-jack-cui.glb"
+   },
+   "mount": "tht",
+   "name": "DC barrel jack, CUI PJ-063AH",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_BarrelJack.3dshapes/BarrelJack_CUI_PJ-063AH_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "usb-a"
+   },
+   "footprint": {
+    "drill": 0.95,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      2.5,
+      0.0
+     ],
+     [
+      4.5,
+      0.0
+     ],
+     [
+      7,
+      0.0
+     ],
+     [
+      -3.07,
+      -2.71
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "usb-a",
+   "kind": "connector",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -4.551,
+      -12.99,
+      -3.796
+     ],
+     [
+      11.551,
+      2.27,
+      7.73
+     ]
+    ],
+    "bytes": 95644,
+    "file": "models/usb-a.glb"
+   },
+   "mount": "tht",
+   "name": "USB-A socket",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Connector_USB.3dshapes/USB_A_Molex_67643_Horizontal.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 12
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.6,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "buzzer-12",
+   "kind": "buzzer",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -2.189,
+      -5.997,
+      -3
+     ],
+     [
+      9.799,
+      5.997,
+      9.53
+     ]
+    ],
+    "bytes": 43780,
+    "file": "models/buzzer-12.glb"
+   },
+   "mount": "tht",
+   "name": "Buzzer, 12 mm",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Buzzer_Beeper.3dshapes/Buzzer_12x9.5RM7.6.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 12
+   },
+   "footprint": {
+    "drill": 1.00076,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      7.61,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "buzzer-hmb12",
+   "kind": "buzzer",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -4.191,
+      -7.991,
+      -5.999
+     ],
+     [
+      11.811,
+      7.991,
+      14.031
+     ]
+    ],
+    "bytes": 49184,
+    "file": "models/buzzer-hmb12.glb"
+   },
+   "mount": "tht",
+   "name": "Buzzer, magnetic, 12 mm (HMB-12)",
+   "paint": null,
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Buzzer_Beeper.3dshapes/MagneticBuzzer_StarMicronics_HMB-06_HMB-12.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "srd"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      1.95,
+      -6.05
+     ],
+     [
+      14.15,
+      -6.05
+     ],
+     [
+      14.2,
+      6
+     ],
+     [
+      1.95,
+      5.95
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "relay-srd",
+   "kind": "relay",
+   "model": {
+    "body": "PLASTIC-BLUE-01",
+    "box": [
+     [
+      -1.301,
+      -7.699,
+      -3.401
+     ],
+     [
+      18.301,
+      7.699,
+      15.601
+     ]
+    ],
+    "bytes": 16120,
+    "file": "models/relay-srd.glb"
+   },
+   "mount": "tht",
+   "name": "Relay, SRD (Songle 5 V/12 V)",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Relay_THT.3dshapes/Relay_SPDT_SANYOU_SRD_Series_Form_C.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "g5le"
+   },
+   "footprint": {
+    "drill": 1.3,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -6,
+      -2
+     ],
+     [
+      -6,
+      -14.2
+     ],
+     [
+      6,
+      -14.2
+     ],
+     [
+      6,
+      -2
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "relay-g5le",
+   "kind": "relay",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -8.25,
+      -19.949,
+      -3.401
+     ],
+     [
+      8.25,
+      2.55,
+      19.101
+     ]
+    ],
+    "bytes": 15208,
+    "file": "models/relay-g5le.glb"
+   },
+   "mount": "tht",
+   "name": "Relay, Omron G5LE",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Relay_THT.3dshapes/Relay_SPDT_Omron-G5LE-1.wrl"
+   }
+  },
+  {
+   "fit": {
+    "style": "hjr"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      7.62,
+      -12.7
+     ],
+     [
+      7.62,
+      -10.16
+     ],
+     [
+      7.62,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "relay-hjr4102",
+   "kind": "relay",
+   "model": {
+    "body": "IC-BODY-EPOXY-04",
+    "box": [
+     [
+      -1.35,
+      -14.45,
+      -3.6
+     ],
+     [
+      9.05,
+      1.25,
+      11.4
+     ]
+    ],
+    "bytes": 4488,
+    "file": "models/relay-hjr4102.glb"
+   },
+   "mount": "tht",
+   "name": "Relay, HJR-4102 (small)",
+   "paint": "print",
+   "source": {
+    "from": "KiCad 9.0.6",
+    "licence": "CC-BY-SA-4.0",
+    "path": "Relay_THT.3dshapes/Relay_SPDT_HJR-4102.wrl"
+   }
+  },
+  {
+   "fit": {
+    "size": 12
+   },
+   "footprint": {
+    "drill": 1.3,
+    "pins": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      -5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "button-12mm",
+   "kind": "button",
+   "model": {
+    "body": "BUTTON-BASE",
+    "box": [
+     [
+      -0.4,
+      -8.6,
+      -3
+     ],
+     [
+      12.9,
+      3.6,
+      7.3
+     ]
+    ],
+    "bytes": 7140,
+    "file": "models/button-12mm.glb"
+   },
+   "mount": "tht",
+   "name": "Push button, 12 mm",
+   "paint": null,
+   "source": {
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "value": "MP1584"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      -14
+     ],
+     [
+      19,
+      0
+     ],
+     [
+      19,
+      -14
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mp1584-module",
+   "kind": "module",
+   "model": {
+    "body": "PCB-GREEN",
+    "box": [
+     [
+      -1.5,
+      -15.5,
+      0.0
+     ],
+     [
+      20.5,
+      1.5,
+      6.1
+     ]
+    ],
+    "bytes": 17400,
+    "file": "models/mp1584-module.glb"
+   },
+   "mount": "tht",
+   "name": "MP1584 buck module (22 x 17 mm)",
+   "paint": null,
+   "source": {
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "style": "9mm"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      -2.5
+     ],
+     [
+      0,
+      -5
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "pot-rk09k-v",
+   "kind": "pot",
+   "model": {
+    "body": "POT-BODY",
+    "box": [
+     [
+      -0.5,
+      -7.4,
+      -3
+     ],
+     [
+      13,
+      2.4,
+      22
+     ]
+    ],
+    "bytes": 10348,
+    "file": "models/pot-rk09k-v.glb"
+   },
+   "mount": "tht",
+   "name": "Potentiometer, 9 mm, standing (Alps RK09K style)",
+   "paint": null,
+   "source": {
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  }
+ ],
+ "version": 1
+}

@@ -1,0 +1,15 @@
+#VRML V2.0 utf8
+#kicad StepUp wrl exported
+# An older style some KiCad models use: each shape has its own unnamed material.
+Shape { geometry IndexedFaceSet
+{ creaseAngle 0.50 coordIndex [0,1,2,-1]
+coord Coordinate { point [0 0 0,1 0 0,0 1 0]
+}}
+appearance Appearance{material Material{diffuseColor 0.443137 0.443137 0.443137
+transparency 0}}}
+Shape { geometry IndexedFaceSet
+{ creaseAngle 0.50 coordIndex [0,1,2,-1]
+coord Coordinate { point [0 0 1,1 0 1,0 1 1]
+}}
+appearance Appearance{material Material{diffuseColor 0.1 0.1 0.1
+transparency 0}}}

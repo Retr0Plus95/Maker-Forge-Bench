@@ -204,6 +204,27 @@ class TestLiveServer(DevServerTestCase):
         resp, _ = self.request("GET", "/project/%2e%2e/secret.svg")
         self.assertEqual(resp.status, 404)
 
+    def test_library_served(self):  # 0.9: the Maker Forge Library
+        resp, body = self.request("GET", "/library/index.json")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "application/json")
+        first = json.loads(body)["parts"][0]
+        resp, body = self.request("GET", f"/library/{first['model']['file']}")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "model/gltf-binary")
+        self.assertEqual(body[:4], b"glTF")
+        resp, body = self.request("GET", "/library/LICENSE-KICAD-3D.md")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "text/plain; charset=utf-8")
+        self.assertIn(b"CC-BY-SA", body)
+
+    def test_library_only_its_own_files(self):
+        for bad in ["/library/../dev.py", "/library/models/../../dev.py", "/library/x/y.glb",
+                    "/library/%2e%2e/dev.py", "/library/models/x/y.glb", "/library/", "/library/models/",
+                    "/three.module.js/../dev.py"]:
+            resp, _ = self.request("GET", bad)
+            self.assertEqual(resp.status, 404, bad)
+
     def test_change_event(self):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
         conn.request("GET", "/api/events")

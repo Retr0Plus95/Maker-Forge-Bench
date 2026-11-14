@@ -1,0 +1,25 @@
+{
+ "id": "mp1584-module",
+ "name": "MP1584 buck module (22 x 17 mm)",
+ "kind": "module",
+ "mount": "tht",
+ "about": "Measured from the common MP1584EN mini buck module (22 x 17 x 4 mm). Layout as on typical listing photos: IN+ and IN- pads on the left edge, OUT+ and OUT- on the right, the inductor in the middle, the chip and diode on the right, the blue trimmer top left. Model frame like KiCad's: mm, origin at pin 1 (IN+), x right, y up as seen from above, z up from the board under it.",
+ "fit": {"value": "MP1584"},
+ "paint": null,
+ "body": "PCB-GREEN",
+ "footprint": {"pins": [[0, 0], [0, -14], [19, 0], [19, -14]], "pitch": 2.54, "drill": 1.0},
+ "shapes": [
+  {"name": "PCB-GREEN", "box": [-1.5, -15.5, 0, 22, 17, 1.6], "colour": [0.118, 0.42, 0.322]},
+  {"name": "MET-PAD", "cyl": [0, 0, 1.6, 1.0, 0.05], "colour": [0.83, 0.69, 0.22], "metal": true},
+  {"name": "MET-PAD", "cyl": [0, -14, 1.6, 1.0, 0.05], "colour": [0.83, 0.69, 0.22], "metal": true},
+  {"name": "MET-PAD", "cyl": [19, 0, 1.6, 1.0, 0.05], "colour": [0.83, 0.69, 0.22], "metal": true},
+  {"name": "MET-PAD", "cyl": [19, -14, 1.6, 1.0, 0.05], "colour": [0.83, 0.69, 0.22], "metal": true},
+  {"name": "INDUCTOR", "box": [3.52, -9.6, 1.6, 5.8, 5.2, 4.5], "colour": [0.227, 0.227, 0.227]},
+  {"name": "IC-BODY", "box": [12.39, -9.45, 1.6, 3.9, 4.9, 1.5], "colour": [0.082, 0.082, 0.082]},
+  {"name": "TRIMMER", "box": [3.4, -2.92, 1.6, 3.4, 3.4, 2.0], "colour": [0.141, 0.388, 0.922]},
+  {"name": "MET-SCREW", "cyl": [5.1, -1.22, 3.6, 1.1, 0.4], "colour": [0.83, 0.69, 0.22], "metal": true},
+  {"name": "DIODE", "box": [12.19, -14.42, 1.6, 4.3, 2.6, 2.2], "colour": [0.106, 0.106, 0.106]},
+  {"name": "CAP", "box": [0.34, -8.6, 1.6, 1.6, 3.2, 1.1], "colour": [0.784, 0.663, 0.431]},
+  {"name": "CAP", "box": [17.06, -5.54, 1.6, 1.6, 3.2, 1.1], "colour": [0.784, 0.663, 0.431]}
+ ]
+}
