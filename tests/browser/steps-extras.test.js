@@ -55,7 +55,7 @@ describe('step progress, Show in 3D, and the checks before power', () => {
   });
 
   test('before power: the meter checks come from the project, and ticks are kept', async () => {
-    const items = await page.locator('#checks li').allTextContents();
+    const items = await page.locator('#checks .checks-list li').allTextContents();
     assert.equal(items.length, 4);
     assert.match(items[0], /\+12 V to 0 V must not beep/);
     assert.match(items[3], /\+5 V measures 4\.75 to 5\.25 V/);

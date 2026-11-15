@@ -45,6 +45,7 @@ import { SHAPE_URL, canReachShape, defaultSize, parseHoles, portsAndPanel, shape
 import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
+import { bridgeRisks } from './bridges.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -106,6 +107,7 @@ const state = {
   checklistGroup: false,
   checklistSort: 'list',
   wiringFilter: '',
+  openBridge: null, // the bridge risk last opened from 3D or Checks (1.0.1)
 };
 const APP_VERSION = '0.9.0';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
@@ -1178,7 +1180,14 @@ let findings3D = new Map();
 const findingId = (f) => `${f.kind}:${f.refs.join(',')}`;
 function marksFor3D() {
   findings3D = new Map();
-  if (board3dSource !== 'mine') return [];
+  if (board3dSource !== 'mine') {
+    const board = projectBoard();
+    if (!board || !$('#board3d-bridges').checked) return [];
+    return bridgesNow().map((f) => {
+      findings3D.set(f.id, f);
+      return { id: f.id, x: (f.at[0] - 1) * board.pitch, y: (f.at[1] - 1) * board.pitch, side: 'bottom', level: 'warning', text: f.text };
+    });
+  }
   const mine = myBoardFor3D();
   const board = boardOf();
   if (!mine || !board) return [];
@@ -1195,6 +1204,13 @@ function marksFor3D() {
 async function openFinding(id) {
   const f = findings3D.get(id);
   if (!f) return;
+  if (id.startsWith('bridge:')) {
+    showTab('checks');
+    openBridge(f);
+    const li = document.querySelector(`#bridge-risks li[data-bridge="${CSS.escape(id)}"]`);
+    if (li) li.scrollIntoView({ block: 'nearest' });
+    return;
+  }
   state.openFinding = id;
   showTab('board');
   // the findings list shows with your photo: go to the lined-up one if another sheet is showing
@@ -2908,6 +2924,7 @@ function stepExtras(step) {
   const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
   return {
     joints,
+    bridges: stepBridges(step).map((f) => f.text),
     note: state.notes[`step.${step.id}`] || '',
     onNote: (text) => setNote(`step.${step.id}`, text),
     onPrint: () => {
@@ -2925,7 +2942,47 @@ function renderChecksPanel() {
     checks: powerChecks(projectBoard()),
     done: state.checks,
     onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check before power`),
+    bridges: bridgesNow(),
+    openBridge: state.openBridge,
+    onBridge: openBridge,
+    onBridges3D: state.project && state.project.board ? showBridges3D : null,
   });
+}
+
+// ---- bridge risk (1.0.1): joints on different lines one hole apart underneath ----
+let bridgesCache = { board: null, list: [] };
+function bridgesNow() {
+  const board = projectBoard();
+  if (bridgesCache.board !== board) bridgesCache = { board, list: bridgeRisks(board) };
+  return bridgesCache.list;
+}
+
+/** The bridges the open step's parts (or its buses) make. */
+function stepBridges(step) {
+  const refs = new Set(step.parts);
+  const buses = (step.what || []).includes('buses');
+  return bridgesNow().filter((f) => (f.kind === 'buses' ? buses : f.refs.some((r) => refs.has(r))));
+}
+
+/** A bridge risk from the list or a 3D mark: its line in Checks, and its part's card. */
+function openBridge(f) {
+  state.openBridge = f.id;
+  renderChecksPanel();
+  if (f.refs.length) selectPart(f.refs[0]);
+  else {
+    const at = stepsOf().findIndex((s) => (s.what || []).includes('buses'));
+    if (at >= 0) openStep(at);
+  }
+}
+
+async function showBridges3D() {
+  $('#board3d-bridges').checked = true;
+  if (board3dSource !== 'sheet4') setBoard3DSource('sheet4');
+  await setBoard3D(true);
+  if (board3d) {
+    board3d.setMarks(marksFor3D());
+    board3d.view('bottom');
+  }
 }
 
 function renderStepsPanel() {
@@ -3787,6 +3844,7 @@ async function start() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   $('#board3d-wiring').addEventListener('change', (e) => board3d && board3d.showWiring(e.target.checked));
+  $('#board3d-bridges').addEventListener('change', () => board3d && board3d.setMarks(marksFor3D()));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
   for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());
   $('#stage2-sheet').addEventListener('change', (e) => showInSplit(e.target.value));
