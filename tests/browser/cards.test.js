@@ -2,7 +2,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { FIXTURES, copyFixture, nextFrame, openPage, startDevServer } from './harness.js';
+import { FIXTURES, copyFixture, nextFrame, openPage, openSheet, startDevServer } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 const tab = (page, text) => page.locator('[role=tab]', { hasText: text });
@@ -49,8 +49,7 @@ describe('part cards on the fume extractor', () => {
   });
 
   test('clicking a part on the drawing shows what it is and why', async () => {
-    await tab(page, 'SFE-04').click();
-    await page.waitForFunction(() => [...document.querySelector('#sheet-host').shadowRoot.querySelectorAll('text')].some((t) => t.textContent.trim() === 'R6'));
+    await openSheet(page, 'SFE-04'); // R6 is on SFE-01 too: wait for SFE-04 itself, not for a label
     await clickLabel(page, 'R6');
     await page.waitForFunction(() => document.querySelector('#part-card h2'));
     const text = await card(page);

@@ -2,7 +2,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { FIXTURES, copyFixture, nextFrame, openPage, startDevServer } from './harness.js';
+import { FIXTURES, copyFixture, nextFrame, openPage, openSheet, startDevServer } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 
@@ -16,8 +16,7 @@ describe('Ask Claude', () => {
     ({ browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 }));
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(server.url).origin });
     await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
-    await page.locator('[role=tab]', { hasText: 'SFE-04' }).click();
-    await page.waitForFunction(() => [...document.querySelector('#sheet-host').shadowRoot.querySelectorAll('text')].some((t) => t.textContent.trim() === 'R6'));
+    await openSheet(page, 'SFE-04'); // R6 is on SFE-01 too: wait for SFE-04 itself, not for a label
     await page.waitForFunction(() => document.querySelectorAll('#checklist input[type=checkbox]').length > 0);
     await nextFrame(page);
     const { x, y } = await page.evaluate(() => {

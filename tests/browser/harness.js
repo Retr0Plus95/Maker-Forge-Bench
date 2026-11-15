@@ -100,6 +100,14 @@ export async function openPage(url, viewport, options = {}) {
       } catch { /* no storage */ }
     });
   }
+  // BENCH_SLOW_SHEETS=1 holds every drawing back 400 ms: a test that waits for the wrong thing after
+  // picking a sheet (a label the last sheet has too) then fails every time instead of now and then.
+  if (process.env.BENCH_SLOW_SHEETS) {
+    await page.route(/\/docs\/.*\.svg/, async (route) => {
+      await new Promise((r) => setTimeout(r, 400));
+      await route.fallback();
+    });
+  }
   if (options.before) await options.before(page);
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
@@ -145,6 +153,26 @@ export async function openPage(url, viewport, options = {}) {
 /** Waits for the browser to paint once, so view changes have been applied. */
 export function nextFrame(page) {
   return page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+}
+
+/**
+ * Picks a sheet's tab and waits until that sheet's drawing is the one on screen. The tab is marked
+ * chosen as soon as it's clicked, but the last sheet stays up until the new one has loaded, so
+ * waiting for a label could find it on the last sheet. Only for a sheet that isn't shown already.
+ */
+export async function openSheet(page, name) {
+  const mark = await page.evaluate(() => {
+    const shown = document.querySelector('#sheet-host')?.shadowRoot?.lastElementChild; // after Bench's own style
+    const m = `was-shown-${Math.random()}`;
+    if (shown) shown.benchTestMark = m; // a plain property, so the drawing itself is unchanged
+    return m;
+  });
+  await page.locator('#tabs [role=tab]', { hasText: name }).click();
+  await page.waitForFunction((m) => {
+    const shown = document.querySelector('#sheet-host')?.shadowRoot?.lastElementChild;
+    return shown && shown.tagName !== 'STYLE' && shown.benchTestMark !== m;
+  }, mark);
+  await nextFrame(page);
 }
 
 /** The shown drawing's (or picture's) box on screen, and the stage's. */

@@ -2,7 +2,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { copyFixture, nextFrame, openPage, startDevServer } from './harness.js';
+import { copyFixture, nextFrame, openPage, openSheet, startDevServer } from './harness.js';
 
 const BANNER = 'SOLDER SIDE – seen from underneath';
 
@@ -32,10 +32,7 @@ describe('flip to the solder side', () => {
     server = await startDevServer(await copyFixture('fume-extractor'));
     ({ browser, page, problems } = await openPage(server.url, { width: 1280, height: 800 }));
     await page.waitForFunction(() => document.querySelector('#sheet-host')?.shadowRoot?.querySelector('svg'));
-    await tab(page, 'SFE-04').click();
-    await page.waitForFunction(() => [...document.querySelector('#sheet-host').shadowRoot.querySelectorAll('text')]
-      .some((t) => t.textContent.trim() === 'R6'));
-    await nextFrame(page);
+    await openSheet(page, 'SFE-04'); // R6 is on SFE-01 too: wait for SFE-04 itself, not for a label
   });
 
   after(async () => {
