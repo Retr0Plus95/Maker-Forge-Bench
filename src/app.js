@@ -1,7 +1,7 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderFaults, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWiring } from './panel.js';
 import { lengthText, suggestedCut, wireCut, wireCutText } from './wirecut.js';
 import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
@@ -48,6 +48,7 @@ import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 import { bridgeRisks } from './bridges.js';
 import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
 import { waitingNow, withWaiting } from './waiting.js';
+import { FAULT_SYSTEM, answerText, checksFor, faultQuestion, faultSummary, judge, symptomsFor } from './faults.js';
 import { awayFor, lastTick, timeLeft } from './resume.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
@@ -96,6 +97,9 @@ const state = {
   looksOpen: false, // the card's Looks like is open
   stepEdits: NO_EDITS, // your changes to the build steps: { order, skipped, added } (0.8 §3)
   waiting: new Set(), // parts you don't have yet (1.0.1)
+  faults: {}, // the fault finder's answers: { symptomId: { checkId: { said } | { reading } } } (1.0.2)
+  faultOpen: null, // the symptom open in the fault finder
+  faultAt: null, // the check showing, when you went back to one
   welcome: false, // Welcome back on show: opened after more than an hour away (1.0.1)
   stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
@@ -114,7 +118,7 @@ const state = {
   wiringFilter: '',
   openBridge: null, // the bridge risk last opened from 3D or Checks (1.0.1)
 };
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -963,6 +967,7 @@ function setAi(next) {
   ai = next;
   store.set('ai', aiForStorage(ai)); // the key only when Remember is ticked
   if (state.selected) renderPartCard();
+  renderFaultsPanel();
 }
 
 /** The card's Ask here: the same context Copy for Claude copies goes to the AI; the answer shows as plain text. */
@@ -1151,6 +1156,7 @@ function updateParts() {
   renderWiringPanel();
   renderChecksPanel();
   renderContinuityPanel();
+  renderFaultsPanel();
 }
 
 // ---- the 3D board (board-view design §5), over the dimmed schematic ----
@@ -1271,11 +1277,13 @@ function marksFor3D() {
   findings3D = new Map();
   if (board3dSource !== 'mine') {
     const board = projectBoard();
-    if (!board || !$('#board3d-bridges').checked) return [];
-    return bridgesNow().map((f) => {
+    if (!board) return [];
+    const probes = faultProbeMarks(board);
+    if (!$('#board3d-bridges').checked) return probes;
+    return [...probes, ...bridgesNow().map((f) => {
       findings3D.set(f.id, f);
       return { id: f.id, x: (f.at[0] - 1) * board.pitch, y: (f.at[1] - 1) * board.pitch, side: 'bottom', level: 'warning', text: f.text };
-    });
+    })];
   }
   const mine = myBoardFor3D();
   const board = boardOf();
@@ -2551,7 +2559,7 @@ const snapshot = () => JSON.parse(exportProgress({
   project: projectName(), revision: state.project ? state.project.revision : null,
   ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
-  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
+  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults,
 }));
 
 function renderVersions() {
@@ -2596,8 +2604,8 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
@@ -2633,8 +2641,8 @@ function startOver() {
     return;
   }
   state.startOverAt = 0;
-  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity };
-  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {} }), revert: () => setProgress(before) });
+  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults };
+  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {} }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
 
@@ -2656,6 +2664,7 @@ function paletteItems() {
   if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
   act('Shopping list', openShopping);
   act('Sort your parts', openSortParts);
+  if (state.project && state.project.board) act('Find a fault', openFaultFinder);
   act('Build log', openLog);
   act('Versions', openVersions);
   act('Build report', saveReport);
@@ -2999,17 +3008,22 @@ function setCheck(id, on, label) {
 }
 
 // ---- the guided continuity test (0.5 big improvement B6) ----
-function currentTests() {
-  const tests = continuityTests(projectBoard());
+/** With hole names on, a leg that's on your board says where: "U2 pin 7 (L14)" (0.6). Null without them. */
+function legNamer() {
   const map = holeMap();
-  if (!map || !tests.length) return tests;
-  // with hole names on, each leg that's on your board says where (0.6)
+  if (!map) return null;
   const holes = new Map(placedLegs(boardOf(), state.myBoard.placed, anchorRef()).map((l) => [l.key, l.hole]));
-  const named = (leg) => {
+  return (leg) => {
     const hole = holes.get(`${leg.ref}:${leg.pin}`);
     const name = hole ? holeName(map, hole) : null;
     return name ? { ...leg, text: `${leg.text} (${name})` } : leg;
   };
+}
+
+function currentTests() {
+  const tests = continuityTests(projectBoard());
+  const named = tests.length ? legNamer() : null;
+  if (!named) return tests;
   return tests.map((t) => ({ ...t, a: named(t.a), b: named(t.b) }));
 }
 
@@ -3043,6 +3057,240 @@ function renderContinuityPanel() {
       state.contSkipped.clear();
       setContinuity({}, 'Start the continuity test again');
     },
+  });
+}
+
+// ---- the fault finder (1.0.2, roadmap L1): from a symptom to the meter checks that find it ----
+let faultCache = { board: null, parts: null, project: null, symptoms: [], checks: new Map() };
+const faultAsk = { id: null, asking: false, answer: '', failed: false };
+
+/** The project as you built it: the board with your Looks like, each part as its card shows it. */
+function faultProject() {
+  const board = projectBoard();
+  if (faultCache.board !== board || faultCache.parts !== state.parts) {
+    const project = state.project && board ? { ...state.project, board, parts: state.project.parts.map((p) => cardPart(p.ref) || p) } : null;
+    faultCache = { board, parts: state.parts, project, symptoms: project ? symptomsFor(project) : [], checks: new Map() };
+  }
+  return faultCache.project;
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** A symptom's checks, with the hole names in where the probes go when they're set up. */
+function faultChecks(id) {
+  const project = faultProject();
+  if (!project) return [];
+  if (!faultCache.checks.has(id)) faultCache.checks.set(id, checksFor(id, project));
+  const checks = faultCache.checks.get(id);
+  const named = legNamer();
+  if (!named) return checks;
+  const swap = (text, from, to) => (from.text === to.text ? text : text.replace(new RegExp(`${escapeRe(from.text)}(?!\\d)`, 'g'), to.text));
+  return checks.map((c) => {
+    if (!c.a) return c;
+    const a = named(c.a);
+    const b = c.b ? named(c.b) : null;
+    let text = swap(c.text, c.a, a);
+    if (b) text = swap(text, c.b, b);
+    return { ...c, a, ...(b ? { b } : {}), text };
+  });
+}
+
+/** The open symptom: its checks, your answers, and which check is showing (null once all are answered). */
+function openFault() {
+  if (!state.faultOpen) return null;
+  const checks = faultChecks(state.faultOpen);
+  const answers = state.faults[state.faultOpen] || {};
+  const at = state.faultAt !== null && state.faultAt < checks.length ? state.faultAt : faultSummary(checks, answers).next;
+  return { checks, answers, at, check: at === null ? null : checks[at] };
+}
+
+const faultSymptom = () => faultCache.symptoms.find((s) => s.id === state.faultOpen) || null;
+const refreshProbes = () => { if (board3d) board3d.setMarks(marksFor3D()); };
+
+/**
+ * Changes one symptom's answers. Undo and redo open that symptom again at the check they changed
+ * (undoAt) or at the one that came next (redoAt), so you see what moved.
+ */
+function setFaultAnswers(id, answers, label, undoAt = null, redoAt = null) {
+  const before = state.faults;
+  const next = { ...state.faults };
+  if (Object.keys(answers).length) next[id] = answers;
+  else delete next[id];
+  const at = (index) => () => {
+    state.faultOpen = id;
+    state.faultAt = index;
+  };
+  history.do({
+    label,
+    apply: () => { at(redoAt)(); setProgress({ faults: next }); },
+    revert: () => { at(undoAt)(); setProgress({ faults: before }); },
+  });
+}
+
+/** What an answer says in the build log: "U2 pin 7: 4.98 V", "R12 pin 2 to U2 pin 4: no beep". */
+function faultLabel(check, answer) {
+  const said = answerText(check, answer);
+  if (check.kind === 'look' || (check.kind === 'watch' && !check.a)) return `${check.text.replace(/\?[^?]*$/, '?')} ${said}`;
+  if (check.kind === 'volts') return `${check.a.text}: ${said}`;
+  if (check.a && check.b) return `${check.a.text} to ${check.b.text}: ${said}`;
+  return `${check.refs[0] || 'Check'}: ${said}`;
+}
+
+function answerFault(check, answer) {
+  const open = openFault();
+  if (!open) return;
+  const at = open.checks.findIndex((c) => c.id === check.id);
+  // a right answer moves on to the next one not answered; a wrong one stays to show what to fix
+  let next = at;
+  if (judge(check, answer) !== 'wrong') {
+    const after = open.checks.findIndex((c, k) => k > at && c.id !== check.id && judge(c, open.answers[c.id]) === null);
+    next = after >= 0 ? after : null;
+  }
+  setFaultAnswers(state.faultOpen, { ...open.answers, [check.id]: answer }, faultLabel(check, answer), at, next);
+  refreshProbes();
+}
+
+function retryFault(checkId) {
+  const open = openFault();
+  if (!open) return;
+  const next = { ...open.answers };
+  delete next[checkId];
+  const at = open.checks.findIndex((c) => c.id === checkId);
+  setFaultAnswers(state.faultOpen, next, 'Check again', at >= 0 ? at : null, at >= 0 ? at : null);
+  refreshProbes();
+}
+
+function goToFault(index) {
+  state.faultAt = index;
+  renderFaultsPanel();
+  refreshProbes();
+}
+
+/** Where the probes go: the part with that pin picked in its card, its ring on the sheet, and marks in 3D. */
+function showFaultCheck(check) {
+  if (!check) return;
+  const ref = check.a ? check.a.ref : check.refs[0];
+  if (!ref || !state.partsByRef.has(ref)) return;
+  selectPart(ref);
+  if (check.a) {
+    state.pinSelected = check.a.pin;
+    state.pinsOpen = true; // the pin view, with that pin picked, where the part has one
+    renderPartCard();
+  }
+  refreshProbes();
+}
+
+/** The probe marks for 3D: a red + and a black − over the two legs of the check showing. */
+function faultProbeMarks(board) {
+  const open = openFault();
+  const check = open && open.check;
+  if (!check || !check.a || !board) return [];
+  const marks = [];
+  for (const [legOf, mark, colour] of [[check.a, '+', 'Red'], [check.b, '−', 'Black']]) {
+    const part = legOf ? board.parts[legOf.ref] : null;
+    const at = part && part.pins[legOf.pin];
+    if (!at) continue;
+    marks.push({ id: `probe:${mark}`, x: (at[0] - 1) * board.pitch, y: (at[1] - 1) * board.pitch, side: 'top', level: 'probe', mark, text: `${colour} probe: ${legOf.text}` });
+  }
+  return marks;
+}
+
+function faultPrompt() {
+  const open = openFault();
+  const symptom = faultSymptom();
+  return open && symptom ? faultQuestion({ project: faultProject(), symptom, checks: open.checks, answers: open.answers }) : null;
+}
+
+async function askFault() {
+  const prompt = faultPrompt();
+  if (!prompt || faultAsk.asking) return;
+  Object.assign(faultAsk, { id: state.faultOpen, asking: true, answer: '', failed: false });
+  renderFaultsPanel();
+  try {
+    faultAsk.answer = await askAi(ai, FAULT_SYSTEM, prompt, { origin: window.location.origin });
+  } catch (error) {
+    faultAsk.answer = error.message;
+    faultAsk.failed = true;
+  }
+  faultAsk.asking = false;
+  renderFaultsPanel();
+}
+
+/** Copy for Claude: the same text Ask sends, copied, and claude.ai opened at once (later would be a blocked popup). */
+function copyFault() {
+  const prompt = faultPrompt();
+  if (!prompt) return;
+  const copying = navigator.clipboard.writeText(prompt).then(() => true, () => false);
+  window.open('https://claude.ai/new', '_blank', 'noopener');
+  copying.then((ok) => setStatus(ok ? 'Copied: paste it into Claude.' : "Couldn't copy: the browser didn't allow it."));
+}
+
+function setFaultOpen(id) {
+  state.faultOpen = id;
+  state.faultAt = null;
+  renderFaultsPanel();
+  refreshProbes();
+}
+
+/** The palette's Find a fault: the Checks tab with the list of symptoms. */
+function openFaultFinder() {
+  showTab('checks');
+  setFaultOpen(null);
+  const box = $('#faults');
+  if (box) box.scrollIntoView({ block: 'start' });
+  const first = $('#fault-symptoms button');
+  if (first) first.focus();
+}
+
+function renderFaultsPanel() {
+  const project = faultProject();
+  const symptoms = project ? faultCache.symptoms : [];
+  if (state.faultOpen && !symptoms.some((s) => s.id === state.faultOpen)) state.faultOpen = null;
+  const open = openFault();
+  renderFaults($('#faults'), {
+    hasProject: Boolean(state.project),
+    hasBoard: Boolean(project),
+    symptoms: symptoms.map((s) => {
+      const answers = state.faults[s.id];
+      if (!answers) return { ...s, done: 0, total: 0, problems: 0 };
+      const sum = faultSummary(faultChecks(s.id), answers);
+      return { ...s, done: sum.done, total: sum.total, problems: sum.problems.length };
+    }),
+    open: open ? { symptom: faultSymptom(), ...open, summary: faultSummary(open.checks, open.answers) } : null,
+    judge,
+    answerText,
+    ai: {
+      ready: aiReady(ai),
+      name: aiName(ai),
+      asking: faultAsk.asking && faultAsk.id === state.faultOpen,
+      answer: faultAsk.id === state.faultOpen ? faultAsk.answer : '',
+      failed: faultAsk.id === state.faultOpen && faultAsk.failed,
+    },
+    onOpen: setFaultOpen,
+    onClose: () => setFaultOpen(null),
+    onAnswer: answerFault,
+    onBack: () => {
+      const o = openFault();
+      if (o) goToFault(Math.max(0, (o.at === null ? o.checks.length : o.at) - 1));
+    },
+    onNext: () => {
+      const o = openFault();
+      if (!o || o.at === null) return;
+      const after = o.checks.findIndex((c, k) => k > o.at && judge(c, o.answers[c.id]) === null);
+      const first = faultSummary(o.checks, o.answers).next;
+      goToFault(after >= 0 ? after : first !== null && first !== o.at ? first : null);
+    },
+    onGo: goToFault,
+    onRetry: retryFault,
+    onReset: () => {
+      const symptom = faultSymptom();
+      if (!symptom) return;
+      setFaultAnswers(symptom.id, {}, `Start "${symptom.title}" again`, state.faultAt, null);
+      refreshProbes();
+    },
+    onShow: showFaultCheck,
+    onAsk: askFault,
+    onCopy: copyFault,
   });
 }
 
@@ -3300,6 +3548,9 @@ function loadProgress() {
   state.looks = data ? data.looks : Object.create(null);
   state.stepEdits = data ? data.steps : NO_EDITS;
   state.waiting = new Set(data ? data.waiting : []);
+  state.faults = data ? data.faults : {};
+  state.faultOpen = null;
+  state.faultAt = null;
   state.welcome = state.ticked.size > 0 && awayFor(state.log, Date.now()) > 60 * 60 * 1000;
   refreshNotes();
 }
@@ -3315,7 +3566,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults });
   if (saved) flashSaved();
 }
 
@@ -3332,6 +3583,7 @@ function checkProgressKey() {
   renderWiringPanel();
   renderChecksPanel();
   renderContinuityPanel();
+  renderFaultsPanel();
   renderPartCard();
   updateMyBoard();
 }
@@ -3367,7 +3619,7 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting, faults }) {
   const stepWasDone = autoStepWasDone();
   // your steps, waiting parts and ticks (a waiting part ticked has come) change the steps you follow
   const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
@@ -3392,6 +3644,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
   if (continuity) state.continuity = continuity;
+  if (faults) state.faults = faults;
   if (looks) {
     state.looks = looks;
     state.suggest = null;
@@ -3412,6 +3665,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   renderWiringPanel();
   renderChecksPanel();
   renderContinuityPanel();
+  renderFaultsPanel();
   renderPartCard();
   updateMyBoard();
   updateTabCounts();
@@ -3507,7 +3761,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -3535,8 +3789,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 

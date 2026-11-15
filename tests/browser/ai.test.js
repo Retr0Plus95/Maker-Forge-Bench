@@ -36,6 +36,8 @@ const claudeSays = (text, stop = 'end_turn') => ({ json: { stop_reason: stop, co
 
 async function openR6(page) {
   await page.locator('#find').fill('R6');
+  // Enter picks the first result: before the results show it does nothing (seen once on a busy machine)
+  await page.waitForFunction(() => document.querySelectorAll('#find-results button').length > 0);
   await page.locator('#find').press('Enter');
   await page.waitForFunction(() => document.querySelector('#part-card h2')?.firstChild?.textContent === 'R6');
 }

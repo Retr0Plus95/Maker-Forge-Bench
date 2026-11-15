@@ -816,6 +816,188 @@ export function renderContinuity(container, o) {
   keepFocus(container, () => container.replaceChildren(...children), '#cont-beeped, #cont-reset');
 }
 
+// ---- the fault finder (1.0.2) ----
+const METER = { beep: 'meter on beep', nobeep: 'meter on beep', volts: 'meter on DC volts' };
+
+/** "Power off · meter on beep": how to set up for a check. */
+function setupText(check) {
+  const power = check.power === 'on' ? 'Power on' : 'Power off';
+  const meter = METER[check.kind] || (check.kind === 'watch' && check.a ? (check.power === 'on' ? 'meter on DC volts' : 'meter on beep') : '');
+  return meter ? `${power} · ${meter}` : power;
+}
+
+const YES_NO = {
+  look: ['Looks right', 'Found a problem'],
+  beep: ['Beeped', 'No beep'],
+  nobeep: ['Beeped', 'No beep'],
+  watch: ['Yes', 'No'],
+};
+
+/** Reads what you typed: "4.98", "4,98", "4.98 V", "-0.2". NaN when it isn't a number. */
+export function readReading(text) {
+  const m = String(text || '').trim().replace(',', '.').match(/^(-?\d+(?:\.\d+)?|-?\.\d+)\s*(m?v)?$/i);
+  if (!m) return NaN;
+  const v = Number(m[1]);
+  return m[2] && m[2].toLowerCase() === 'mv' ? v / 1000 : v;
+}
+
+function faultNow(o, open) {
+  const { check, at, checks, answers } = open;
+  const answer = answers[check.id];
+  const verdict = o.judge(check, answer);
+  const box = el('div', { id: 'fault-now', 'data-kind': check.kind, 'data-check': check.id });
+  const before = at > 0 ? checks[at - 1] : null;
+  if (check.power === 'on' && (!before || before.power !== 'on')) box.append(el('p', { className: 'fault-switch' }, 'Now switch on.'));
+  box.append(
+    el('p', { className: 'fault-setup' }, setupText(check)),
+    el('p', { className: 'fault-text' }, check.text),
+    el('p', { className: 'fault-expect' }, check.expect),
+  );
+  if (check.why) box.append(el('p', { className: 'fault-why' }, `Why: ${check.why}`));
+  if (verdict === 'wrong') {
+    const retry = el('button', { id: 'fault-retry', type: 'button', className: 'primary', 'data-focus': 'retry' }, 'Fixed it, check again');
+    retry.addEventListener('click', () => o.onRetry(check.id));
+    const next = el('button', { id: 'fault-next', type: 'button', 'data-focus': 'next' }, 'Carry on');
+    next.addEventListener('click', o.onNext);
+    box.append(
+      el('p', { className: 'fault-said' }, `You said: ${o.answerText(check, answer)}.`),
+      el('p', { id: 'fault-fix', className: 'fault-fix', role: 'status' }, check.fix),
+      el('div', { className: 'fault-actions' }, retry, next));
+    return box;
+  }
+  if (verdict) box.append(el('p', { className: 'fault-said' }, `You said: ${o.answerText(check, answer)}.`));
+  if (check.kind === 'volts') {
+    const input = el('input', { id: 'fault-reading', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'e.g. 4.98', 'data-focus': 'reading', 'aria-describedby': 'fault-reading-help' });
+    if (answer && Number.isFinite(answer.reading)) input.value = String(answer.reading);
+    const help = el('span', { id: 'fault-reading-help', className: 'hint' }, '');
+    const form = el('form', { id: 'fault-volts', className: 'fault-actions' },
+      el('label', { for: 'fault-reading' }, 'The meter shows'), input, el('span', {}, 'V'),
+      el('button', { id: 'fault-save', type: 'submit', className: 'primary', 'data-focus': 'save' }, 'Save'), help);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = readReading(input.value);
+      if (!Number.isFinite(v)) {
+        help.textContent = 'Type the number the meter shows, like 4.98.';
+        input.focus();
+        return;
+      }
+      o.onAnswer(check, { reading: v });
+    });
+    box.append(form);
+  } else {
+    const [yesText, noText] = YES_NO[check.kind] || YES_NO.watch;
+    const yes = el('button', { id: 'fault-yes', type: 'button', className: 'primary', 'data-focus': 'yes' }, yesText);
+    yes.addEventListener('click', () => o.onAnswer(check, { said: 'yes' }));
+    const no = el('button', { id: 'fault-no', type: 'button', 'data-focus': 'no' }, noText);
+    no.addEventListener('click', () => o.onAnswer(check, { said: 'no' }));
+    box.append(el('div', { className: 'fault-actions' }, yes, no));
+  }
+  return box;
+}
+
+/**
+ * The fault finder (1.0.2): pick what's wrong, then one meter check at a time, then what they found
+ * and Claude. o: { hasProject, hasBoard, symptoms, open, judge, answerText, ai, onOpen(id), onClose(),
+ * onAnswer(check, answer), onBack(), onNext(), onGo(i), onRetry(id), onReset(), onShow(check), onAsk(), onCopy() }
+ */
+export function renderFaults(container, o) {
+  if (!o.hasProject) {
+    container.replaceChildren();
+    return;
+  }
+  const children = [el('h2', {}, 'Find a fault')];
+  if (!o.hasBoard) {
+    children.push(el('p', { className: 'hint' }, "The fault finder needs the board's connections: a project file with a board in it. The part card's Ask can still help with one part."));
+    container.replaceChildren(...children);
+    return;
+  }
+  const open = o.open;
+  if (!open) {
+    children.push(el('p', { className: 'hint' }, "Pick what's wrong. Bench walks you through the checks with your meter, one at a time, and shows where each probe goes."));
+    const list = el('ul', { id: 'fault-symptoms' });
+    for (const s of o.symptoms) {
+      const b = el('button', { type: 'button', className: 'fault-symptom', 'data-symptom': s.id, 'data-focus': `symptom:${s.id}` }, s.title);
+      b.addEventListener('click', () => o.onOpen(s.id));
+      const li = el('li', {}, b);
+      if (s.done) li.append(el('span', { className: 'hint fault-progress' }, `${s.done} of ${s.total} checked${s.problems ? ` · ${s.problems} ${s.problems === 1 ? 'problem' : 'problems'}` : ''}`));
+      list.append(li);
+    }
+    children.push(list);
+    keepFocus(container, () => container.replaceChildren(...children), '#fault-symptoms button');
+    return;
+  }
+  const { summary, symptom } = open;
+  const close = el('button', { id: 'fault-close', type: 'button', className: 'part-link', 'data-focus': 'close' }, '← Pick another fault');
+  close.addEventListener('click', o.onClose);
+  const bar = el('progress', { max: String(summary.total) });
+  bar.value = summary.done;
+  children.push(close, el('h3', { id: 'fault-title' }, symptom.title),
+    el('p', { className: 'progress-text', id: 'fault-count' }, `${summary.done} of ${summary.total} checked · ${summary.problems.length} ${summary.problems.length === 1 ? 'problem' : 'problems'}`),
+    bar);
+  if (symptom.warn) children.push(el('p', { className: 'fault-warn', role: 'alert' }, symptom.warn));
+  if (open.check) {
+    children.push(el('p', { className: 'hint', id: 'fault-step' }, `Check ${open.at + 1} of ${summary.total}`));
+    children.push(faultNow(o, open));
+    const back = el('button', { id: 'fault-back', type: 'button', 'data-focus': 'back' }, 'Back');
+    if (open.at === 0) back.disabled = true;
+    back.addEventListener('click', o.onBack);
+    const answered = o.judge(open.check, open.answers[open.check.id]) !== null;
+    const skip = el('button', { id: 'fault-skip', type: 'button', 'data-focus': 'skip' }, answered ? 'Next' : 'Skip');
+    skip.addEventListener('click', o.onNext);
+    const nav = el('div', { className: 'fault-nav' }, back, skip);
+    if (open.check.refs && open.check.refs.length) {
+      const show = el('button', { id: 'fault-show', type: 'button', 'data-focus': 'show' }, 'Show where');
+      show.addEventListener('click', () => o.onShow(open.check));
+      nav.append(show);
+    }
+    children.push(nav);
+  } else {
+    const back = el('button', { id: 'fault-back', type: 'button', 'data-focus': 'back' }, 'Back');
+    back.addEventListener('click', o.onBack);
+    children.push(el('p', { id: 'fault-done' }, summary.problems.length
+      ? 'Every check done. Fix the problems below, then check them again.'
+      : 'Every check done, and none of them found the fault. Ask Claude with your readings below.'), el('div', { className: 'fault-nav' }, back));
+  }
+  children.push(el('h3', {}, 'What the checks found'));
+  if (summary.problems.length) {
+    const list = el('ul', { id: 'fault-problems' });
+    for (const c of summary.problems) {
+      const go = el('button', { type: 'button', className: 'part-link' }, 'Go to it');
+      go.addEventListener('click', () => o.onGo(open.checks.indexOf(c)));
+      const again = el('button', { type: 'button', className: 'fault-again' }, 'Check again');
+      again.addEventListener('click', () => o.onRetry(c.id));
+      list.append(el('li', { 'data-check': c.id }, c.fix, ' ', go, ' ', again));
+    }
+    children.push(list);
+  }
+  if (summary.readings.length) {
+    children.push(el('p', { className: 'fault-readings-title' }, 'Your readings:'));
+    children.push(el('ul', { id: 'fault-readings' }, ...summary.readings.map((r) => {
+      const judged = o.judge(r.check, { reading: r.reading });
+      return el('li', { 'data-check': r.check.id, 'data-verdict': judged }, `${r.check.a.text}: ${o.answerText(r.check, { reading: r.reading })}${judged === 'ok' ? ' ✓' : judged === 'wrong' ? ' ✗' : ''}`);
+    })));
+  }
+  if (!summary.problems.length && !summary.readings.length) children.push(el('p', { className: 'hint' }, 'Nothing found yet.'));
+  const claude = el('div', { id: 'fault-claude' });
+  if (o.ai.ready) {
+    const ask = el('button', { id: 'fault-ask', type: 'button', 'data-focus': 'ask' }, o.ai.asking ? 'Asking…' : `Ask ${o.ai.name}`);
+    if (o.ai.asking) ask.disabled = true;
+    ask.addEventListener('click', o.onAsk);
+    claude.append(ask);
+  }
+  const copy = el('button', { id: 'fault-copy', type: 'button', 'data-focus': 'copy' }, 'Copy for Claude');
+  copy.addEventListener('click', o.onCopy);
+  claude.append(copy, el('p', { className: 'hint' }, o.ai.ready
+    ? 'Sends what is wrong, your answers and readings, and the jobs of the parts involved.'
+    : 'Copies what is wrong, your answers and readings, and the jobs of the parts involved, then opens claude.ai. With your own key in Easy reading → AI help, Bench asks for you.'));
+  if (o.ai.answer) claude.append(el('p', { id: 'fault-answer', className: o.ai.failed ? 'ask-answer ai-bad' : 'ask-answer' }, o.ai.answer));
+  children.push(claude);
+  const reset = el('button', { id: 'fault-reset', type: 'button', 'data-focus': 'reset' }, 'Start this one again');
+  reset.addEventListener('click', o.onReset);
+  children.push(reset);
+  keepFocus(container, () => container.replaceChildren(...children), '#fault-yes, #fault-reading, #fault-retry, #fault-close');
+}
+
 // ---- the pin view (0.4 design F2) ----
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function svg(tag, attrs = {}, text) {

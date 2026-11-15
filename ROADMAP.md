@@ -327,8 +327,9 @@ the fume extractor build now: 24 Bridge risk, L1 Fault finder, 8 "I don't have t
 20 Mix-up warning and 1 Welcome back. S = small, M = medium.
 
 **In batches (agreed 2026-11-15),** each on its own release branch, checked and reviewed, merged when
-the owner says: 1 At the bench (1–10, 20, 24) as **1.0.1**, built on `release-1.0.1` (design
-`docs/design/2026-11-15-release-1.0.1-design.md`), waiting for the owner's merge; 2 L1 Fault finder; 3 the
+the owner says: 1 At the bench (1–10, 20, 24) as **1.0.1**, merged 2026-11-15 (design
+`docs/design/2026-11-15-release-1.0.1-design.md`); 2 L1 Fault finder as **1.0.2**, built on
+`release-1.0.2` (design `docs/design/2026-11-15-release-1.0.2-design.md`), waiting for the owner's merge; 3 the
 drawings and part cards (11–19); 4 your board, wiring and 3D (21–23, 25–27); 5 help (38–40); then the
 other large ones one release each, with L6 Swedish last so every new word is translated once.
 **Files and sharing (28–37) is set aside** at the owner's word: they don't want the website's security
@@ -394,7 +395,8 @@ rules (`deploy/csp.txt`) changed, which 31 would need. It comes back only if the
 **Large**
 - **L1 Fault finder by symptom.** Pick "LCD blank" or "fans always at full speed", and Bench walks
   you through checks with the meter, lighting where to measure. Claude helps when the checks run
-  out. Goes with 1.4.
+  out. **Built as 1.0.2** (Checks → Find a fault), from the board's connections and the parts'
+  roles; a `faults` list written in the project file can come later.
 - **L2 Build book.** The whole guide as a booklet to print: one step per page with its 3D picture,
   the parts, the holes and tick boxes. Goes further than 1.2's printed checklist.
 - **L3 Make a project file in the browser.** For projects that only have drawings: fix the guessed
