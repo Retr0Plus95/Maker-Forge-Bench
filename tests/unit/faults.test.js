@@ -169,6 +169,69 @@ test('where the checks stand, and the question for Claude', () => {
   assert.doesNotMatch(q, /look:R7/, 'checks not done yet stay out');
 });
 
+// A small board with no power connector: a chip, an LED with its resistor, a line held up to +5 V and
+// a line between resistors to two different rails.
+const tiny = {
+  name: 'Tiny',
+  parts: [
+    { ref: 'U1', type: 'ic', value: 'ATtiny85' },
+    { ref: 'R1', type: 'resistor', value: '330R' },
+    { ref: 'R2', type: 'resistor', value: '10k' },
+    { ref: 'R3', type: 'resistor', value: '10k' },
+    { ref: 'R4', type: 'resistor', value: '10k' },
+    { ref: 'D1', type: 'led', value: 'red LED' },
+  ],
+  board: {
+    parts: {
+      U1: { type: 'dip', pins: { 1: [1, 1], 2: [2, 1], 3: [3, 1], 4: [4, 1], 5: [4, 4], 6: [3, 4], 7: [2, 4], 8: [1, 4] } },
+      R1: { type: 'resistor', pins: { 1: [6, 1], 2: [6, 4] } },
+      R2: { type: 'resistor', pins: { 1: [7, 1], 2: [7, 4] } },
+      R3: { type: 'resistor', pins: { 1: [8, 1], 2: [8, 4] } },
+      R4: { type: 'resistor', pins: { 1: [9, 1], 2: [9, 4] } },
+      D1: { type: 'led', pins: { A: [10, 1], K: [10, 4] } },
+    },
+    nets: {
+      V5: [['U1', '8'], ['R2', '2'], ['R4', '2']],
+      V12: [['R3', '2']],
+      GND: [['U1', '4'], ['D1', 'K']],
+      OUT: [['U1', '5'], ['R1', '1']],
+      LED: [['R1', '2'], ['D1', 'A']],
+      MID: [['U1', '2'], ['R2', '1'], ['R3', '1']],
+      PU: [['U1', '3'], ['R4', '1']],
+    },
+    netLabels: { V5: '+5 V', V12: '+12 V', GND: '0 V' },
+  },
+};
+
+test('a board with no power connector: the readings go against a 0 V leg, and nothing breaks', () => {
+  assert.equal(wayIn(tiny), null);
+  const led = checksFor('light:D1', tiny);
+  assert.equal(byId(led, 'volts:LED').b.text, 'U1 pin 4');
+  const power = checksFor('power', tiny);
+  assert.deepEqual(byId(power, 'volts:V5').want, { volts: 5, tol: 0.5 });
+  assert.equal(byId(power, 'volts:V5').a.text, 'U1 pin 8');
+  const chip = checksFor('chip:U1', tiny);
+  assert.equal(byId(chip, 'beep:U1:4|U1:4'), undefined, 'never a leg against itself');
+  assert.deepEqual(byId(chip, 'volts:PU').want, { volts: 5, tol: 0.5 });
+  assert.equal(byId(chip, 'volts:MID'), undefined, 'resistors to two different rails: no single value to expect');
+});
+
+test('a 2-wire fan has no "full speed" symptom: it has no speed wire', () => {
+  const fan = {
+    parts: [
+      { ref: 'J9', type: 'connector', value: '2-pin', role: 'Power in: pin 1 is +12 V, pin 2 is 0 V.' },
+      { ref: 'J1', type: 'connector', value: '2-pin fan header', role: 'Fan: pin 1 is 0 V, pin 2 +12 V.' },
+    ],
+    board: {
+      parts: { J9: { type: 'header', pins: { 1: [5, 1], 2: [6, 1] } }, J1: { type: 'header', pins: { 1: [1, 1], 2: [2, 1] } } },
+      nets: { P: [['J9', '1'], ['J1', '2']], G: [['J9', '2'], ['J1', '1']] },
+      netLabels: { P: '+12 V', G: '0 V' },
+    },
+  };
+  assert.deepEqual(ids(symptomsFor(fan)), ['power', 'hot', 'fan-still:J1']);
+  assert.ok(checksFor('fan-still:J1', fan).length > 0);
+});
+
 test('answers read back from storage or a file: anything odd is dropped', () => {
   assert.deepEqual(cleanFaults(null), {});
   assert.deepEqual(cleanFaults({

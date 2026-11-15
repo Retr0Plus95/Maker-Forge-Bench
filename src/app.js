@@ -3644,7 +3644,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
   if (continuity) state.continuity = continuity;
-  if (faults) state.faults = faults;
+  if (faults) {
+    state.faults = faults;
+    if (board3d) board3d.setMarks(marksFor3D()); // the probes follow the check showing, undo too
+  }
   if (looks) {
     state.looks = looks;
     state.suggest = null;

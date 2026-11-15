@@ -130,7 +130,8 @@ export function symptomsFor(project) {
       if (kind === 'fan') {
         const name = /\bfans?\b/i.test(head) && head.length <= 24 && !/^to\b/i.test(head) ? ucfirst(head.trim()) : 'The fan';
         out.push({ id: `fan-still:${ref}`, kind: 'fan-still', ref, pins, title: `${name} (${ref}) doesn't spin` });
-        out.push({ id: `fan-full:${ref}`, kind: 'fan-full', ref, pins, title: `${name} (${ref}) always runs at full speed` });
+        // a 2-wire fan has nothing but power: no speed wire to check
+        if (signalPins(ref).length) out.push({ id: `fan-full:${ref}`, kind: 'fan-full', ref, pins, title: `${name} (${ref}) always runs at full speed` });
       } else if (kind === 'display') {
         const text = `${head} ${part.value || ''}`;
         const noun = /lcd/i.test(text) ? 'LCD' : /oled/i.test(text) ? 'OLED' : 'display';
@@ -314,7 +315,7 @@ function pullUpOf(project, net) {
     if (type !== 'resistor' || !board.parts[ref]) return null;
     const other = Object.keys(board.parts[ref].pins).find((p) => p !== pin);
     const v = rails.get(index.get(`${ref}:${other}`));
-    if (!v) return null;
+    if (!v || (rail && rail.net !== index.get(`${ref}:${other}`))) return null; // to 0 V, or to two rails: no one value
     rail = { net: index.get(`${ref}:${other}`), volts: v, by: ref };
   }
   return rail;
@@ -331,7 +332,7 @@ function pathChecks(project, ref, pins, ground) {
       off.push(beepPair(board, leg(...members[k - 1]), leg(...members[k]), net));
     }
   }
-  const on = path.nets.map((net) => {
+  const on = !ground ? [] : path.nets.map((net) => {
     const members = board.nets[net];
     const own = members.find(([r]) => r === ref);
     const chip = members.find(([r]) => kindOf(project, r) === 'ic');
@@ -407,8 +408,10 @@ export function checksFor(symptomId, project) {
   const symptom = symptomsFor(project).find((s) => s.id === symptomId);
   if (!symptom) return [];
   const way = wayIn(project);
-  const ground = way ? leg(way.ref, way.ground.pin) : null;
   const rails = railsOf(board);
+  // the black probe: the way in's 0 V, else any 0 V leg
+  const zero = [...rails].find(([, v]) => v === 0);
+  const ground = way ? leg(way.ref, way.ground.pin) : zero ? railPoint(project, zero[0]) : null;
   let off = [];
   let on = [];
   const ref = symptom.ref;
@@ -437,13 +440,15 @@ export function checksFor(symptomId, project) {
         });
       }
       off.push(...shorts, ...polarized);
-      if (way && ground) {
-        const top = leg(way.ref, way.top.pin);
-        on.push(voltsCheck(`volts:${way.top.net}`, top, ground, want(rails.get(way.top.net)),
-          `No ${label(board, way.top.net)} at the way in: check the supply, the fuse, the switch and the wires to ${way.ref}.`));
+      if (ground) {
+        if (way) {
+          on.push(voltsCheck(`volts:${way.top.net}`, leg(way.ref, way.top.pin), ground, want(rails.get(way.top.net)),
+            `No ${label(board, way.top.net)} at the way in: check the supply, the fuse, the switch and the wires to ${way.ref}.`));
+        }
         for (const [net, v] of [...rails].sort((a, b) => b[1] - a[1])) {
-          if (!v || net === way.top.net) continue;
+          if (!v || (way && net === way.top.net)) continue;
           const point = railPoint(project, net);
+          if (!point) continue;
           const maker = makerOf(project, net);
           const mp = maker ? partOf(project, maker.ref) : null;
           on.push(voltsCheck(`volts:${net}`, point, ground, want(v),
@@ -501,7 +506,7 @@ export function checksFor(symptomId, project) {
     }
     const pins = Object.keys(board.parts[ref].pins);
     if (ground) {
-      for (const pin of pins.filter((p) => rails.get(index.get(`${ref}:${p}`)) === 0)) {
+      for (const pin of pins.filter((p) => rails.get(index.get(`${ref}:${p}`)) === 0 && !(ground.ref === ref && ground.pin === p))) {
         off.push(beepPair(board, leg(ref, pin), ground, index.get(`${ref}:${pin}`)));
       }
     }
