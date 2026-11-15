@@ -238,6 +238,15 @@ nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-de
 - Live at `forge.retr0plus.se/bench/`, listed on the Workbench page (work done in the website repo).
 - **★ New: "Report a problem with this drawing."** Opens a new GitHub issue on the project's repo,
   with the sheet and part already filled in. Builders who spot a mistake can tell you in one click.
+- **Taken from Shape (added 2026-11-15; design `docs/design/2026-11-15-release-1.0-design.md`):**
+  - **★ Wire to cut:** every link and bus with its length to cut and strip, totals in metres, and the
+    same for the suggested wires on your own board, with a colour hint per line.
+  - **★ Boards and modules in the library:** Shape's 63 boards and modules (Arduino, Raspberry Pi,
+    ESP32, converters, relays, sensors) at their real size, with holes and ports, as small 3D models,
+    part cards and Looks like choices. Pins from KiCad's footprints where it has them.
+  - **★ Send to Shape:** your board (size, holes, height, ports, LEDs and buttons on top) goes straight
+    into Shape's "Your parts" for its box maker. It works because both apps live at
+    forge.retr0plus.se, and it needs no change to Shape.
 
 ---
 
@@ -253,6 +262,8 @@ answers always match. Bench adds the calculations that belong to a part:
   a ¼ W resistor".
 - **★ New: Power budget:** adds up what every part in the project draws, and checks the regulator,
   fuse and battery against it.
+- **★ New (2026-11-15): Battery life,** with the sums Shape's box maker already uses: the battery's
+  energy, 80 % of it usable, what each part draws awake and asleep, and what a converter loses.
 - **★ New: "How this part works"** on every part card, opening the right page of the Parts library.
 - **Open in Calc**, with the part's values already filled in.
 
@@ -261,7 +272,9 @@ answers always match. Bench adds the calculations that belong to a part:
 - **★ Import a KiCad project** (an option for people who design in KiCad; decided 2026-11-14;
   design `docs/design/2026-11-14-kicad-import-design.md`):
   - Bench reads KiCad's files itself, in the browser: part cards, connections, a 3D board with real
-    parts, and build steps made for you.
+    parts, and build steps made for you. Shape's KiCad reader is a head start: it takes a board's outline,
+    mounting holes and edge connectors, so Bench adds every part, pad and connection.
+  - **★ New (2026-11-15): Eagle and EasyEDA boards too,** which Shape already reads for its boxes.
   - **GitHub runs KiCad for you:** add one ready-made file to the repo, and on every push GitHub's
     computers make the exact sheets, the exact 3D board, KiCad's error checks and factory files.
     Bench on the website picks them up. Nothing runs on your computer.
@@ -321,7 +334,8 @@ needs work in the other app's own repo and Claude session.
   once.
 - **Bench → Shape:** the project file's `board` section (board outline, mounting holes, where the
   fans, LCD, pot and connectors sit) opens in Shape's project-box maker. Change the board, and the
-  box can follow. This is the link SolidWorks users pay extra for.
+  box can follow. This is the link SolidWorks users pay extra for. 1.0's Send to Shape is the first
+  step: the board alone, through Shape's Your parts.
 - **Shape → Bench:** the box's printed parts appear in the project, so the build checklist can
   include "fit the board on its standoffs".
 - **★ New (2026-11-14): The board in its box, the SolidWorks way.** The board with its real 3D
