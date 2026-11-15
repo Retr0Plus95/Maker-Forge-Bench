@@ -267,6 +267,29 @@ class TestLiveServer(DevServerTestCase):
             self.fail("no change event within 3 s")
         conn.close()
 
+    def test_change_event_when_only_the_size_changed(self):
+        # A file read mid-save and then finished within the same clock tick keeps its time: its size
+        # still changes, and that must count, or the page keeps the half-saved copy (1.0.2).
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
+        conn.request("GET", "/api/events")
+        resp = conn.getresponse()
+        target = self.root / "docs" / "a.svg"
+        before = target.stat()
+        target.write_bytes(target.read_bytes() + b"<!-- finished -->")
+        os.utime(target, ns=(before.st_atime_ns, before.st_mtime_ns))
+        deadline = time.time() + 3
+        event = None
+        while time.time() < deadline:
+            line = resp.fp.readline().decode("utf-8").rstrip("\r\n")
+            if line.startswith("event: "):
+                event = line[len("event: "):]
+            elif line.startswith("data: ") and event == "change":
+                self.assertEqual(json.loads(line[len("data: "):])["path"], "docs/a.svg")
+                break
+        else:
+            self.fail("no change event within 3 s")
+        conn.close()
+
 
 class TestAppAlone(unittest.TestCase):
     """dev.py without a folder serves the app alone, as the website will (0.7)."""
