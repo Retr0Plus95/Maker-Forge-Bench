@@ -1,7 +1,8 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWiring } from './panel.js';
+import { lengthText, suggestedCut, wireCut, wireCutText } from './wirecut.js';
 import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
@@ -1892,6 +1893,7 @@ function updateRotateButton() {
 
 function updateMyBoard() {
   updateRotateButton();
+  renderWireCutPanel();
   if (board3dSource === 'mine' || !$('#board3d-mine').hidden !== Boolean(myBoardFor3D())) resetBoard3D();
   if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
@@ -2600,6 +2602,35 @@ function renderWiringPanel() {
       renderWiringPanel();
     },
   });
+  renderWireCutPanel();
+}
+
+// ---- Wire to cut (1.0 design §2): the board's lengths are worked out once per board ----
+let wireCutMemo = { board: undefined, cut: null };
+function wireCutFor(board) {
+  if (wireCutMemo.board !== board) wireCutMemo = { board, cut: board ? wireCut(board) : null };
+  return wireCutMemo.cut;
+}
+
+/** Your own board's suggested wires with their lengths, while they're shown on a lined-up photo. */
+function mySuggestedCut() {
+  const board = projectBoard();
+  if (!board || store.get('showWires', false) !== true || !Object.keys(state.myBoard.photos).length) return null;
+  return suggestedCut(suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}), board.pitch);
+}
+
+let wireCutShown = { board: undefined, key: '' };
+function renderWireCutPanel() {
+  const board = projectBoard();
+  const cut = board ? wireCutFor(board) : null;
+  const suggested = cut ? mySuggestedCut() : null;
+  const key = JSON.stringify(suggested ? suggested.lines.map((l) => [l.net, l.colour, l.mm, l.wires.length]) : null);
+  if (wireCutShown.board === board && wireCutShown.key === key) return; // nothing changed: keep what's open
+  wireCutShown = { board, key };
+  renderWireCut($('#wirecut'), cut, {
+    suggested,
+    onCopy: () => copyText(wireCutText(wireCutFor(projectBoard()), mySuggestedCut()), 'Wire list copied.'),
+  });
 }
 
 // ---- build steps (board-view design §5), one at a time ----
@@ -2655,7 +2686,10 @@ function stepWhatText(step) {
   if (step.what.includes('buses') && board.buses.length) {
     lines.push(`Buses: ${board.buses.map((b) => `row ${b.row} (${b.label})`).join(', ')}.`);
   }
-  if (step.what.includes('links') && board.links.length) lines.push(`${board.links.length} insulated links: see the wire list on sheet 4.`);
+  const cut = wireCutFor(board);
+  if (step.what.includes('links') && cut.links.length) {
+    lines.push(`${cut.links.length} insulated links, ${lengthText(cut.totals.insulated.mm)} of wire: the lengths are in Wiring → Wire to cut.`);
+  }
   if (step.what.includes('bridges') && board.bridges.length) {
     lines.push(`Bridges at ${board.bridges.map((b) => `${b.holes[0].join(',')}–${b.holes[1].join(',')}`).join(' and ')}.`);
   }

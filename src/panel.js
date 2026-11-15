@@ -3,6 +3,7 @@
 // Everything is built with createElement and textContent: a project file's text is untrusted.
 import { isGroundLabel, isPowerLabel, pinText, stillToWire, wireKey } from './wiring.js';
 import { BAND_HEX } from './markings.js';
+import { busText, lengthText, linkText, suggestedLineText, totalsText } from './wirecut.js';
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -958,4 +959,47 @@ export function renderWiring(container, groups, o) {
     children.push(details);
   }
   keepFocus(container, () => container.replaceChildren(...children), '#wiring-copy');
+}
+
+const COLOUR_TOTALS = [['red', 'red'], ['black', 'black'], ['other', 'other colours']];
+
+/**
+ * Wire to cut (1.0 design §2): every link and bus with its length to cut, and the suggested wires
+ * on your own board with a colour hint per line. o = { suggested: suggestedCut(...) | null, onCopy }.
+ */
+export function renderWireCut(container, cut, o) {
+  const mine = o.suggested && o.suggested.lines.length ? o.suggested : null;
+  if (!cut || (!cut.links.length && !cut.buses.length && !mine)) {
+    container.replaceChildren();
+    return;
+  }
+  const wasOpen = new Set([...container.querySelectorAll('details[open]')].map((d) => d.id));
+  const group = (id, summary, items) => {
+    const details = el('details', { id, className: 'wirecut-group' }, el('summary', { 'data-focus': id }, summary), el('ul', { className: 'wirecut-list' }, ...items));
+    details.open = wasOpen.has(id);
+    return details;
+  };
+  const children = [el('h2', {}, 'Wire to cut')];
+  const totals = totalsText(cut);
+  if (totals) children.push(el('p', { id: 'wirecut-totals' }, totals));
+  children.push(el('p', { className: 'hint' }, 'Each length is the path plus 5 mm at each end, rounded up to the next 5 mm.'));
+  if (cut.links.length) {
+    children.push(group('wirecut-links', `${cut.links.length} ${cut.links.length === 1 ? 'link' : 'links'}`,
+      cut.links.map((l) => el('li', { 'data-link': String(l.n) }, linkText(l)))));
+  }
+  if (cut.buses.length) {
+    children.push(group('wirecut-buses', `${cut.buses.length} bare-wire ${cut.buses.length === 1 ? 'bus' : 'buses'} (no stripping)`,
+      cut.buses.map((b) => el('li', { 'data-row': String(b.row) }, busText(b)))));
+  }
+  if (mine) {
+    const sums = COLOUR_TOTALS.filter(([k]) => mine.totals[k] > 0).map(([k, words]) => `${words} ${lengthText(mine.totals[k])}`).join(' · ');
+    const details = group('wirecut-mine', 'Suggested wires on your board',
+      mine.lines.map((l) => el('li', { 'data-net': l.net, className: `wirecut-${l.colour || 'other'}` }, suggestedLineText(l))));
+    details.querySelector('ul').before(el('p', { className: 'hint' }, `Wire by colour: ${sums}.`));
+    children.push(details);
+  }
+  const copy = el('button', { type: 'button', id: 'wirecut-copy', 'data-focus': 'copy' }, 'Copy as text');
+  copy.addEventListener('click', o.onCopy);
+  children.push(el('div', { className: 'wiring-actions' }, copy));
+  keepFocus(container, () => container.replaceChildren(...children), '#wirecut-copy');
 }

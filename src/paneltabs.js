@@ -4,7 +4,7 @@
 export const PANEL_TABS = Object.freeze([
   { id: 'guide', label: 'Guide', sections: ['steps'], title: 'The build, one step at a time' },
   { id: 'board', label: 'Board', sections: ['myboard'], title: 'Your board: photos and hole names' },
-  { id: 'wiring', label: 'Wiring', sections: ['wiring'], title: 'What to wire, line by line' },
+  { id: 'wiring', label: 'Wiring', sections: ['wiring', 'wirecut'], title: 'What to wire, line by line, and the wire to cut' },
   { id: 'checks', label: 'Checks', sections: ['checks', 'continuity'], title: 'Before power: meter checks and the continuity test' },
   { id: 'parts', label: 'Parts', sections: ['checklist'], title: 'Every part, ticked as you solder it' },
   { id: 'all', label: 'All', sections: [], title: 'Every section in one long list' },
