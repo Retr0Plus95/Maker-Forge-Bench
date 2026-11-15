@@ -67,6 +67,34 @@ test('a USB-C at the edge is a port, an LED on top is a panel part, a socket in 
   assert.deepEqual(r.wires, ['J2']);
 });
 
+// a connector at the left edge, with the value given (R1 spans the board so the size stays 20 × 9 holes)
+const portAt = (value) => portsAndPanel({ pitch: 2.54, parts: {
+  J1: { type: 'connector', side: 'top', pins: { 1: [1, 4], 2: [1, 5] } },
+  R1: { type: 'res', side: 'top', pins: { 1: [1, 1], 2: [20, 9] } } } }, { J1: value }).ports.map((q) => [q[2], q[3]]);
+
+test('ports written in plain words are found too: Micro USB, USB C, DC jack, audio jack', () => {
+  assert.deepEqual(portAt('Micro USB socket'), [['micro', 1.6]]);
+  assert.deepEqual(portAt('USB C socket'), [['usbc', 1.6]]);
+  assert.deepEqual(portAt('Mini USB'), [['usbmini', 2]]);
+  assert.deepEqual(portAt('USB A socket'), [['usba', 3.5]]);
+  assert.deepEqual(portAt('USB B socket'), [['usbb', 5.5]]);
+  assert.deepEqual(portAt('DC jack 5.5 mm'), [['dcpcb', 5.6]]);
+  assert.deepEqual(portAt('DC power socket'), [['dcpcb', 5.6]]);
+  assert.deepEqual(portAt('3.5 mm audio jack'), [['jack35', 3]]);
+  assert.deepEqual(portAt('Ethernet socket'), [['rj45', 6.9]]);
+  assert.deepEqual(portAt('micro SD card slot'), [['sd', 1.5]]);
+});
+
+test('USB words that are not a socket stay wires', () => {
+  for (const v of ['USB breakout board', 'USB cable connector', 'USB to serial adapter']) assert.deepEqual(portAt(v), [], v);
+});
+
+test('the id follows the project, not the name typed for Shape, so renaming still replaces', () => {
+  const b = shapeBoard(board, values, { project: 'Solder Fume Extractor', name: 'Fume box', which: 'drawing', size: [50, 40], holes: 'none', screw: 'M3', tall: 12 }).board;
+  assert.equal(b.id, shapeId('Solder Fume Extractor', 'drawing'));
+  assert.equal(b.label, 'Fume box');
+});
+
 test("Bench's own panel parts: 3 mm LEDs, 12 mm buttons, knobs, switches and buzzers", () => {
   const part = (type, more = {}) => ({ type, side: 'top', pins: { 1: [10, 5], 2: [11, 5] }, ...more });
   const kinds = (parts, vals) => portsAndPanel({ pitch: 2.54, parts: { ...parts, R1: part('res', { pins: { 1: [1, 1], 2: [20, 9] } }) } }, vals).panel.map((q) => q[2]);

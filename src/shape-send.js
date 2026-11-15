@@ -94,6 +94,13 @@ export const SHAPE_PORTS = [[/USB[_-]?C|TYPE[_-]?C/i, 'usbc', 1.6], [/USB[_-]?Mi
 export const SHAPE_PANEL = [[/LED[_-]?D?5(\.0)?mm|LED_D5/i, 'led5'], [/^LED|:LED|LED_/i, 'led3'], [/SW[_-]?Push.*12x12|Tactile.*12x12/i, 'tact12'], [/SW[_-]?Push|SW[_-]?Tactile|Button|TL\d{4}|SW-TH_4P|KEY[_-]?6X6|TS[_-]?\d{3,4}/i, 'tact'],
   [/Rotary[_-]?Encoder|EC11/i, 'encoder'], [/Potentiometer|[^a-z]Pot[_-]|^Pot/i, 'pot'], [/SW[_-]?Slide|SS12/i, 'slide'], [/Toggle/i, 'toggle'], [/Buzzer/i, 'buzzer']];
 
+// Shape's names above are KiCad footprint names ("USB_Micro-B"); a project's values are people's words
+// ("Micro USB socket", "DC jack"). These are tried first: whole words, spaces allowed, Shape's heights.
+const BENCH_PORTS = [[/\bUSB[\s_-]?C\b|\btype[\s_-]?C\b/i, 'usbc', 1.6], [/\bmicro[\s_-]?USB\b|\bUSB[\s_-]?micro\b/i, 'micro', 1.6],
+  [/\bmini[\s_-]?USB\b|\bUSB[\s_-]?mini\b/i, 'usbmini', 2], [/\bUSB[\s_-]?A\b/i, 'usba', 3.5], [/\bUSB[\s_-]?B\b/i, 'usbb', 5.5],
+  [/\bbarrel\b|\bDC[\s_-]?(power[\s_-]?)?(jack|socket)\b/i, 'dcpcb', 5.6], [/\bRJ45\b|\b8P8C\b|\bethernet\b/i, 'rj45', 6.9], [/\bHDMI\b/i, 'hdmi', 3.2],
+  [/\b(audio|headphone|3\.5[\s_-]?mm)[\s_-]?(jack|socket)\b/i, 'jack35', 3], [/\bmicro[\s_-]?SD\b|\bTF[\s_-]?card\b|\bSD[\s_-]?card\b/i, 'sd', 1.5]];
+
 /** Bench's own part types that face out through a wall or the lid. */
 function benchPanel(part, value) {
   switch (part.type) {
@@ -130,7 +137,7 @@ export function portsAndPanel(board, values = {}, size = defaultSize(board)) {
     const y = (maxR - r + 1) * pitch;
     const value = typeof values[ref] === 'string' ? values[ref] : '';
     const hay = `${part.type || ''} ${value} ${part.package || ''}`;
-    const port = SHAPE_PORTS.find(([re]) => re.test(hay));
+    const port = BENCH_PORTS.find(([re]) => re.test(hay)) || SHAPE_PORTS.find(([re]) => re.test(hay));
     if (port) {
       const dist = { x0: x, x1: w - x, y0: y, y1: d - y };
       const edge = Object.keys(dist).sort((a, b) => dist[a] - dist[b])[0];
@@ -160,7 +167,8 @@ function holesFor(holes, w, d) {
 
 /**
  * The board for Shape's Your parts, and the refs whose wires leave the box.
- * opts = { name, which, size: [w, d], holes: 'none' | { inset } | [[x, y]], screw, tall }
+ * opts = { name, project, which, size: [w, d], holes: 'none' | { inset } | [[x, y]], screw, tall }:
+ * the id comes from the project's name (else name), so a board renamed for Shape still replaces itself.
  */
 export function shapeBoard(board, values, opts) {
   const w = r2(clamp(Number(opts.size?.[0]) || 50, 5, 300));
@@ -169,7 +177,7 @@ export function shapeBoard(board, values, opts) {
   const tall = Number.isFinite(opts.tall) ? opts.tall : 10;
   return {
     board: {
-      id: shapeId(opts.name, opts.which),
+      id: shapeId(typeof opts.project === 'string' && opts.project ? opts.project : opts.name, opts.which),
       label: cleanLabel(opts.name) || 'My board',
       w,
       d,

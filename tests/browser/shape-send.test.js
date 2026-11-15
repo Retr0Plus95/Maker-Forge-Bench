@@ -99,6 +99,16 @@ describe('Send to Shape, at forge.retr0plus.se', () => {
     await closeDialog(page);
   });
 
+  test('renaming it for Shape still replaces the same board', async () => {
+    await openDialog(page);
+    await page.locator('#shape-name').fill('Fume box');
+    await page.locator('#shape-send-go').click();
+    const list = await stored(page);
+    assert.deepEqual(list.map((b) => b.label), ['Fume box']);
+    assert.match(await note(page), /^Updated: Fume box is in Shape's Your parts\./);
+    await closeDialog(page);
+  });
+
   test('holes typed in: pairs off the board are left out, and the note says how many', async () => {
     await openDialog(page);
     await page.locator('#shape-holes').selectOption('typed');

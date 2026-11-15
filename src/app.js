@@ -2366,7 +2366,7 @@ function sendToShape() {
     leftOut = typed.out;
   }
   const { board: entry } = shapeBoard(board, partValues(), {
-    name: $('#shape-name').value, which, size, holes, screw: $('#shape-screw').value,
+    name: $('#shape-name').value, project: projectName() || 'My board', which, size, holes, screw: $('#shape-screw').value,
     tall: $('#shape-tall').value !== '' && Number.isFinite(tallTyped) ? tallTyped : shapeTall(which, board),
   });
   const storage = { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v) };
