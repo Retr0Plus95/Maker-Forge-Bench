@@ -130,6 +130,7 @@ const historyDo = history.do.bind(history);
 const historyUndo = history.undo.bind(history);
 const historyRedo = history.redo.bind(history);
 history.do = (action) => {
+  if (typeof state !== 'undefined') state.welcome = false; // Welcome back's news is old once you change something
   historyDo(action);
   addLog(action.label);
   afterTick(action.label);

@@ -341,6 +341,18 @@ describe('at the bench: welcome back and time left', () => {
     }
   });
 
+  test('the welcome goes as soon as you change something, so it never shows old news', async () => {
+    const { server, browser, page } = await openWith(true);
+    try {
+      assert.equal(await page.locator('#welcome-back').count(), 1);
+      await page.locator('#checklist input[data-ref="R2"]').click();
+      assert.equal(await page.locator('#welcome-back').count(), 0);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+
   test('a fresh project: no welcome and no time left', async () => {
     const { server, browser, page } = await openWith(false);
     try {
