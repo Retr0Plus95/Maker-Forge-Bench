@@ -194,6 +194,29 @@ export function solidPng(width, height, [r, g, b] = [36, 96, 60]) {
   ]);
 }
 
+/**
+ * Another address served by the dev server (1.0), so a page can run at e.g. https://forge.retr0plus.se/bench/:
+ * every request to origin/** is fetched from target, with prefix taken off the path when the path starts
+ * with it, and answered with that response, headers included. Call it from openPage's before option.
+ * dev.py's event stream never ends, so it is answered with an empty stream that asks to retry in an hour.
+ */
+export async function routeHost(page, origin, target, prefix = '') {
+  const base = target.replace(/\/$/, '');
+  await page.route(`${origin}/**`, async (route) => {
+    const url = new URL(route.request().url());
+    let at = url.pathname;
+    if (prefix && (at === prefix || at.startsWith(`${prefix}/`))) at = at.slice(prefix.length) || '/';
+    if (at === '/api/events') {
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body: 'retry: 3600000\n\n' });
+      return;
+    }
+    const headers = { ...route.request().headers() };
+    delete headers.host; // dev.py answers only its own host
+    const response = await route.fetch({ url: `${base}${at}${url.search}`, headers });
+    await route.fulfill({ response });
+  });
+}
+
 /** A header tool that waits in the Menu (0.8): opens the menu first if the tool is folded away, then clicks it. */
 export async function fromMenu(page, selector) {
   if (!(await page.locator(selector).isVisible())) await page.locator('#menu-toggle').click();

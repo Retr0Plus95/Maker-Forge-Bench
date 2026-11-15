@@ -26,6 +26,7 @@
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="menu-save" class="tool" type="button" title="Your ticks, wiring, board and notes as a file (Ctrl+S)">Save progress</button>
     <button id="menu-shopping" class="tool" type="button">Shopping list</button>
+    <button id="menu-shape" class="tool" type="button" aria-haspopup="dialog" title="Put this board in Maker Forge Shape's Your parts, to make a box for it">Send to Shape</button>
     <button id="menu-log" class="tool" type="button">Build log</button>
     <button id="menu-versions" class="tool" type="button">Versions</button>
     <button id="menu-help" class="tool" type="button">Keyboard shortcuts</button>
@@ -113,6 +114,7 @@
           <button id="board3d-stl" class="tool" type="button" title="The board as a 3D file, for Shape or a slicer">Save STL</button>
           <button id="board3d-glb" class="tool" type="button" title="The board with its colours and real parts, for 3D viewers and Blender">Save GLB</button>
           <button id="board3d-obj" class="tool" type="button" title="The board as an OBJ: a shape per part">Save OBJ</button>
+          <button id="board3d-shape" class="tool" type="button" aria-haspopup="dialog" title="Put this board in Maker Forge Shape's Your parts, to make a box for it">Send to Shape</button>
           <button id="board3d-video" class="tool" type="button" hidden title="A 10-second turn of the board, saved as a WebM video">Turntable video</button>
         </div>
         <span class="hint">Real parts: KiCad's 3D models (<a href="library/LICENSE-KICAD-3D.md" target="_blank" rel="noopener">CC-BY-SA</a>) · drag to turn, right-drag to move, wheel to zoom, arrow keys turn · click a part, double-click to go to it · the cube turns the view</span>
@@ -140,6 +142,7 @@
     <section id="myboard" aria-label="Your board" data-tab-of="board" hidden></section>
     <section id="steps" aria-label="Build steps" data-tab-of="guide"></section>
     <section id="wiring" aria-label="What to wire" data-tab-of="wiring"></section>
+    <section id="wirecut" aria-label="Wire to cut" data-tab-of="wiring"></section>
     <section id="checks" aria-label="Before power" data-tab-of="checks"></section>
     <section id="continuity" aria-label="Continuity test" data-tab-of="checks"></section>
     <section id="checklist" aria-label="Build checklist" data-tab-of="parts"></section>
@@ -234,6 +237,34 @@
     <button id="shopping-copy" type="button">Copy as text</button>
     <button id="shopping-csv" type="button">Save as spreadsheet (CSV)</button>
     <button id="shopping-done" class="primary" type="button">Done</button>
+  </div>
+</dialog>
+<dialog id="shape-send" aria-labelledby="shape-send-title">
+  <h2 id="shape-send-title">Send to Shape</h2>
+  <p class="hint">Puts this board in Maker Forge Shape's Your parts, so Shape can make a box round it. Check the sizes: Shape uses them as they are.</p>
+  <div class="shape-fields">
+    <label>Board <select id="shape-which"></select></label>
+    <label>Name in Shape (up to 20 letters) <input id="shape-name" type="text" maxlength="60" autocomplete="off"></label>
+    <label>Width, mm <input id="shape-w" type="number" min="5" max="300" step="0.1"></label>
+    <label>Depth, mm <input id="shape-d" type="number" min="5" max="300" step="0.1"></label>
+    <label>Tallest part, mm <input id="shape-tall" type="number" min="1" max="60" step="1"></label>
+    <label>Screws <select id="shape-screw"><option>M2</option><option>M2.5</option><option selected>M3</option><option>M4</option></select></label>
+    <label>Mounting holes <select id="shape-holes">
+      <option value="none">None (Shape holds it by its edges)</option>
+      <option value="corners">Four in the corners</option>
+      <option value="typed">Where I type them</option>
+    </select></label>
+    <label id="shape-inset-row" hidden>From the corner, mm <input id="shape-inset" type="number" min="0" max="50" step="0.5" value="3"></label>
+    <label id="shape-holes-typed-row" hidden>Holes: x,y in mm from the left and front <input id="shape-holes-typed" type="text" placeholder="3,3; 78,3" autocomplete="off"></label>
+  </div>
+  <p>Openings at the edges: <span id="shape-ports">None</span></p>
+  <p>Facing out from the top: <span id="shape-panel">None</span></p>
+  <p id="shape-wires" class="hint"></p>
+  <p id="shape-send-note" role="status"></p>
+  <div class="dialog-actions">
+    <a id="shape-open" href="https://forge.retr0plus.se/" target="_blank" rel="noopener" hidden>Open Shape</a>
+    <button id="shape-send-go" class="primary" type="button">Send</button>
+    <button id="shape-send-done" type="button">Done</button>
   </div>
 </dialog>
 <dialog id="settings" aria-labelledby="settings-title">

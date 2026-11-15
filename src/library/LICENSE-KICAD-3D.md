@@ -36,6 +36,12 @@ No shapes were added or removed.
 Entries whose `source.from` is "Maker Forge" (such as `mp1584-module`) are models Maker Forge made
 itself from datasheets. They are under the MIT licence, like the rest of Maker Forge Bench.
 
+The board and module models (`mod-*`, Bench 1.0) are Maker Forge's own too, MIT, built from Maker
+Forge Shape's list of boards (sizes, holes and ports). Four of them place their pins where KiCad's
+footprints put them (CC-BY-SA 4.0, credited in each entry's `source.pins`): `mod-nano`
+(Module:Arduino_Nano), `mod-feather` (Module:Adafruit_Feather), `mod-pico`
+(Module:RaspberryPi_Pico_Common_THT) and `mod-d1mini` (RF_Module:WEMOS_D1_mini_light).
+
 ## Disclaimer
 
 KiCad's models come without warranty of any kind, express or implied. As their files say: use 3D

@@ -9,6 +9,11 @@ test('five tabs and All, the guide first', () => {
   assert.equal(panelTabs(undefined).open, 'guide');
 });
 
+test('Wire to cut lives in the Wiring tab, under What to wire (1.0)', () => {
+  assert.deepEqual(PANEL_TABS.find((t) => t.id === 'wiring').sections, ['wiring', 'wirecut']);
+  assert.equal(tabOf('wirecut'), 'wiring');
+});
+
 test('a saved tab is checked; anything odd is the guide', () => {
   assert.equal(cleanTab('wiring'), 'wiring');
   assert.equal(cleanTab('all'), 'all');

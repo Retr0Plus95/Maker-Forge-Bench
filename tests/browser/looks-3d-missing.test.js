@@ -42,6 +42,8 @@ describe("looks like: a chosen 3D model that isn't here", () => {
 
   test('your own model from another browser: the card says it isn\'t in this browser, not its code', async () => {
     await openCard(page, 'R6');
+    // until this browser's own models have been read, the card says "a chosen model" (it may still turn up)
+    await page.waitForFunction(() => !/a chosen model/.test(document.querySelector('#part-looks-summary')?.textContent || 'a chosen model'));
     const words = await summary(page);
     assert.doesNotMatch(words, /own:|0123456789abcdef/, words);
     assert.match(words, /your own model, not in this browser/i);

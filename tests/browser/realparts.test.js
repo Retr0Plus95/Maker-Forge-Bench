@@ -204,10 +204,12 @@ describe('real parts on a phone over a slow network', () => {
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Network.enable');
     await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: 400 * 1024 / 8, uploadThroughput: 400 * 1024 / 8 });
-    const start = Date.now();
     await page.evaluate(() => document.querySelector('#board3d-toggle').click());
-    await page.waitForFunction(() => window.makerForge.board3d.info()?.parts === 32, null, { timeout: 2000 });
-    assert.ok(Date.now() - start <= 2000, `${Date.now() - start} ms`);
+    // "at once" means before the library has even arrived: its index takes seconds at this speed, so the
+    // drawn parts must be there while it is still coming (a clock limit failed on a busy computer)
+    await page.waitForFunction(() => window.makerForge.board3d.info()?.parts === 32, null, { timeout: 4000 });
+    const indexArrived = await page.evaluate(() => performance.getEntriesByType('resource').some((e) => /\/library\/index\.json$/.test(e.name)));
+    assert.equal(indexArrived, false, "the drawn parts didn't wait for the library's index");
     assert.equal((await info(page)).realParts, 0, 'nothing real yet: the models are still coming');
     const count = () => page.evaluate(() => {
       const bar = document.querySelector('#board3d-loading');

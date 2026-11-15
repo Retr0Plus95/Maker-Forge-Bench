@@ -1,7 +1,8 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWiring } from './panel.js';
+import { lengthText, suggestedCut, wireCut, wireCutText } from './wirecut.js';
 import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
 import { pinLayout } from './pinout.js';
@@ -39,6 +40,8 @@ import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgres
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
 import { modelFor, modelsThatFit } from './library-match.js';
+import { EDGE_WORDS, PORT_WORDS, moduleFacts, moduleText } from './modules.js';
+import { SHAPE_URL, canReachShape, defaultSize, portsAndPanel, shapeBoard, simpleHeights, writeShapeParts } from './shape-send.js';
 import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
@@ -443,7 +446,8 @@ function modelChoices(ref, look) {
   const auto = libraryNow ? modelFor({ ...bare, ref, value }, {}, libraryNow) : null;
   const choices = [{ value: '', label: auto ? `Automatic: ${auto.name}` : "Automatic: Bench's own drawing", group: null }];
   for (const e of libraryNow ? modelsThatFit(bare, libraryNow, { ref }) : []) {
-    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e), group: 'Maker Forge Library' });
+    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e),
+      group: e.module && e.module.groupLabel ? e.module.groupLabel : 'Maker Forge Library' }); // Shape's boards by its groups
   }
   for (const path of state.modelFiles || []) {
     if (source && (source.wrl || !/\.wrl$/i.test(path))) choices.push({ value: `project:${path}`, label: path, group: 'In the project' });
@@ -476,6 +480,18 @@ function modelChoices(ref, look) {
       }
     },
   };
+}
+
+/** The card's line for a board or module from Shape's list (1.0): the model chosen in Looks like, else the automatic one. */
+function moduleCardText(ref) {
+  const board = projectBoard();
+  const part = board && libraryNow ? board.parts[ref] : null;
+  if (!part) return '';
+  const look = state.looks[ref] || {};
+  const { model: _chosen, ...bare } = part;
+  const chosen = look.model ? libraryNow.parts.find((e) => e.id === look.model) : null;
+  const entry = chosen || (look.model ? null : modelFor({ ...bare, ref, value: (cardPart(ref) || {}).value || '' }, {}, libraryNow));
+  return moduleText(moduleFacts(entry));
 }
 
 /** A chosen model that isn't among the choices, in words: { label, note }, or null while it may still turn up. */
@@ -604,6 +620,7 @@ function renderPartCard() {
     onWire: setWired,
     pins: pinOptions(onBoard),
     looks: looksCardOptions(part.ref),
+    module: moduleCardText(part.ref),
     myBoard: myBoardCardOptions(part.ref, onBoard),
     extras: cardExtras(part, board),
     sheetsWithPart: sheetsWithPart(part.ref),
@@ -1892,6 +1909,7 @@ function updateRotateButton() {
 
 function updateMyBoard() {
   updateRotateButton();
+  renderWireCutPanel();
   if (board3dSource === 'mine' || !$('#board3d-mine').hidden !== Boolean(myBoardFor3D())) resetBoard3D();
   if (state.myBoardStatusSheet !== state.current) state.myBoardStatus = ''; // a message belongs to its photo
   const img = viewer.image();
@@ -2248,6 +2266,120 @@ function openShopping() {
   $('#shopping').showModal();
 }
 
+// ---- Send to Shape (1.0 design §3): the board into Shape's Your parts, on the address both apps share ----
+const PANEL_WORDS = { led3: '3 mm LED', led5: '5 mm LED', tact: 'button', tact12: '12 mm button', encoder: 'rotary encoder',
+  pot: 'knob', slide: 'slide switch', toggle: 'toggle switch', buzzer: 'buzzer', sd: 'SD card', sma: 'aerial socket' };
+const shapeBoardOf = (which) => (which === 'mine' ? myBoardFor3D() : projectBoard());
+const partValues = () => Object.fromEntries((state.project?.parts || []).map((p) => [p.ref, p.value || '']));
+
+/** The tallest part in whole mm: the 3D view's when it shows this board, else Bench's own drawing's. */
+function shapeTall(which, board) {
+  const same = board3d && board3dOn && (board3dSource === 'mine') === (which === 'mine');
+  const h = same ? board3d.heights() : null;
+  const mm = h && h.top ? h.top.h : Math.max(0, ...Object.values(simpleHeights(board)));
+  return Math.max(1, Math.ceil(mm - 1e-9));
+}
+
+/** The size the dialog says, or the board's own where a box is empty. */
+function shapeSize(board) {
+  const [w0, d0] = defaultSize(board);
+  const num = (sel, fallback) => { const v = Number($(sel).value); return $(sel).value !== '' && Number.isFinite(v) ? v : fallback; };
+  return [num('#shape-w', w0), num('#shape-d', d0)];
+}
+
+/** What Shape will cut openings for, and the wires that leave some other way. */
+function showShapeFound() {
+  const board = shapeBoardOf($('#shape-which').value);
+  if (!board) return;
+  const { ports, panel, wires } = portsAndPanel(board, partValues(), shapeSize(board));
+  $('#shape-ports').textContent = ports.map((q) => `${PORT_WORDS[q[2]] || q[2]} on the ${EDGE_WORDS[q[0]]} edge`).join(', ') || 'None';
+  $('#shape-panel').textContent = panel.map((q) => PANEL_WORDS[q[2]] || q[2]).join(', ') || 'None';
+  $('#shape-wires').textContent = wires.length ? `Wires leave the board here (not openings in Shape): ${wires.join(', ')}` : '';
+}
+
+/** The board's own size and height, for the board chosen. */
+function fillShapeFor(which) {
+  const board = shapeBoardOf(which);
+  if (!board) return;
+  const [w, d] = defaultSize(board);
+  $('#shape-w').value = String(w);
+  $('#shape-d').value = String(d);
+  $('#shape-tall').value = String(shapeTall(which, board));
+  showShapeFound();
+}
+
+function showShapeHoles() {
+  $('#shape-inset-row').hidden = $('#shape-holes').value !== 'corners';
+  $('#shape-holes-typed-row').hidden = $('#shape-holes').value !== 'typed';
+}
+
+function openShapeSend(which = 'drawing') {
+  const mine = myBoardFor3D();
+  const choices = [el('option', { value: 'drawing' }, "The drawing's board")];
+  if (mine) choices.push(el('option', { value: 'mine' }, 'My board'));
+  $('#shape-which').replaceChildren(...choices);
+  $('#shape-which').value = which === 'mine' && mine ? 'mine' : 'drawing';
+  $('#shape-name').value = projectName() || 'My board';
+  $('#shape-holes').value = 'none';
+  showShapeHoles();
+  $('#shape-open').href = SHAPE_URL;
+  $('#shape-open').hidden = true;
+  const here = canReachShape(location.hostname);
+  const board = shapeBoardOf($('#shape-which').value);
+  $('#shape-send-go').disabled = !here || !board;
+  $('#shape-send-note').textContent = !board ? 'This project has no board drawing to send.'
+    : here ? '' : "Send to Shape works on forge.retr0plus.se, where Bench and Shape share this browser's storage. Here, nothing is sent.";
+  for (const id of ['#shape-ports', '#shape-panel']) $(id).textContent = 'None';
+  $('#shape-wires').textContent = '';
+  if (board) fillShapeFor($('#shape-which').value);
+  $('#shape-send').showModal();
+}
+
+/** "3,3; 78,3" as holes on the board, and how many pairs were left out. */
+function typedHoles(text, w, d) {
+  const holes = [];
+  let out = 0;
+  for (const pair of String(text).split(';').map((t) => t.trim()).filter(Boolean)) {
+    const xy = pair.split(',').map((t) => t.trim());
+    const [x, y] = xy.map(Number);
+    if (xy.length === 2 && xy.every((t) => t !== '') && Number.isFinite(x) && Number.isFinite(y) && x >= 0 && x <= w && y >= 0 && y <= d) holes.push([x, y]);
+    else out++;
+  }
+  return { holes, out };
+}
+
+function sendToShape() {
+  if (!canReachShape(location.hostname)) return;
+  const which = $('#shape-which').value;
+  const board = shapeBoardOf(which);
+  if (!board) return;
+  const size = shapeSize(board);
+  const tallTyped = Number($('#shape-tall').value);
+  let holes = 'none';
+  let leftOut = 0;
+  if ($('#shape-holes').value === 'corners') {
+    const inset = Number($('#shape-inset').value);
+    holes = { inset: Number.isFinite(inset) && inset >= 0 ? inset : 3 };
+  } else if ($('#shape-holes').value === 'typed') {
+    const typed = typedHoles($('#shape-holes-typed').value, size[0], size[1]);
+    holes = typed.holes;
+    leftOut = typed.out;
+  }
+  const { board: entry } = shapeBoard(board, partValues(), {
+    name: $('#shape-name').value, project: projectName() || 'My board', which, size, holes, screw: $('#shape-screw').value,
+    tall: $('#shape-tall').value !== '' && Number.isFinite(tallTyped) ? tallTyped : shapeTall(which, board),
+  });
+  const storage = { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v) };
+  const r = writeShapeParts(storage, entry);
+  if (!r.ok) {
+    $('#shape-send-note').textContent = r.why;
+    return;
+  }
+  const extra = leftOut ? ` ${leftOut} ${leftOut === 1 ? 'hole' : 'holes'} left out: each needs two numbers inside the board.` : '';
+  $('#shape-send-note').textContent = `${r.replaced ? 'Updated' : 'Sent'}: ${entry.label} is in Shape's Your parts. In Shape: Project box → Board mounts → Your parts.${extra}`;
+  $('#shape-open').hidden = false;
+}
+
 async function copyShopping() {
   try {
     await navigator.clipboard.writeText(shoppingText(shoppingList(state.parts)));
@@ -2600,6 +2732,35 @@ function renderWiringPanel() {
       renderWiringPanel();
     },
   });
+  renderWireCutPanel();
+}
+
+// ---- Wire to cut (1.0 design §2): the board's lengths are worked out once per board ----
+let wireCutMemo = { board: undefined, cut: null };
+function wireCutFor(board) {
+  if (wireCutMemo.board !== board) wireCutMemo = { board, cut: board ? wireCut(board) : null };
+  return wireCutMemo.cut;
+}
+
+/** Your own board's suggested wires with their lengths, while they're shown on a lined-up photo. */
+function mySuggestedCut() {
+  const board = projectBoard();
+  if (!board || store.get('showWires', false) !== true || !Object.keys(state.myBoard.photos).length) return null;
+  return suggestedCut(suggestAll(board, state.myBoard.placed, anchorRef(), state.myBoard.routes || {}), board.pitch);
+}
+
+let wireCutShown = { board: undefined, key: '' };
+function renderWireCutPanel() {
+  const board = projectBoard();
+  const cut = board ? wireCutFor(board) : null;
+  const suggested = cut ? mySuggestedCut() : null;
+  const key = JSON.stringify(suggested ? suggested.lines.map((l) => [l.net, l.colour, l.mm, l.wires.length]) : null);
+  if (wireCutShown.board === board && wireCutShown.key === key) return; // nothing changed: keep what's open
+  wireCutShown = { board, key };
+  renderWireCut($('#wirecut'), cut, {
+    suggested,
+    onCopy: () => copyText(wireCutText(wireCutFor(projectBoard()), mySuggestedCut()), 'Wire list copied.'),
+  });
 }
 
 // ---- build steps (board-view design §5), one at a time ----
@@ -2655,7 +2816,10 @@ function stepWhatText(step) {
   if (step.what.includes('buses') && board.buses.length) {
     lines.push(`Buses: ${board.buses.map((b) => `row ${b.row} (${b.label})`).join(', ')}.`);
   }
-  if (step.what.includes('links') && board.links.length) lines.push(`${board.links.length} insulated links: see the wire list on sheet 4.`);
+  const cut = wireCutFor(board);
+  if (step.what.includes('links') && cut.links.length) {
+    lines.push(`${cut.links.length} insulated links, ${lengthText(cut.totals.insulated.mm)} of wire: the lengths are in Wiring → Wire to cut.`);
+  }
   if (step.what.includes('bridges') && board.bridges.length) {
     lines.push(`Bridges at ${board.bridges.map((b) => `${b.holes[0].join(',')}–${b.holes[1].join(',')}`).join(' and ')}.`);
   }
@@ -3367,7 +3531,7 @@ function updateTabCounts() {
 }
 
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
@@ -3503,6 +3667,12 @@ async function start() {
   // the Menu's own entries (0.8): what the Parts tab's buttons do, from any tab
   $('#menu-save').addEventListener('click', saveProgressFile);
   $('#menu-shopping').addEventListener('click', openShopping);
+  $('#menu-shape').addEventListener('click', () => openShapeSend('drawing'));
+  $('#shape-which').addEventListener('change', (e) => fillShapeFor(e.target.value));
+  for (const id of ['#shape-w', '#shape-d']) $(id).addEventListener('change', showShapeFound);
+  $('#shape-holes').addEventListener('change', showShapeHoles);
+  $('#shape-send-go').addEventListener('click', sendToShape);
+  $('#shape-send-done').addEventListener('click', () => $('#shape-send').close());
   $('#menu-log').addEventListener('click', openLog);
   $('#menu-versions').addEventListener('click', openVersions);
   $('#menu-help').addEventListener('click', () => $('#help').showModal());
@@ -3603,6 +3773,7 @@ async function start() {
       button.disabled = false;
     }
   });
+  $('#board3d-shape').addEventListener('click', () => openShapeSend(board3dSource === 'mine' ? 'mine' : 'drawing'));
   $('#board3d-obj').addEventListener('click', () => {
     if (board3d) saveBlob(board3d.exportObj(), `${fileSafe(projectName())}-board.obj`);
   });

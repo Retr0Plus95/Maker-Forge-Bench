@@ -239,14 +239,17 @@ nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-de
 - **★ New: "Report a problem with this drawing."** Opens a new GitHub issue on the project's repo,
   with the sheet and part already filled in. Builders who spot a mistake can tell you in one click.
 - **Taken from Shape (added 2026-11-15; design `docs/design/2026-11-15-release-1.0-design.md`):**
-  - **★ Wire to cut:** every link and bus with its length to cut and strip, totals in metres, and the
-    same for the suggested wires on your own board, with a colour hint per line.
-  - **★ Boards and modules in the library:** Shape's 63 boards and modules (Arduino, Raspberry Pi,
-    ESP32, converters, relays, sensors) at their real size, with holes and ports, as small 3D models,
-    part cards and Looks like choices. Pins from KiCad's footprints where it has them.
-  - **★ Send to Shape:** your board (size, holes, height, ports, LEDs and buttons on top) goes straight
-    into Shape's "Your parts" for its box maker. It works because both apps live at
-    forge.retr0plus.se, and it needs no change to Shape.
+  - **★ Wire to cut** (built on release-1.0, ships with 1.0): every link and bus with its length to
+    cut and strip, totals in metres, and the same for the suggested wires on your own board, with a
+    colour hint per line.
+  - **★ Boards and modules in the library** (built on release-1.0, ships with 1.0): 62 of Shape's
+    boards and modules (Arduino, Raspberry Pi, ESP32, converters, relays, sensors; the MP1584 keeps
+    Bench's own model) at their real size, with holes and ports, as small 3D models, part cards and
+    Looks like choices. Pins from KiCad's footprints where they fit (Nano, Feather, Pico, D1 mini)
+    and Seeed's drawing for the XIAO.
+  - **★ Send to Shape** (built on release-1.0, ships with 1.0): your board (size, holes, height,
+    ports, LEDs and buttons on top) goes straight into Shape's "Your parts" for its box maker. It
+    works because both apps live at forge.retr0plus.se, and it needs no change to Shape.
 
 ---
 

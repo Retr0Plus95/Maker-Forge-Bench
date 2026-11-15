@@ -204,6 +204,86 @@ class TestList(unittest.TestCase):
             self.assertTrue(r["model"].endswith(".wrl"), r["id"])
 
 
+def _board(**over):
+    """A board as tools/shape-boards.json holds it (Shape's facts, plus Bench's names and pins)."""
+    b = {"key": "tiny", "group": "arduino", "groupLabel": "Arduino", "label": "Tiny board", "match": ["Tiny board"],
+         "w": 20, "d": 8, "screw": None, "holes": [], "ports": [["x0", 4, "usbmini", 2]], "check": False,
+         "kicad": None, "pins": None, "pinsFrom": None}
+    b.update(over)
+    return b
+
+
+def _pcb(spec):
+    return next(s for s in spec["shapes"] if s.get("name", "").startswith("PCB-"))
+
+
+NANO_PINS = [[0, -2.54 * k] for k in range(15)] + [[15.24, -2.54 * (14 - k)] for k in range(15)]
+
+
+class TestModules(unittest.TestCase):
+    def test_module_spec_takes_pins_from_a_footprint(self):
+        spec = kicad3d.module_spec(_board(kicad="X.pretty/tiny.kicad_mod"), TINY_MOD)
+        self.assertEqual(spec["footprint"]["pins"], kicad3d.footprint_pins(TINY_MOD)["pins"])
+        x, y, z, w, d, h = _pcb(spec)["box"]
+        self.assertAlmostEqual(x + w / 2, 5.08, delta=0.01)  # centred on the pins' box: 0 to 10.16 across
+        self.assertAlmostEqual(y + d / 2, 0, delta=0.01)
+        self.assertEqual((z, h), (2.5, 1.6))  # standing on its header
+
+    def test_module_spec_without_pins_lies_from_its_corner(self):
+        spec = kicad3d.module_spec(_board(w=43, d=21), None)
+        self.assertEqual(spec["footprint"]["pins"], [])
+        self.assertEqual(_pcb(spec)["box"], [0, 0, 0, 43, 21, 1.6])
+
+    def test_module_spec_turns_the_board_onto_its_pins(self):  # a Nano: its rows run up the model, its USB at the bottom
+        spec = kicad3d.module_spec(_board(w=45, d=18, pins=NANO_PINS, turn=90, corner=[16.62, -40.28]), None)
+        x, y, z, w, d, h = _pcb(spec)["box"]
+        self.assertAlmostEqual(w, 18, places=3)
+        self.assertAlmostEqual(d, 45, places=3)
+        usb = next(s for s in spec["shapes"] if s.get("port") == "usbmini")
+        self.assertLess(usb["box"][1], y + 1)  # at the bottom edge
+        self.assertAlmostEqual(usb["box"][0] + usb["box"][3] / 2, 16.62 - 4, delta=0.01)
+
+    def test_module_entry_carries_shapes_facts(self):
+        board = _board(key="nano", label="Arduino Nano (classic, Every, 33, ESP32)",
+                       match=["Arduino Nano", "Nano Every", "Nano 33"], w=45, d=18, pins=NANO_PINS,
+                       pinsFrom="the maker's drawing")
+        glb, entry = kicad3d.build_ours(kicad3d.module_spec(board, None))
+        self.assertEqual(entry["id"], "mod-nano")
+        self.assertEqual(entry["kind"], "module")
+        self.assertEqual(entry["module"]["w"], 45)
+        self.assertEqual(entry["module"]["ports"], [["x0", 4, "usbmini", 2]])
+        self.assertEqual(entry["fit"], {"value": "Arduino Nano", "also": ["Nano Every", "Nano 33"]})
+        self.assertEqual(entry["model"]["body"], "PCB-ARDUINO")
+        self.assertEqual(entry["source"]["data"], "Maker Forge Shape b6e372b")
+        self.assertEqual(entry["source"]["licence"], "MIT")
+        self.assertLess(len(glb), 8 * 1024, "a 30-pin board under 8 KB")
+        doc, _, _ = read_glb(glb)
+        pins = [n for n in doc["nodes"] if "mesh" in n and doc["meshes"][n["mesh"]]["name"] == "MET-PIN"]
+        self.assertEqual(len(pins), 30, "one pin shape, placed per pin")
+
+    def test_module_entry_builds_the_same_bytes_twice(self):
+        board = _board(pins=NANO_PINS, w=45, d=18, holes=[[2, 2], [43, 16]], screw="M2")
+        self.assertEqual(kicad3d.build_ours(kicad3d.module_spec(board, None))[0],
+                         kicad3d.build_ours(kicad3d.module_spec(board, None))[0])
+
+    def test_shape_boards_data_is_sound(self):
+        data = json.loads((REPO / "tools" / "shape-boards.json").read_text(encoding="utf-8"))
+        boards = data["boards"]
+        self.assertEqual(len(boards), 62)
+        self.assertEqual(len({b["key"] for b in boards}), 62)
+        names = [m.lower() for b in boards for m in b["match"]]
+        self.assertEqual(len(names), len(set(names)), "no two boards share a match name")
+        self.assertNotIn("mp1584", names)
+        for b in boards:
+            self.assertTrue(5 <= b["w"] <= 300 and 5 <= b["d"] <= 300, b["key"])
+            for hx, hy in b["holes"]:
+                self.assertTrue(0 < hx < b["w"] and 0 < hy < b["d"], b["key"])
+            for port in b["ports"]:
+                self.assertIn(port[0], ("x0", "x1", "y0", "y1"), b["key"])
+            self.assertFalse(b["kicad"] and b["pins"], b["key"])
+            self.assertTrue(b["match"], b["key"])
+
+
 class TestLibrary(unittest.TestCase):
     def test_library_matches(self):
         self.assertEqual(kicad3d.check_library(REPO / "src" / "library"), [])
