@@ -315,6 +315,8 @@ h1 {
   font-weight: 600;
 }
 .part-polarity::before { content: "⚠ "; color: var(--warn); }
+.part-mixup { color: var(--warn); }
+.part-mixup::before { content: "⚠ "; }
 .part-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
 .button-link {
   display: inline-flex;

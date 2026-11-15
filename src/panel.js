@@ -138,6 +138,7 @@ export function renderCard(container, part, o) {
   const x = o.extras || {};
   if (x.solderedAt) children.push(el('p', { className: 'part-soldered-at' }, x.solderedAt));
   if (x.bands) children.push(bandsPicture(x.bands));
+  for (const text of x.mixUps || []) children.push(el('p', { className: 'part-mixup', role: 'note' }, text));
   if (x.code) children.push(el('p', { className: 'part-code' }, `Printed on it: ${x.code} (${part.value})`));
   if (x.polarity) children.push(polarityPicture(x.polarity));
   if (x.library && x.library.polarity) children.push(el('p', { className: 'part-library-polarity' }, x.library.polarity));

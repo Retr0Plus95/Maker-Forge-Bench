@@ -16,7 +16,7 @@ import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
 import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
 import { groupByType, shoppingCsv, shoppingList, shoppingText } from './bom.js';
 import { addVersion, buildReport, clock, cleanVersions, day, duration, logAdd, logText, solderedAt, timeSpent } from './buildlog.js';
-import { capacitorCode, resistorBands } from './markings.js';
+import { capacitorCode, mixUps, resistorBands } from './markings.js';
 import { libraryFor } from './library.js';
 import { stillToWire } from './wiring.js';
 import { pinText } from './wiring.js';
@@ -712,6 +712,7 @@ function cardExtras(part, board) {
   return {
     solderedAt: when ? `Soldered at ${clock(when)}${day(when) !== day(Date.now()) ? ` on ${day(when)}` : ''}` : null,
     bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
+    mixUps: mixUpTexts(part),
     code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
     library: lib,
@@ -723,6 +724,22 @@ function cardExtras(part, board) {
     onNext: () => stepPart(1),
     searchHref: part.value ? `https://duckduckgo.com/?q=${encodeURIComponent(`${part.value} datasheet`)}` : null,
   };
+}
+
+// ---- the mix-up warning (1.0.1, idea 20) ----
+const BAND_WORDS = ['first', 'second', 'third', 'fourth'];
+let mixUpCache = { parts: null, list: [] };
+/** "Easy to mix up with R5 (1k): brown-black-orange against brown-black-red. Check the third band." */
+function mixUpTexts(part) {
+  if (mixUpCache.parts !== state.parts) mixUpCache = { parts: state.parts, list: mixUps(state.parts) };
+  const bands = /resistor/i.test(part.type || '') ? resistorBands(part.value) : null;
+  if (!bands) return [];
+  const mine = bands.join();
+  const colours = (b) => b.slice(0, 3).join('-');
+  return mixUpCache.list.flatMap((m) => {
+    const [other, value, theirs] = m.aBands.join() === mine ? [m.b, m.bValue, m.bBands] : m.bBands.join() === mine ? [m.a, m.aValue, m.aBands] : [];
+    return other ? [`Easy to mix up with ${other} (${value}): ${colours(bands)} against ${colours(theirs)}. Check the ${BAND_WORDS[m.band]} band.`] : [];
+  });
 }
 
 function stepCardOptions(ref, stepIndex) {

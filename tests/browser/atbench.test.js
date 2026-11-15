@@ -60,4 +60,13 @@ describe('at the bench: reading the board', () => {
     assert.equal(await page.locator('#board3d-bridges').isChecked(), true);
     assert.deepEqual(problems, []);
   });
+
+  test("a resistor easy to mix up with another value says so on both cards", async () => {
+    await openCard(page, 'R6');
+    assert.equal(await page.locator('#part-card .part-mixup').textContent(), 'Easy to mix up with R5 (1k): brown-black-orange against brown-black-red. Check the third band.');
+    await openCard(page, 'R5');
+    assert.equal(await page.locator('#part-card .part-mixup').textContent(), 'Easy to mix up with R4 (10k): brown-black-red against brown-black-orange. Check the third band.');
+    await openCard(page, 'R2');
+    assert.equal(await page.locator('#part-card .part-mixup').count(), 0);
+  });
 });

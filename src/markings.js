@@ -50,3 +50,28 @@ export function capacitorCode(value) {
   const exp = Math.floor(Math.log10(pf)) - 1;
   return `${Math.round(pf / 10 ** exp)}${exp}`;
 }
+
+/**
+ * Resistor values easy to mix up (1.0.1, idea 20): two values in the project whose colour bands
+ * differ in one band only, like 10k (brown-black-orange) and 1k (brown-black-red).
+ * [{ a, b, aValue, bValue, aBands, bBands, band }]: a and b are each value's first part, band is
+ * the one that differs (0 = first).
+ */
+export function mixUps(parts) {
+  const values = new Map(); // bands as text → { ref, value, bands }, the first part with them
+  for (const p of parts || []) {
+    if (!/resistor/i.test(p.type || '')) continue;
+    const bands = resistorBands(p.value);
+    if (bands && !values.has(bands.join())) values.set(bands.join(), { ref: p.ref, value: p.value, bands });
+  }
+  const list = [...values.values()];
+  const found = [];
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i + 1; j < list.length; j++) {
+      const [x, y] = [list[i], list[j]];
+      const differ = x.bands.map((b, k) => (b === y.bands[k] ? -1 : k)).filter((k) => k >= 0);
+      if (differ.length === 1) found.push({ a: x.ref, b: y.ref, aValue: x.value, bValue: y.value, aBands: x.bands, bBands: y.bands, band: differ[0] });
+    }
+  }
+  return found;
+}
