@@ -121,7 +121,7 @@ const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 const history = createHistory();
 // The build log (0.5 big improvement B10): every change you make, and its undo and redo, with the time.
 // Easy reading changes aren't building, so they stay out of it.
-const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact)/;
+const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact|Buzz on ticking|Iron reminder)/;
 let lastHistory = { undoLabel: null, redoLabel: null };
 history.subscribe((h) => { lastHistory = h; });
 const historyDo = history.do.bind(history);
@@ -130,6 +130,7 @@ const historyRedo = history.redo.bind(history);
 history.do = (action) => {
   historyDo(action);
   addLog(action.label);
+  afterTick(action.label);
 };
 history.undo = () => {
   const label = lastHistory.undoLabel;
@@ -143,6 +144,68 @@ history.redo = () => {
   if (done) addLog(`Redo ${label}`);
   return done;
 };
+// ---- after a tick (1.0.1, ideas 9 and 10): a small buzz, and "R6 soldered · Undo" for 6 seconds ----
+const TOAST_MS = 6000;
+const toast = { label: null, timer: null };
+/** What a tick's history label says in the toast, and whether it buzzes (unticking doesn't). */
+function tickWords(label) {
+  let m;
+  if ((m = /^Tick (\S+)$/.exec(label))) return { text: `${m[1]} soldered`, buzz: true };
+  if ((m = /^Untick (\S+)$/.exec(label))) return { text: `${m[1]} not soldered`, buzz: false };
+  if ((m = /^Tick step (\d+)$/.exec(label))) return { text: `Step ${m[1]} ticked`, buzz: true };
+  if ((m = /^Step (\d+) done$/.exec(label))) return { text: `Step ${m[1]} done`, buzz: true };
+  if ((m = /^Tick all (.+)$/.exec(label))) return { text: `Ticked all ${m[1]}`, buzz: true };
+  return null;
+}
+function afterTick(label) {
+  const words = tickWords(label);
+  if (!words) return;
+  if (words.buzz) {
+    lastTickAt = Date.now(); // for the iron reminder
+    ironAsked = false;
+    $('#iron').hidden = true;
+    if (settings.buzz && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(30); } catch { /* no buzz here */ }
+    }
+  }
+  clearTimeout(toast.timer);
+  toast.label = label;
+  $('#toast-text').textContent = words.text;
+  $('#toast').hidden = false;
+  toast.timer = setTimeout(hideToast, TOAST_MS);
+}
+function hideToast() {
+  clearTimeout(toast.timer);
+  toast.label = null;
+  $('#toast').hidden = true;
+}
+/** Undo from the toast: only while that tick is still the last change. */
+function undoFromToast() {
+  if (toast.label && lastHistory.undoLabel === toast.label) history.undo();
+  hideToast();
+}
+// another change, an undo or a redo after the tick: its toast goes
+history.subscribe((h) => { if (toast.label && h.undoLabel !== toast.label) hideToast(); });
+
+// ---- the iron reminder (1.0.1, idea 3): nothing ticked for 20 minutes → "Is the iron still on?" ----
+const IRON_MS = 20 * 60 * 1000;
+let lastTickAt = 0; // the last tick in this visit (0: none yet)
+let ironAsked = false; // asked, or told it's off: quiet until the next tick
+/** Once a minute: on, a tick this visit, 20 minutes since, the page in view, not asked yet → ask. */
+function checkIron() {
+  if (!settings.ironReminder || !lastTickAt || ironAsked || document.visibilityState === 'hidden') return;
+  if (Date.now() - lastTickAt < IRON_MS) return;
+  ironAsked = true;
+  $('#iron').hidden = false;
+}
+function ironAnswer(stillWorking) {
+  $('#iron').hidden = true;
+  if (stillWorking) {
+    lastTickAt = Date.now(); // ask again in 20 minutes
+    ironAsked = false;
+  } // it's off: quiet until the next tick
+}
+
 function addLog(text) {
   if (!text || NOT_BUILDING.test(text) || typeof state === 'undefined' || !state.progressKey) return;
   state.log = logAdd(state.log, text);
@@ -3877,6 +3940,10 @@ async function start() {
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
   $('#shopping-missing').addEventListener('change', fillShopping);
+  $('#toast-undo').addEventListener('click', undoFromToast);
+  $('#iron-yes').addEventListener('click', () => ironAnswer(true));
+  $('#iron-off').addEventListener('click', () => ironAnswer(false));
+  setInterval(checkIron, 60 * 1000);
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());

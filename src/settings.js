@@ -1,6 +1,6 @@
 // Easy reading settings: the same switches as Maker Forge, kept on <html>.
 
-export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', contrast: false, clearFont: false, textSize: 100, reduceMotion: false, compact: false });
+export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', contrast: false, clearFont: false, textSize: 100, reduceMotion: false, compact: false, buzz: true, ironReminder: false });
 const SIZES = [100, 125, 150, 175];
 
 /** Settings read back from storage: anything unknown falls back to the default. */
@@ -13,6 +13,8 @@ export function cleanSettings(raw) {
     textSize: SIZES.includes(s.textSize) ? s.textSize : 100,
     reduceMotion: s.reduceMotion === true,
     compact: s.compact === true,
+    buzz: s.buzz !== false, // At the bench (1.0.1): a buzz on ticking, on unless turned off
+    ironReminder: s.ironReminder === true, // and the iron reminder, off unless turned on
   };
 }
 
@@ -40,6 +42,8 @@ const LABELS = {
   textSize: (s) => `Text size: ${s.textSize}%`,
   reduceMotion: (s) => `Reduce motion: ${onOff(s.reduceMotion)}`,
   compact: (s) => `Compact: ${onOff(s.compact)}`,
+  buzz: (s) => `Buzz on ticking: ${onOff(s.buzz)}`,
+  ironReminder: (s) => `Iron reminder: ${onOff(s.ironReminder)}`,
 };
 
 /** Shows the settings in the dialog's controls. */

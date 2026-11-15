@@ -170,3 +170,131 @@ describe("at the bench: parts you don't have yet", () => {
     assert.deepEqual(problems, []);
   });
 });
+
+describe('at the bench: ticking', () => {
+  let server; let browser; let page; let problems;
+
+  before(async () => {
+    server = await startDevServer(await fumeProject());
+    ({ browser, page, problems } = await openPage(server.url, { width: 1400, height: 950 }, {
+      before: (pg) => pg.addInitScript(() => {
+        window.benchBuzz = [];
+        Object.defineProperty(Navigator.prototype, 'vibrate', { configurable: true, value: (p) => { window.benchBuzz.push(p); return true; } });
+      }),
+    }));
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+  });
+
+  after(async () => {
+    await browser?.close();
+    await server?.stop();
+  });
+
+  const ticked = (ref) => page.locator(`#checklist input[data-ref="${ref}"]`).isChecked();
+
+  test('after a tick, "R6 soldered · Undo" undoes it', async () => {
+    await openCard(page, 'R6');
+    await page.locator('#part-tick').click();
+    assert.equal(await page.locator('#toast').isVisible(), true);
+    assert.equal(await page.locator('#toast-text').textContent(), 'R6 soldered');
+    await page.locator('#toast-undo').click();
+    assert.equal(await ticked('R6'), false);
+    assert.equal(await page.locator('#toast').isVisible(), false);
+  });
+
+  test('the toast goes when another change comes after the tick, and Undo never undoes that one', async () => {
+    await page.locator('#part-tick').click();
+    assert.equal(await page.locator('#toast-text').textContent(), 'R6 soldered');
+    const undo = page.locator('#toast-undo');
+    await openCard(page, 'C4');
+    await page.locator('#part-waiting').click();
+    assert.equal(await page.locator('#toast').isVisible(), false);
+    await undo.evaluate((b) => b.click()); // even if it could still be pressed
+    assert.equal(await page.locator('#part-waiting').textContent(), "It's here now", 'the waiting mark stays');
+    assert.equal(await ticked('R6'), true);
+  });
+
+  test('untick, tick all of a value and a step say so too; the toast goes by itself after about 6 seconds', async () => {
+    await page.locator('#checklist input[data-ref="R6"]').click();
+    assert.equal(await page.locator('#toast-text').textContent(), 'R6 not soldered');
+    await openCard(page, 'R8');
+    await page.locator('#part-tick-value').click();
+    assert.equal(await page.locator('#toast-text').textContent(), 'Ticked all 10k');
+    const shown = Date.now();
+    await page.waitForFunction(() => document.querySelector('#toast').hidden, null, { timeout: 9000 });
+    const gone = Date.now() - shown;
+    assert.ok(gone > 5000 && gone < 8000, `went after ${gone} ms`);
+  });
+
+  test('a tick buzzes once on a phone that can; untick and Buzz off don\'t', async () => {
+    await page.evaluate(() => { window.benchBuzz.length = 0; });
+    await openCard(page, 'R2');
+    await page.locator('#part-tick').click();
+    assert.deepEqual(await page.evaluate(() => window.benchBuzz), [30]);
+    await page.locator('#part-tick').click();
+    assert.deepEqual(await page.evaluate(() => window.benchBuzz), [30]);
+    await page.locator('#settings-button').click();
+    await page.locator('#settings input[name="buzz"]').uncheck();
+    await page.locator('#settings-done').click();
+    await page.locator('#part-tick').click();
+    assert.deepEqual(await page.evaluate(() => window.benchBuzz), [30]);
+    assert.deepEqual(problems, []);
+  });
+});
+
+describe('at the bench: the iron reminder', () => {
+  let server; let browser; let page; let problems;
+
+  before(async () => {
+    server = await startDevServer(await fumeProject());
+    ({ browser, page, problems } = await openPage(server.url, { width: 1400, height: 950 }, { before: (pg) => pg.clock.install() }));
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+  });
+
+  after(async () => {
+    await browser?.close();
+    await server?.stop();
+  });
+
+  const iron = () => page.locator('#iron').isVisible();
+  const tick = (ref) => page.locator(`#checklist input[data-ref="${ref}"]`).click();
+
+  test('off until you turn it on', async () => {
+    await tick('R6');
+    await page.clock.fastForward('21:00');
+    assert.equal(await iron(), false);
+  });
+
+  test('on: after 20 minutes without a tick it asks; Still working asks again later, It\'s off waits for a tick', async () => {
+    await page.locator('#settings-button').click();
+    await page.locator('#settings input[name="ironReminder"]').check();
+    await page.locator('#settings-done').click();
+    await tick('R2');
+    await page.clock.fastForward('19:00');
+    assert.equal(await iron(), false);
+    await page.clock.fastForward('02:00');
+    assert.equal(await iron(), true);
+    assert.equal(await page.locator('#iron-text').textContent(), 'Nothing ticked for 20 minutes. Is the iron still on?');
+    await page.locator('#iron-yes').click();
+    assert.equal(await iron(), false);
+    await page.clock.fastForward('19:00');
+    assert.equal(await iron(), false);
+    await page.clock.fastForward('02:00');
+    assert.equal(await iron(), true, 'asks again 20 minutes after Still working');
+    await page.locator('#iron-off').click();
+    await page.clock.fastForward('45:00');
+    assert.equal(await iron(), false, "quiet after It's off");
+    await tick('R3');
+    await page.clock.fastForward('21:00');
+    assert.equal(await iron(), true, 'a new tick starts it again');
+    await page.locator('#iron-off').click();
+  });
+
+  test('no tick in this visit, no reminder', async () => {
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+    await page.clock.fastForward('30:00');
+    assert.equal(await iron(), false);
+    assert.deepEqual(problems, []);
+  });
+});

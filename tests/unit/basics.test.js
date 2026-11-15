@@ -41,3 +41,12 @@ test('Easy reading can follow the system light or dark setting', () => {
   assert.equal(themeFor({ theme: 'system' }, false), 'light');
   assert.equal(themeFor({ theme: 'light' }, true), 'light');
 });
+
+test('the At the bench settings (1.0.1): the buzz on, the iron reminder off, until changed', () => {
+  assert.equal(cleanSettings({}).buzz, true);
+  assert.equal(cleanSettings({}).ironReminder, false);
+  assert.equal(cleanSettings({ buzz: false }).buzz, false);
+  assert.equal(cleanSettings({ ironReminder: true }).ironReminder, true);
+  assert.equal(cleanSettings({ buzz: 'no', ironReminder: 'yes' }).buzz, true);
+  assert.equal(cleanSettings({ buzz: 'no', ironReminder: 'yes' }).ironReminder, false);
+});

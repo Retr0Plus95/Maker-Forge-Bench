@@ -848,3 +848,14 @@ html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem;
 #shape-send-note:empty, #shape-wires:empty { display: none; }
 #shape-open { align-self: center; margin-right: auto; }
 #shape-open[hidden] { display: none; }
+
+/* ---- after a tick: the undo toast (1.0.1) ---- */
+#toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50;
+  display: flex; gap: 10px; align-items: center; max-width: calc(100vw - 24px); padding: 8px 10px 8px 14px; border-radius: 999px;
+  background: var(--panel2); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 4px 18px rgba(0,0,0,.35); font-weight: 700; }
+#toast[hidden] { display: none; }
+#iron { position: fixed; left: 50%; top: 72px; transform: translateX(-50%); z-index: 51; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  max-width: calc(100vw - 24px); padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); border: 2px solid var(--warn); font-weight: 700; }
+#iron[hidden] { display: none; }
+#toast-undo { min-height: 36px; }
+@media print { #toast, #iron { display: none !important; } }
