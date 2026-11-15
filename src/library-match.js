@@ -136,8 +136,21 @@ export function modelFor(part, look = {}, index, { pitch = PITCH } = {}) {
       const rows = inRow(holes) ? 1 : 2;
       return best(of('header').filter((e) => fitOf(e).rows === rows && fitOf(e).count === n && fitOf(e).female === Boolean(f.female) && !fitOf(e).bent));
     }
-    case 'module':
-      return of('module').find((e) => fitOf(e).value && value.toUpperCase().includes(String(fitOf(e).value).toUpperCase())) || null;
+    case 'module': { // the longest of a module's names that the value contains wins ("ESP32 DevKit V1" over "ESP32 DevKit")
+      const v = value.toUpperCase();
+      let pick = null;
+      let longest = 0;
+      for (const e of of('module')) {
+        const names = [fitOf(e).value, ...(Array.isArray(fitOf(e).also) ? fitOf(e).also : [])];
+        for (const n of names) {
+          if (typeof n === 'string' && n.length > longest && v.includes(n.toUpperCase())) {
+            pick = e;
+            longest = n.length;
+          }
+        }
+      }
+      return pick;
+    }
     case 'underside': { // Bench knows two things that hang under a board: a crystal (Y…) and a ceramic (C…)
       const ref = String(part.ref || '');
       if (/^Y/i.test(ref)) return best(of('crystal').filter((e) => fitOf(e).style === (f.style || 'hc49s')));
@@ -253,6 +266,14 @@ export function placeFor(entry, part, { pitch = PITCH } = {}) {
     return placeInOutline(entry, [(k[0] - 1) * pitch, (k[1] - 1) * pitch, (k[2] - 1) * pitch, (k[3] - 1) * pitch], { side });
   }
   const holes = holesFor(part, pitch);
+  if (part.type === 'module' && !pinsOf(entry).length && holes.length) {
+    // a module whose pins Bench doesn't know (most of Shape's boards): centred over the part's holes,
+    // in their box half a pitch wider all round
+    const xs = holes.map((h) => h[0]);
+    const ys = holes.map((h) => h[1]);
+    const half = pitch / 2;
+    return placeInOutline(entry, [Math.min(...xs) - half, Math.min(...ys) - half, Math.max(...xs) + half, Math.max(...ys) + half], { side });
+  }
   const placed = placeModel(entry, holes, { side });
   if (placed.miss <= MISS_LIMIT || !canBendLegs(part)) return placed;
   return bendLegs(entry, holes, { side }) || placed;
@@ -277,9 +298,15 @@ export function modelsThatFit(part, index, { pitch = PITCH, ref = '' } = {}) {
   if (part.type === 'underside' && /^Y/i.test(ref)) kinds = ['crystal'];
   if (part.type === 'underside' && /^C/i.test(ref)) kinds = ['cer', 'film'];
   const n = Object.keys(part.pins).length;
+  const outlined = part.type === 'module' && Array.isArray(part.keepout) && part.keepout.length === 4;
   const found = [];
   for (const e of index.parts) {
-    if (!kinds.includes(e.kind) || pinsOf(e).length !== n) continue;
+    if (!kinds.includes(e.kind)) continue;
+    if (part.type === 'module' && (outlined || !pinsOf(e).length)) { // placed in its outline, or centred on its holes
+      found.push({ e, key: 0 });
+      continue;
+    }
+    if (pinsOf(e).length !== n) continue;
     const place = placeFor(e, part, { pitch });
     if (!place || !(place.miss <= MISS_LIMIT)) continue;
     found.push({ e: place.legs ? { ...e, bent: true } : e, key: kinds.indexOf(e.kind) * 2 + (place.legs ? 1 : 0) });

@@ -162,6 +162,7 @@ export function renderCard(container, part, o) {
     if (o.where.body) children.push(el('p', { className: 'part-standing' }, `Standing: body over pin ${o.where.body}`));
     else if (o.where.mount === 'flat') children.push(el('p', { className: 'part-flat' }, 'Lies flat on the board'));
   }
+  if (o.module) children.push(el('p', { className: 'part-module', id: 'part-module' }, o.module));
   if (o.looks) children.push(looksBlock(o.looks));
   if (o.offBoard) children.push(el('p', { className: 'part-offboard' }, 'Not on the board (wired to it).'));
   if (o.connections && o.connections.length) {

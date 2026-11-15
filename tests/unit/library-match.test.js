@@ -9,6 +9,7 @@ const index = JSON.parse(readFileSync(new URL('../../src/library/index.json', im
 const byId = (id) => index.parts.find((p) => p.id === id);
 const idOf = (part, look = {}) => (modelFor(part, look, index) || { id: null }).id;
 const near = (a, b, d = 0.01) => assert.ok(Math.abs(a - b) <= d, `${a} is not within ${d} of ${b}`);
+const board = parseProject(readFixture('forge-project/fume-extractor.json')).board;
 
 test('resistors: lying flat by the nearest pitch, standing over one or two holes', () => {
   assert.equal(idOf({ type: 'res', mount: 'flat', pins: { 1: [0, 0], 2: [4, 0] } }), 'r-axial-din0207-l6.3-d2.5-p10.16-h');
@@ -277,4 +278,37 @@ test('a KiCad model path finds its library entry', () => {
   assert.equal(entryForModelPath('${KISYS3DMOD}/Package_DIP.3dshapes/DIP-8_W7.62mm.STP', index).id, 'dip-8-w7.62');
   assert.equal(entryForModelPath('${KICAD9_3DMODEL_DIR}/Nope.3dshapes/Nope.step', index), null);
   assert.equal(entryForModelPath('', index), null);
+});
+
+// ---- 1.0: Shape's boards and modules ----
+const mod = (value, extra = {}) => ({ type: 'module', value, pins: { 1: [2, 2], 2: [2, 9] }, ...extra });
+
+test('a module is matched by the longest name its value contains (Review Focus 3)', () => {
+  assert.equal(idOf(mod('Arduino Nano Every')), 'mod-nano');
+  assert.equal(idOf(mod('ESP32 DevKit V1 (DOIT)')), 'mod-esp32doit');
+  assert.equal(idOf(mod('ESP32-CAM board')), 'mod-esp32cam');
+  assert.equal(idOf(mod('MP1584EN buck module')), 'mp1584-module');
+  assert.equal(idOf(mod('NodeMCU v3 (LoLin)')), 'mod-nodemcu3', 'not the shorter NodeMCU that comes first');
+  assert.equal(idOf(mod('Nano Every')), 'mod-nano', 'any of its names');
+  assert.equal(idOf(mod('a mystery board')), null);
+});
+
+test('a module with no known pins sits centred over its holes', () => {
+  const e = byId('mod-relay1');
+  const at = placeFor(e, mod('Relay module, 1 channel'));
+  assert.equal(at.miss, 0);
+  // the holes run from (2.54, 2.54) to (2.54, 20.32) mm: the module's middle lands on theirs
+  const [[x1, y1], [x2, y2]] = e.model.box;
+  const turned = at.angle === 90;
+  const mid = turned ? [at.x - (y1 + y2) / 2 * -1, at.y + (x1 + x2) / 2] : [at.x + (x1 + x2) / 2, at.y - (y1 + y2) / 2];
+  near(mid[0], 2.54, 0.02);
+  near(mid[1], (2.54 + 20.32) / 2, 0.02);
+});
+
+test('Looks like offers every module for a module part', () => {
+  const ids = modelsThatFit(board.parts.U1, index).map((e) => e.id);
+  assert.ok(ids.includes('mp1584-module') && ids.includes('mod-nano') && ids.includes('mod-relay1'), ids.join(' '));
+  const loose = modelsThatFit(mod('Relay'), index).map((e) => e.id);
+  assert.ok(loose.includes('mod-relay1'), 'a module without pins fits any module part, centred');
+  assert.ok(!loose.includes('mod-nano'), "a pinned module needs its own pins' holes");
 });

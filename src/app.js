@@ -40,6 +40,7 @@ import { BoardFileError, ProgressError, changedSince, exportBoard, exportProgres
 import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSettings } from './settings.js';
 import { applyLooks, lookFields, lookSummary } from './looks.js';
 import { modelFor, modelsThatFit } from './library-match.js';
+import { moduleFacts, moduleText } from './modules.js';
 import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
@@ -444,7 +445,8 @@ function modelChoices(ref, look) {
   const auto = libraryNow ? modelFor({ ...bare, ref, value }, {}, libraryNow) : null;
   const choices = [{ value: '', label: auto ? `Automatic: ${auto.name}` : "Automatic: Bench's own drawing", group: null }];
   for (const e of libraryNow ? modelsThatFit(bare, libraryNow, { ref }) : []) {
-    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e), group: 'Maker Forge Library' });
+    choices.push({ value: e.id, label: e.name, detail: e.bent ? `${sizeOf(e)} · legs bent` : sizeOf(e),
+      group: e.module && e.module.groupLabel ? e.module.groupLabel : 'Maker Forge Library' }); // Shape's boards by its groups
   }
   for (const path of state.modelFiles || []) {
     if (source && (source.wrl || !/\.wrl$/i.test(path))) choices.push({ value: `project:${path}`, label: path, group: 'In the project' });
@@ -477,6 +479,18 @@ function modelChoices(ref, look) {
       }
     },
   };
+}
+
+/** The card's line for a board or module from Shape's list (1.0): the model chosen in Looks like, else the automatic one. */
+function moduleCardText(ref) {
+  const board = projectBoard();
+  const part = board && libraryNow ? board.parts[ref] : null;
+  if (!part) return '';
+  const look = state.looks[ref] || {};
+  const { model: _chosen, ...bare } = part;
+  const chosen = look.model ? libraryNow.parts.find((e) => e.id === look.model) : null;
+  const entry = chosen || (look.model ? null : modelFor({ ...bare, ref, value: (cardPart(ref) || {}).value || '' }, {}, libraryNow));
+  return moduleText(moduleFacts(entry));
 }
 
 /** A chosen model that isn't among the choices, in words: { label, note }, or null while it may still turn up. */
@@ -605,6 +619,7 @@ function renderPartCard() {
     onWire: setWired,
     pins: pinOptions(onBoard),
     looks: looksCardOptions(part.ref),
+    module: moduleCardText(part.ref),
     myBoard: myBoardCardOptions(part.ref, onBoard),
     extras: cardExtras(part, board),
     sheetsWithPart: sheetsWithPart(part.ref),
