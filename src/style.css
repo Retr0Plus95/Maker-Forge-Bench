@@ -816,3 +816,11 @@ html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem;
 #board3d-lid { width: 4.5em; }
 #board3d-lid-note { color: #ff8a80; }
 #myboard-check li[data-open] { outline: 2px solid #ff3b30; outline-offset: 2px; border-radius: 4px; }
+#shape-send { max-width: min(640px, 92vw); }
+.shape-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; margin: 8px 0; }
+.shape-fields label { display: flex; flex-direction: column; gap: 2px; }
+.shape-fields label[hidden] { display: none; }
+.shape-fields input, .shape-fields select { font: inherit; }
+#shape-send-note:empty, #shape-wires:empty { display: none; }
+#shape-open { align-self: center; margin-right: auto; }
+#shape-open[hidden] { display: none; }
