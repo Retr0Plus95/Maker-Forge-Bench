@@ -326,6 +326,13 @@ batches alongside the main releases, the way 0.4.1 did. **Picked to come first,*
 the fume extractor build now: 24 Bridge risk, L1 Fault finder, 8 "I don't have this one yet",
 20 Mix-up warning and 1 Welcome back. S = small, M = medium.
 
+**In batches (agreed 2026-11-15),** each on its own release branch, checked and reviewed, merged when
+the owner says: 1 At the bench (1–10, 20, 24) as **1.0.1**, being built; 2 L1 Fault finder; 3 the
+drawings and part cards (11–19); 4 your board, wiring and 3D (21–23, 25–27); 5 help (38–40); then the
+other large ones one release each, with L6 Swedish last so every new word is translated once.
+**Files and sharing (28–37) is set aside** at the owner's word: they don't want the website's security
+rules (`deploy/csp.txt`) changed, which 31 would need. It comes back only if they bring it back.
+
 **At the bench**
 1. (S) Welcome back: "Last time: R6 soldered, step 12. Next: C4 (100 nF), holes L12–L13."
 2. (S) Time left, from your own speed: "step 12 of 31, about 50 minutes left".
@@ -365,7 +372,7 @@ the fume extractor build now: 24 Bridge risk, L1 Fault finder, 8 "I don't have t
 26. (S) Line colours colour-blind people can tell apart, with dashed patterns as well as colours.
 27. (M) The drawing's board as a ghost over My board in 3D, so the parts you moved stand out.
 
-**Files and sharing**
+**Files and sharing** (set aside 2026-11-15, see above)
 28. (S) Recent projects on the start screen.
 29. (M) Open a project's `.zip`.
 30. (S) Drag and drop a folder or files onto the window.
