@@ -410,6 +410,9 @@ h1 {
 .step-what { color: var(--muted); }
 .step-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .step-missing { color: var(--warn); margin: 6px 0; }
+.welcome-back { margin: 0 0 10px; padding: 8px 10px; border-left: 4px solid #28c4ff; background: var(--accent-soft); }
+.welcome-back p { margin: 0 0 6px; }
+.time-left { margin: 4px 0; }
 .step-bridges { margin: 8px 0; padding: 6px 8px; border-left: 4px solid var(--warn); background: var(--accent-soft); }
 .step-bridges p, .step-bridges ul { margin: 2px 0; }
 .step-bridges ul { padding-left: 1.2em; }

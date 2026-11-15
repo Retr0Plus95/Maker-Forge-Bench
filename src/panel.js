@@ -435,6 +435,22 @@ export function renderSteps(container, steps, o) {
   const bar = el('progress', { className: 'steps-bar', max: String(Math.max(steps.length, 1)), 'aria-label': 'Steps done' });
   bar.value = doneCount;
   const children = [head, el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done${skippedCount ? ` · ${skippedCount} skipped` : ''}`), bar];
+  if (o.timeLeft) children.push(el('p', { className: 'time-left hint' }, o.timeLeft));
+  if (o.welcome) {
+    // Welcome back (1.0.1): where you were and what comes next, once each time the project opens
+    const w = el('div', { id: 'welcome-back', className: 'welcome-back', role: 'status' }, el('p', {}, o.welcome.text));
+    const row = el('div', { className: 'step-nav' });
+    if (o.welcome.onCarryOn) {
+      const go = el('button', { id: 'welcome-carry-on', type: 'button', className: 'primary', 'data-focus': 'welcome-carry-on' }, 'Carry on');
+      go.addEventListener('click', o.welcome.onCarryOn);
+      row.append(go);
+    }
+    const close = el('button', { id: 'welcome-close', type: 'button', 'data-focus': 'welcome-close' }, 'Close');
+    close.addEventListener('click', o.welcome.onClose);
+    row.append(close);
+    w.append(row);
+    children.unshift(w);
+  }
   const step = o.current !== null ? steps[o.current] : null;
   const more = container.querySelector('.step-open details.step-more');
   if (step) children.push(guideBox(step, steps, { ...o, moreOpen: more ? more.open : undefined }, stepDraft));

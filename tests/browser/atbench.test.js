@@ -298,3 +298,57 @@ describe('at the bench: the iron reminder', () => {
     assert.deepEqual(problems, []);
   });
 });
+
+describe('at the bench: welcome back and time left', () => {
+  const DONE = ['U2', 'J0', 'D1', 'C1A', 'C1B', 'U1', 'C2', 'C3', 'C10', 'J2', 'J3', 'R4', 'C6', 'C7', 'R8', 'R12', 'R9', 'R13', 'R7', 'R5', 'Q1', 'R6'];
+
+  async function openWith(seed) {
+    const server = await startDevServer(await fumeProject());
+    const opened = await openPage(server.url, { width: 1400, height: 950 }, {
+      before: (pg) => pg.addInitScript(([refs, on]) => {
+        if (!on || localStorage.getItem('bench.seeded')) return;
+        localStorage.setItem('bench.seeded', '1');
+        const end = Date.now() - 2 * 60 * 60 * 1000; // two hours ago
+        const log = refs.map((ref, i) => ({ t: end - (refs.length - 1 - i) * 5 * 60 * 1000, text: `Tick ${ref}` })); // one every 5 minutes
+        localStorage.setItem('bench.progress:Solder Fume Extractor:Rev D', JSON.stringify({
+          ticked: refs, sheetPrints: {}, flipped: [], checks: ['step:buses', 'step:links', 'step:bridges'], log,
+        }));
+      }, [DONE, seed]),
+    });
+    await opened.page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+    return { server, ...opened };
+  }
+
+  test('back after two hours: where you were and what comes next; Carry on goes there', async () => {
+    const { server, browser, page, problems } = await openWith(true);
+    try {
+      const text = await page.locator('#welcome-back p').textContent();
+      assert.match(text, /^Welcome back\. Last time \((today|yesterday) at \d\d:\d\d\): R6 soldered\. Next: step 8 of 10, R2 \(330R\), pin 1 at 5,15 · pin 2 at 5,17\.$/);
+      assert.equal(await page.locator('#steps .time-left').textContent(), 'About 1 h 10 min left for the 15 parts still to solder, at your pace so far.');
+      await page.locator('#welcome-carry-on').click();
+      assert.match(await page.locator('#steps .step-title').textContent(), /^Step 8 of 10: The panel side$/);
+      await page.waitForFunction(() => document.querySelector('#part-card h2')?.firstChild?.textContent === 'R2');
+      assert.equal(await page.locator('#welcome-back').count(), 0);
+      await page.reload();
+      await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+      assert.equal(await page.locator('#welcome-back').count(), 1, 'every time the project is opened after an hour away');
+      await page.locator('#welcome-close').click();
+      assert.equal(await page.locator('#welcome-back').count(), 0);
+      assert.deepEqual(problems, []);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+
+  test('a fresh project: no welcome and no time left', async () => {
+    const { server, browser, page } = await openWith(false);
+    try {
+      assert.equal(await page.locator('#welcome-back').count(), 0);
+      assert.equal(await page.locator('#steps .time-left').count(), 0);
+    } finally {
+      await browser.close();
+      await server.stop();
+    }
+  });
+});

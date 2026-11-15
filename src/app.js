@@ -48,6 +48,7 @@ import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 import { bridgeRisks } from './bridges.js';
 import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
 import { waitingNow, withWaiting } from './waiting.js';
+import { awayFor, lastTick, timeLeft } from './resume.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -95,6 +96,7 @@ const state = {
   looksOpen: false, // the card's Looks like is open
   stepEdits: NO_EDITS, // your changes to the build steps: { order, skipped, added } (0.8 §3)
   waiting: new Set(), // parts you don't have yet (1.0.1)
+  welcome: false, // Welcome back on show: opened after more than an hour away (1.0.1)
   stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
@@ -3147,7 +3149,53 @@ function renderStepsPanel() {
     onDoneNext: doneNextStep,
     partInfo: guidePart,
     adjust: stepsAdjustOptions(),
+    welcome: state.welcome ? welcomeOptions() : null,
+    timeLeft: timeLeftText(),
   });
+}
+
+// ---- welcome back and time left (1.0.1, ideas 1 and 2) ----
+/** "today at 21:40", "yesterday at 21:40" or "on 2026-11-12 at 21:40". */
+function whenWords(t) {
+  const today = day(Date.now());
+  const yesterday = day(Date.now() - 24 * 60 * 60 * 1000);
+  const d = day(t);
+  return `${d === today ? 'today' : d === yesterday ? 'yesterday' : `on ${d}`} at ${clock(t)}`;
+}
+
+function welcomeOptions() {
+  const steps = stepsOf();
+  const at = steps.findIndex((s) => !stepDone(s));
+  const step = at >= 0 ? steps[at] : null;
+  const ref = step ? step.parts.find((r) => !step.missing.includes(r) && isKnownRef(r) && !state.ticked.has(r)) : null;
+  const last = lastTick(state.log);
+  const lastWords = last && state.ticked.has(last.ref) ? `${last.ref} soldered` : `${state.ticked.size} ${state.ticked.size === 1 ? 'part' : 'parts'} soldered so far`;
+  let next = 'Every step is done.';
+  if (step) {
+    const part = ref ? state.partsByRef.get(ref) : null;
+    const where = ref ? guideWhere(ref) : '';
+    next = `Next: step ${at + 1} of ${steps.length}, ${ref ? `${ref}${part && part.value ? ` (${part.value})` : ''}${where ? `, ${where}` : ''}` : step.title}.`;
+  }
+  const lastT = state.log.length ? state.log[state.log.length - 1].t : Date.now();
+  return {
+    text: `Welcome back. Last time (${whenWords(lastT)}): ${lastWords}. ${next}`,
+    onCarryOn: step ? () => {
+      state.welcome = false;
+      openStep(at);
+      if (ref) selectPart(ref);
+    } : null,
+    onClose: () => {
+      state.welcome = false;
+      renderStepsPanel();
+    },
+  };
+}
+
+function timeLeftText() {
+  const known = state.parts.filter((p) => isKnownRef(p.ref));
+  const waiting = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const left = known.filter((p) => !state.ticked.has(p.ref) && !waiting.has(p.ref)).length;
+  return timeLeft(timeSpent(state.log), known.filter((p) => state.ticked.has(p.ref)).length, left);
 }
 
 /** A part in the guide: its value, whether it's soldered, and where it goes (your hole names when they're on). */
@@ -3251,6 +3299,7 @@ function loadProgress() {
   state.looks = data ? data.looks : Object.create(null);
   state.stepEdits = data ? data.steps : NO_EDITS;
   state.waiting = new Set(data ? data.waiting : []);
+  state.welcome = state.ticked.size > 0 && awayFor(state.log, Date.now()) > 60 * 60 * 1000;
   refreshNotes();
 }
 
