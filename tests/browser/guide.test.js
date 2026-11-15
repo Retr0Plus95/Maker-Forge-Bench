@@ -152,8 +152,9 @@ describe('the tabs on a phone', () => {
     const server = await startDevServer(dir);
     const { browser, page, problems } = await openPage(server.url, { width: 390, height: 844 }, { tabs: true, context: { hasTouch: true, isMobile: true } });
     try {
-      await page.waitForFunction(() => document.querySelectorAll('#panel-tabs [role=tab]').length > 0);
-      const tops = await page.locator('#panel-tabs [role=tab]').evaluateAll((tabs) => [...new Set(tabs.filter((t) => t.offsetParent).map((t) => Math.round(t.getBoundingClientRect().top)))]);
+      // the tabs are made before the panel is shown: wait until they're on screen, then measure
+      await page.waitForFunction(() => [...document.querySelectorAll('#panel-tabs [role=tab]')].some((t) => t.offsetParent));
+      const tops =await page.locator('#panel-tabs [role=tab]').evaluateAll((tabs) => [...new Set(tabs.filter((t) => t.offsetParent).map((t) => Math.round(t.getBoundingClientRect().top)))]);
       assert.equal(tops.length, 1, 'one row');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       await page.locator('#ptab-parts').tap();
