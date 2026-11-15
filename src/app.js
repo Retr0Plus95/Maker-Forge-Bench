@@ -46,6 +46,7 @@ import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './own
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 import { bridgeRisks } from './bridges.js';
+import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -713,6 +714,7 @@ function cardExtras(part, board) {
     solderedAt: when ? `Soldered at ${clock(when)}${day(when) !== day(Date.now()) ? ` on ${day(when)}` : ''}` : null,
     bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
     mixUps: mixUpTexts(part),
+    tip: tipFor(part, lib ? lib.id : null),
     code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
     library: lib,
@@ -2291,6 +2293,9 @@ async function setWake(on) {
 
 function openShopping() {
   const rows = shoppingList(state.parts);
+  const solder = solderNeeded(projectBoard());
+  $('#shopping-solder').hidden = !solder;
+  $('#shopping-solder').textContent = solder ? `About ${solder.joints} solder joints: about ${solder.metres} m of 0.8 mm solder, with some to spare.` : '';
   const body = $('#shopping tbody');
   body.replaceChildren(...rows.map((r) => el('tr', {},
     el('td', {}, String(r.count)),
@@ -2936,12 +2941,17 @@ function autoNextStep(wasDone) {
   }
 }
 
+/** A step's parts as project parts (for their types). */
+const stepParts = (step) => step.parts.map((ref) => state.partsByRef.get(ref)).filter(Boolean);
+
 function stepExtras(step) {
   const board = projectBoard();
   const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
   return {
     joints,
     bridges: stepBridges(step).map((f) => f.text),
+    tools: toolsFor(step, stepParts(step)),
+    tips: stepTips(step, stepParts(step), (p) => (libraryFor(p) || {}).id || null),
     note: state.notes[`step.${step.id}`] || '',
     onNote: (text) => setNote(`step.${step.id}`, text),
     onPrint: () => {

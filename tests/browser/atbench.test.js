@@ -69,4 +69,20 @@ describe('at the bench: reading the board', () => {
     await openCard(page, 'R2');
     assert.equal(await page.locator('#part-card .part-mixup').count(), 0);
   });
+
+  test('a soldering tip on each card, and tools and tips in the open step', async () => {
+    await openCard(page, 'C1A');
+    assert.equal(await page.locator('#part-card .part-tip').textContent(), 'Tip: The stripe marks the minus leg (the shorter one). Backwards it can swell or pop, so check before soldering.');
+    await openStepNamed(page, 'Insulated links');
+    assert.equal(await page.locator('#steps .step-tools').textContent(), 'Have ready: flush cutters, wire strippers.');
+    assert.match(await page.locator('#steps .step-tips').textContent(), /Wiring → Wire to cut/);
+    await openStepNamed(page, 'Power-up checks');
+    assert.equal(await page.locator('#steps .step-tools').textContent(), 'Have ready: multimeter.');
+  });
+
+  test('the shopping list says how many joints and how much solder', async () => {
+    await page.locator('#shopping-open').click();
+    assert.equal(await page.locator('#shopping-solder').textContent(), 'About 163 solder joints: about 2 m of 0.8 mm solder, with some to spare.');
+    await page.locator('#shopping-done').click();
+  });
 });

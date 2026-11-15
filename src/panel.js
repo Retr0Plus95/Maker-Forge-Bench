@@ -139,6 +139,7 @@ export function renderCard(container, part, o) {
   if (x.solderedAt) children.push(el('p', { className: 'part-soldered-at' }, x.solderedAt));
   if (x.bands) children.push(bandsPicture(x.bands));
   for (const text of x.mixUps || []) children.push(el('p', { className: 'part-mixup', role: 'note' }, text));
+  if (x.tip) children.push(el('p', { className: 'part-tip' }, `Tip: ${x.tip}`));
   if (x.code) children.push(el('p', { className: 'part-code' }, `Printed on it: ${x.code} (${part.value})`));
   if (x.polarity) children.push(polarityPicture(x.polarity));
   if (x.library && x.library.polarity) children.push(el('p', { className: 'part-library-polarity' }, x.library.polarity));
@@ -455,6 +456,8 @@ function guideBox(step, steps, o, stepDraft) {
   if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
   const what = o.whatText(step);
   if (what) box.append(el('p', { className: 'step-what' }, what));
+  const tools = o.extras && o.extras.tools;
+  if (tools && tools.length) box.append(el('p', { className: 'step-tools' }, `Have ready: ${tools.join(', ')}.`));
   const found = step.parts.filter((r) => !step.missing.includes(r));
   if (found.length) {
     const parts = el('ul', { className: 'step-parts' });
@@ -473,6 +476,8 @@ function guideBox(step, steps, o, stepDraft) {
     box.append(parts);
   }
   if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
+  const tips = o.extras && o.extras.tips;
+  if (tips && tips.length) box.append(el('ul', { className: 'step-tips hint' }, ...tips.map((t) => el('li', {}, t))));
   const bridges = o.extras && o.extras.bridges;
   if (bridges && bridges.length) {
     box.append(el('div', { className: 'step-bridges' },

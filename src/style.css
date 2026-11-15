@@ -316,6 +316,10 @@ h1 {
 }
 .part-polarity::before { content: "⚠ "; color: var(--warn); }
 .part-mixup { color: var(--warn); }
+.part-tip { font-size: .95rem; }
+.step-tools { margin: 6px 0; font-weight: 700; }
+.step-tips { margin: 4px 0; padding-left: 1.2em; }
+.step-tips li { margin: 2px 0; }
 .part-mixup::before { content: "⚠ "; }
 .part-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
 .button-link {
