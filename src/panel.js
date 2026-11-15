@@ -134,10 +134,13 @@ export function renderCard(container, part, o) {
   if (part.guessed) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
   }
+  if (o.waiting && o.waiting.on) children.push(el('p', { className: 'part-waiting', role: 'note' }, 'Waiting for this part: the guide brings it back in the last step.'));
 
   const x = o.extras || {};
   if (x.solderedAt) children.push(el('p', { className: 'part-soldered-at' }, x.solderedAt));
   if (x.bands) children.push(bandsPicture(x.bands));
+  for (const text of x.mixUps || []) children.push(el('p', { className: 'part-mixup', role: 'note' }, text));
+  if (x.tip) children.push(el('p', { className: 'part-tip' }, `Tip: ${x.tip}`));
   if (x.code) children.push(el('p', { className: 'part-code' }, `Printed on it: ${x.code} (${part.value})`));
   if (x.polarity) children.push(polarityPicture(x.polarity));
   if (x.library && x.library.polarity) children.push(el('p', { className: 'part-library-polarity' }, x.library.polarity));
@@ -283,6 +286,12 @@ export function renderCard(container, part, o) {
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
   }
+  if (o.waiting) {
+    const wait = el('button', { id: 'part-waiting', type: 'button', 'data-focus': 'waiting', title: 'The guide skips it and brings it back at the end' },
+      o.waiting.on ? "It's here now" : "I don't have this one yet");
+    wait.addEventListener('click', o.waiting.onToggle);
+    actions.append(wait);
+  }
   if (o.onTick) {
     const tick = el('button', { id: 'part-tick', type: 'button', 'aria-pressed': String(Boolean(o.ticked)) },
       o.ticked ? 'Soldered ✓' : 'Mark soldered');
@@ -426,6 +435,22 @@ export function renderSteps(container, steps, o) {
   const bar = el('progress', { className: 'steps-bar', max: String(Math.max(steps.length, 1)), 'aria-label': 'Steps done' });
   bar.value = doneCount;
   const children = [head, el('p', { className: 'steps-done progress-text' }, `${doneCount} of ${steps.length} steps done${skippedCount ? ` · ${skippedCount} skipped` : ''}`), bar];
+  if (o.timeLeft) children.push(el('p', { className: 'time-left hint' }, o.timeLeft));
+  if (o.welcome) {
+    // Welcome back (1.0.1): where you were and what comes next, once each time the project opens
+    const w = el('div', { id: 'welcome-back', className: 'welcome-back', role: 'status' }, el('p', {}, o.welcome.text));
+    const row = el('div', { className: 'step-nav' });
+    if (o.welcome.onCarryOn) {
+      const go = el('button', { id: 'welcome-carry-on', type: 'button', className: 'primary', 'data-focus': 'welcome-carry-on' }, 'Carry on');
+      go.addEventListener('click', o.welcome.onCarryOn);
+      row.append(go);
+    }
+    const close = el('button', { id: 'welcome-close', type: 'button', 'data-focus': 'welcome-close' }, 'Close');
+    close.addEventListener('click', o.welcome.onClose);
+    row.append(close);
+    w.append(row);
+    children.unshift(w);
+  }
   const step = o.current !== null ? steps[o.current] : null;
   const more = container.querySelector('.step-open details.step-more');
   if (step) children.push(guideBox(step, steps, { ...o, moreOpen: more ? more.open : undefined }, stepDraft));
@@ -454,6 +479,8 @@ function guideBox(step, steps, o, stepDraft) {
   if (step.why) box.append(el('p', { className: 'step-why' }, step.why));
   const what = o.whatText(step);
   if (what) box.append(el('p', { className: 'step-what' }, what));
+  const tools = o.extras && o.extras.tools;
+  if (tools && tools.length) box.append(el('p', { className: 'step-tools' }, `Have ready: ${tools.join(', ')}.`));
   const found = step.parts.filter((r) => !step.missing.includes(r));
   if (found.length) {
     const parts = el('ul', { className: 'step-parts' });
@@ -467,11 +494,20 @@ function guideBox(step, steps, o, stepDraft) {
       const words = el('span', { className: 'step-part-words' });
       if (info.value) words.append(el('span', { className: 'step-part-value' }, info.value));
       if (info.where) words.append(el('span', { className: 'step-part-where' }, info.where));
+      if (step.from && step.from[ref]) words.append(el('span', { className: 'step-part-from' }, `from step: ${step.from[ref]}`));
       parts.append(el('li', { className: info.ticked ? 'ticked' : '' }, tick, b, words));
     }
     box.append(parts);
   }
   if (step.missing.length) box.append(el('p', { className: 'step-missing' }, `Not in this project: ${step.missing.join(', ')}`));
+  const tips = o.extras && o.extras.tips;
+  if (tips && tips.length) box.append(el('ul', { className: 'step-tips hint' }, ...tips.map((t) => el('li', {}, t))));
+  const bridges = o.extras && o.extras.bridges;
+  if (bridges && bridges.length) {
+    box.append(el('div', { className: 'step-bridges' },
+      el('p', {}, el('strong', {}, 'Watch for a bridge:')),
+      el('ul', {}, ...bridges.map((text) => el('li', {}, text)))));
+  }
   // the big one: tick this step and go on
   if (!(last && done)) {
     const go = el('button', { type: 'button', id: 'step-done-next', className: 'primary', 'data-focus': 'done-next' },
@@ -690,22 +726,42 @@ function holeNamesBlock(container, h) {
 
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
 export function renderChecks(container, o) {
-  if (!o.checks.length) {
+  const bridges = o.bridges || [];
+  if (!o.checks.length && !bridges.length) {
     container.replaceChildren();
     return;
   }
-  const list = el('ul', { className: 'checks-list' });
-  for (const c of o.checks) {
-    const box = el('input', { type: 'checkbox', 'data-check': c.id, 'data-focus': `check-${c.id}` });
-    box.checked = o.done.has(c.id);
-    box.addEventListener('change', () => o.onCheck(c.id, box.checked));
-    list.append(el('li', {}, el('label', {}, box, ` ${c.text}`)));
+  const children = [];
+  if (o.checks.length) {
+    const list = el('ul', { className: 'checks-list' });
+    for (const c of o.checks) {
+      const box = el('input', { type: 'checkbox', 'data-check': c.id, 'data-focus': `check-${c.id}` });
+      box.checked = o.done.has(c.id);
+      box.addEventListener('change', () => o.onCheck(c.id, box.checked));
+      list.append(el('li', {}, el('label', {}, box, ` ${c.text}`)));
+    }
+    children.push(el('h2', {}, 'Before power'),
+      el('p', { className: 'hint' }, 'Do these with a multimeter before the chip goes in its socket.'), list);
   }
-  keepFocus(container, () => container.replaceChildren(
-    el('h2', {}, 'Before power'),
-    el('p', { className: 'hint' }, 'Do these with a multimeter before the chip goes in its socket.'),
-    list,
-  ));
+  if (bridges.length) {
+    // bridge risk (1.0.1): where too much solder underneath joins two lines
+    const list = el('ul', { id: 'bridge-risks', className: 'bridge-risks' });
+    for (const f of bridges) {
+      const open = el('button', { type: 'button', className: 'part-link', 'data-focus': `bridge-${f.id}` }, f.text);
+      open.addEventListener('click', () => o.onBridge(f));
+      const li = el('li', { 'data-bridge': f.id }, open);
+      if (f.id === o.openBridge) li.setAttribute('aria-current', 'true');
+      list.append(li);
+    }
+    const head = el('div', { className: 'steps-head' }, el('h3', { id: 'bridges-title' }, `Watch for bridges underneath (${bridges.length})`));
+    if (o.onBridges3D) {
+      const show = el('button', { id: 'bridges-3d', type: 'button', 'data-focus': 'bridges-3d' }, 'Show them in 3D');
+      show.addEventListener('click', o.onBridges3D);
+      head.append(show);
+    }
+    children.push(head, el('p', { className: 'hint' }, 'Joints on different lines, one hole apart: easy to join with too much solder.'), list);
+  }
+  keepFocus(container, () => container.replaceChildren(...children));
 }
 
 /**

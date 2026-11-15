@@ -26,6 +26,7 @@
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="menu-save" class="tool" type="button" title="Your ticks, wiring, board and notes as a file (Ctrl+S)">Save progress</button>
     <button id="menu-shopping" class="tool" type="button">Shopping list</button>
+    <button id="menu-sort" class="tool" type="button" aria-haspopup="dialog" title="Each step's parts by value, to lay out in a tray before you start">Sort your parts</button>
     <button id="menu-shape" class="tool" type="button" aria-haspopup="dialog" title="Put this board in Maker Forge Shape's Your parts, to make a box for it">Send to Shape</button>
     <button id="menu-log" class="tool" type="button">Build log</button>
     <button id="menu-versions" class="tool" type="button">Versions</button>
@@ -47,8 +48,10 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 0.9:</strong> real 3D parts from KiCad's free library (Parts: Real or Simple in the 3D view), a 3D model for each part in Looks like, and a better 3D view: board colours, your soldering progress, which way round, saved views, a height check for the case, and saving it as a picture, a model or a video. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 1.0.1:</strong> help at the bench. Welcome back when you return, the time left at your own pace, the places to watch for solder bridges (Checks), resistors easy to mix up, a soldering tip on each card and the tools for each step, "I don't have this one yet", Sort your parts, joints and solder on the shopping list, Undo right after a tick, and in Easy reading → At the bench a buzz when you tick and an iron reminder. <strong>From 1.0:</strong> Wire to cut, 62 boards and modules from Maker Forge Shape, and Send to Shape. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
+<div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span> <button id="toast-undo" type="button">Undo</button></div>
+<div id="iron" role="alert" hidden><span id="iron-text">Nothing ticked for 20 minutes. Is the iron still on?</span> <button id="iron-yes" type="button">Still working</button> <button id="iron-off" type="button">It's off</button></div>
 <p id="sheet-note" aria-live="polite" hidden></p>
 <section id="start" hidden aria-labelledby="start-title"></section>
 <input id="source-folder" type="file" webkitdirectory multiple class="visually-hidden" tabindex="-1" aria-hidden="true">
@@ -92,6 +95,7 @@
           <label class="check"><input id="board3d-wiring" type="checkbox" checked> Wiring underneath</label>
           <label class="check"><input id="board3d-labels" type="checkbox" checked> Labels</label>
           <label class="check"><input id="board3d-xray" type="checkbox"> X-ray</label>
+          <label class="check" title="An amber mark under each place to watch for a solder bridge (sheet 4's board)"><input id="board3d-bridges" type="checkbox"> Bridges</label>
           <label class="check" title="A mark over each polarized part: the + leg, the cathode, pin 1"><input id="board3d-polarity" type="checkbox"> Which way round</label>
           <label class="slider">Board <select id="board3d-colour" title="The board's colour, kept for this project">
             <option value="green">Green</option>
@@ -226,9 +230,20 @@
   <ul id="versions-list"></ul>
   <div class="dialog-actions"><button id="versions-done" type="button">Done</button></div>
 </dialog>
+<dialog id="sort-parts" aria-labelledby="sort-title">
+  <h2 id="sort-title">Sort your parts</h2>
+  <p class="hint">Each step's parts grouped by value, to lay out in a tray before you start.</p>
+  <div id="sort-list"></div>
+  <div class="dialog-actions">
+    <button id="sort-print" type="button">Print</button>
+    <button id="sort-done" class="primary" type="button">Done</button>
+  </div>
+</dialog>
 <dialog id="shopping" aria-labelledby="shopping-title">
   <h2 id="shopping-title">Shopping list</h2>
   <p class="hint">Every part in the project, grouped by what you buy.</p>
+  <p id="shopping-solder" class="shopping-solder" hidden></p>
+  <p id="shopping-missing-row" hidden><label class="check"><input id="shopping-missing" type="checkbox"> <span id="shopping-missing-label">Only what's missing</span></label></p>
   <table>
     <thead><tr><th scope="col">How many</th><th scope="col">Part</th><th scope="col">Which</th></tr></thead>
     <tbody></tbody>
@@ -286,6 +301,9 @@
   </fieldset>
   <label class="check"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
   <label class="check"><input type="checkbox" name="compact"> Compact (more on screen)</label>
+  <h3 class="settings-sub">At the bench</h3>
+  <label class="check"><input type="checkbox" name="buzz"> Buzz when I tick a part (phones that can)</label>
+  <label class="check"><input type="checkbox" name="ironReminder"> Ask if the iron is still on after 20 minutes without a tick</label>
   <p class="hint">Every change above can be undone with Ctrl+Z.</p>
   <h3 id="ai-title" class="settings-sub">AI help (optional)</h3>
   <fieldset id="ai-provider">

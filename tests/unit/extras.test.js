@@ -56,3 +56,22 @@ test('the checklist grouped by type, with names people use', () => {
   const groups = groupByType([{ ref: 'R1', type: 'resistor' }, { ref: 'C1', type: 'capacitor-ceramic' }, { ref: 'R2', type: 'resistor' }]);
   assert.deepEqual(groups.map((g) => [g.label, g.parts.map((p) => p.ref)]), [['Ceramic capacitors', ['C1']], ['Resistors', ['R1', 'R2']]]);
 });
+
+// ---- the mix-up warning (1.0.1, idea 20) ----
+import { mixUps } from '../../src/markings.js';
+import { parseProject } from '../../src/project.js';
+import { readFixture } from './helpers.js';
+
+test('mix-ups: two resistor values whose colour bands differ by one band', () => {
+  const parts = parseProject(readFixture('forge-project/fume-extractor.json')).parts;
+  assert.deepEqual(mixUps(parts), [{
+    a: 'R4', b: 'R5', aValue: '10k', bValue: '1k', band: 2,
+    aBands: ['brown', 'black', 'orange', 'gold'], bBands: ['brown', 'black', 'red', 'gold'],
+  }]);
+  const r = (ref, value, type = 'resistor') => ({ ref, value, type });
+  assert.equal(mixUps([r('R1', '4.7k'), r('R2', '47k')])[0].band, 2);
+  assert.deepEqual(mixUps([r('R1', '10k'), r('R2', '22k')]), []);
+  assert.deepEqual(mixUps([r('R1', '10k'), r('R2', '10k')]), [], 'the same value is no mix-up');
+  assert.deepEqual(mixUps([r('C1', '10k', 'capacitor-ceramic'), r('R2', '1k')]), [], 'only resistors');
+  assert.deepEqual(mixUps([r('R1', 'abc'), r('R2', '1k')]), []);
+});

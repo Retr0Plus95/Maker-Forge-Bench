@@ -16,7 +16,7 @@ import { findLines, findValues, nextInStep, paletteMatch } from './lookup.js';
 import { divider, ledResistor, ohmsLaw, ohmsText } from './calc.js';
 import { groupByType, shoppingCsv, shoppingList, shoppingText } from './bom.js';
 import { addVersion, buildReport, clock, cleanVersions, day, duration, logAdd, logText, solderedAt, timeSpent } from './buildlog.js';
-import { capacitorCode, resistorBands } from './markings.js';
+import { capacitorCode, mixUps, resistorBands } from './markings.js';
 import { libraryFor } from './library.js';
 import { stillToWire } from './wiring.js';
 import { pinText } from './wiring.js';
@@ -45,6 +45,10 @@ import { SHAPE_URL, canReachShape, defaultSize, parseHoles, portsAndPanel, shape
 import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
+import { bridgeRisks } from './bridges.js';
+import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
+import { waitingNow, withWaiting } from './waiting.js';
+import { awayFor, lastTick, timeLeft } from './resume.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -91,6 +95,8 @@ const state = {
   looks: Object.create(null), // what each part looks like as you fitted it: { ref: { holder, colour, swap, ... } } (0.8 §2)
   looksOpen: false, // the card's Looks like is open
   stepEdits: NO_EDITS, // your changes to the build steps: { order, skipped, added } (0.8 §3)
+  waiting: new Set(), // parts you don't have yet (1.0.1)
+  welcome: false, // Welcome back on show: opened after more than an hour away (1.0.1)
   stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
@@ -106,8 +112,9 @@ const state = {
   checklistGroup: false,
   checklistSort: 'list',
   wiringFilter: '',
+  openBridge: null, // the bridge risk last opened from 3D or Checks (1.0.1)
 };
-const APP_VERSION = '0.9.0';
+const APP_VERSION = '1.0.1';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -116,15 +123,17 @@ const FLIP_DISABLED = 'Only layout sheets can be flipped.';
 const history = createHistory();
 // The build log (0.5 big improvement B10): every change you make, and its undo and redo, with the time.
 // Easy reading changes aren't building, so they stay out of it.
-const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact)/;
+const NOT_BUILDING = /^(Theme|High contrast|Clear font|Text size|Reduce motion|Compact|Buzz on ticking|Iron reminder)/;
 let lastHistory = { undoLabel: null, redoLabel: null };
 history.subscribe((h) => { lastHistory = h; });
 const historyDo = history.do.bind(history);
 const historyUndo = history.undo.bind(history);
 const historyRedo = history.redo.bind(history);
 history.do = (action) => {
+  if (typeof state !== 'undefined') state.welcome = false; // Welcome back's news is old once you change something
   historyDo(action);
   addLog(action.label);
+  afterTick(action.label);
 };
 history.undo = () => {
   const label = lastHistory.undoLabel;
@@ -138,6 +147,68 @@ history.redo = () => {
   if (done) addLog(`Redo ${label}`);
   return done;
 };
+// ---- after a tick (1.0.1, ideas 9 and 10): a small buzz, and "R6 soldered · Undo" for 6 seconds ----
+const TOAST_MS = 6000;
+const toast = { label: null, timer: null };
+/** What a tick's history label says in the toast, and whether it buzzes (unticking doesn't). */
+function tickWords(label) {
+  let m;
+  if ((m = /^Tick (\S+)$/.exec(label))) return { text: `${m[1]} soldered`, buzz: true };
+  if ((m = /^Untick (\S+)$/.exec(label))) return { text: `${m[1]} not soldered`, buzz: false };
+  if ((m = /^Tick step (\d+)$/.exec(label))) return { text: `Step ${m[1]} ticked`, buzz: true };
+  if ((m = /^Step (\d+) done$/.exec(label))) return { text: `Step ${m[1]} done`, buzz: true };
+  if ((m = /^Tick all (.+)$/.exec(label))) return { text: `Ticked all ${m[1]}`, buzz: true };
+  return null;
+}
+function afterTick(label) {
+  const words = tickWords(label);
+  if (!words) return;
+  if (words.buzz) {
+    lastTickAt = Date.now(); // for the iron reminder
+    ironAsked = false;
+    $('#iron').hidden = true;
+    if (settings.buzz && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(30); } catch { /* no buzz here */ }
+    }
+  }
+  clearTimeout(toast.timer);
+  toast.label = label;
+  $('#toast-text').textContent = words.text;
+  $('#toast').hidden = false;
+  toast.timer = setTimeout(hideToast, TOAST_MS);
+}
+function hideToast() {
+  clearTimeout(toast.timer);
+  toast.label = null;
+  $('#toast').hidden = true;
+}
+/** Undo from the toast: only while that tick is still the last change. */
+function undoFromToast() {
+  if (toast.label && lastHistory.undoLabel === toast.label) history.undo();
+  hideToast();
+}
+// another change, an undo or a redo after the tick: its toast goes
+history.subscribe((h) => { if (toast.label && h.undoLabel !== toast.label) hideToast(); });
+
+// ---- the iron reminder (1.0.1, idea 3): nothing ticked for 20 minutes → "Is the iron still on?" ----
+const IRON_MS = 20 * 60 * 1000;
+let lastTickAt = 0; // the last tick in this visit (0: none yet)
+let ironAsked = false; // asked, or told it's off: quiet until the next tick
+/** Once a minute: on, a tick this visit, 20 minutes since, the page in view, not asked yet → ask. */
+function checkIron() {
+  if (!settings.ironReminder || !lastTickAt || ironAsked || document.visibilityState === 'hidden') return;
+  if (Date.now() - lastTickAt < IRON_MS) return;
+  ironAsked = true;
+  $('#iron').hidden = false;
+}
+function ironAnswer(stillWorking) {
+  $('#iron').hidden = true;
+  if (stillWorking) {
+    lastTickAt = Date.now(); // ask again in 20 minutes
+    ironAsked = false;
+  } // it's off: quiet until the next tick
+}
+
 function addLog(text) {
   if (!text || NOT_BUILDING.test(text) || typeof state === 'undefined' || !state.progressKey) return;
   state.log = logAdd(state.log, text);
@@ -627,6 +698,8 @@ function renderPartCard() {
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
     onTick: () => toggleTick(part.ref),
+    waiting: state.ticked.has(part.ref) || !isKnownRef(part.ref) ? null
+      : { on: state.waiting.has(part.ref), onToggle: () => setWaiting(part.ref, !state.waiting.has(part.ref)) },
     ask: {
       placeholder: DEFAULT_QUESTION,
       onCopy: copyForClaude,
@@ -710,6 +783,8 @@ function cardExtras(part, board) {
   return {
     solderedAt: when ? `Soldered at ${clock(when)}${day(when) !== day(Date.now()) ? ` on ${day(when)}` : ''}` : null,
     bands: /resistor/i.test(part.type || '') ? resistorBands(part.value) : null,
+    mixUps: mixUpTexts(part),
+    tip: tipFor(part, lib ? lib.id : null),
     code: /capacitor-ceramic/i.test(part.type || '') ? capacitorCode(part.value) : null,
     polarity: lib ? POLARITY_PICTURES[lib.id] || null : null,
     library: lib,
@@ -721,6 +796,22 @@ function cardExtras(part, board) {
     onNext: () => stepPart(1),
     searchHref: part.value ? `https://duckduckgo.com/?q=${encodeURIComponent(`${part.value} datasheet`)}` : null,
   };
+}
+
+// ---- the mix-up warning (1.0.1, idea 20) ----
+const BAND_WORDS = ['first', 'second', 'third', 'fourth'];
+let mixUpCache = { parts: null, list: [] };
+/** "Easy to mix up with R5 (1k): brown-black-orange against brown-black-red. Check the third band." */
+function mixUpTexts(part) {
+  if (mixUpCache.parts !== state.parts) mixUpCache = { parts: state.parts, list: mixUps(state.parts) };
+  const bands = /resistor/i.test(part.type || '') ? resistorBands(part.value) : null;
+  if (!bands) return [];
+  const mine = bands.join();
+  const colours = (b) => b.slice(0, 3).join('-');
+  return mixUpCache.list.flatMap((m) => {
+    const [other, value, theirs] = m.aBands.join() === mine ? [m.b, m.bValue, m.bBands] : m.bBands.join() === mine ? [m.a, m.aValue, m.aBands] : [];
+    return other ? [`Easy to mix up with ${other} (${value}): ${colours(bands)} against ${colours(theirs)}. Check the ${BAND_WORDS[m.band]} band.`] : [];
+  });
 }
 
 function stepCardOptions(ref, stepIndex) {
@@ -1178,7 +1269,14 @@ let findings3D = new Map();
 const findingId = (f) => `${f.kind}:${f.refs.join(',')}`;
 function marksFor3D() {
   findings3D = new Map();
-  if (board3dSource !== 'mine') return [];
+  if (board3dSource !== 'mine') {
+    const board = projectBoard();
+    if (!board || !$('#board3d-bridges').checked) return [];
+    return bridgesNow().map((f) => {
+      findings3D.set(f.id, f);
+      return { id: f.id, x: (f.at[0] - 1) * board.pitch, y: (f.at[1] - 1) * board.pitch, side: 'bottom', level: 'warning', text: f.text };
+    });
+  }
   const mine = myBoardFor3D();
   const board = boardOf();
   if (!mine || !board) return [];
@@ -1195,6 +1293,13 @@ function marksFor3D() {
 async function openFinding(id) {
   const f = findings3D.get(id);
   if (!f) return;
+  if (id.startsWith('bridge:')) {
+    showTab('checks');
+    openBridge(f);
+    const li = document.querySelector(`#bridge-risks li[data-bridge="${CSS.escape(id)}"]`);
+    if (li) li.scrollIntoView({ block: 'nearest' });
+    return;
+  }
   state.openFinding = id;
   showTab('board');
   // the findings list shows with your photo: go to the lined-up one if another sheet is showing
@@ -2256,14 +2361,52 @@ async function setWake(on) {
   $('#wake').setAttribute('aria-pressed', String(wakeWanted));
 }
 
+// ---- sort your parts first (1.0.1, idea 4): each step's parts by value, to lay out in a tray ----
+function openSortParts() {
+  const sections = [];
+  stepsOf().forEach((step, i) => {
+    const refs = new Set(step.parts.filter((r) => !step.missing.includes(r) && isKnownRef(r)));
+    const parts = state.parts.filter((p) => refs.has(p.ref));
+    if (!parts.length) return;
+    const rows = shoppingList(parts).map((r) => el('li', {}, `${r.count} × ${r.value}: ${r.refs.join(', ')}`));
+    sections.push(el('section', {}, el('h3', {}, `Step ${i + 1}: ${step.title} (${parts.length} ${parts.length === 1 ? 'part' : 'parts'})`), el('ul', {}, ...rows)));
+  });
+  $('#sort-list').replaceChildren(...(sections.length ? sections : [el('p', { className: 'hint' }, 'No build steps with parts in this project.')]));
+  $('#sort-parts').showModal();
+}
+
+function printSortParts() {
+  document.body.classList.add('print-sort');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-sort'), 500);
+}
+
+/** The shopping list's rows: every part, or only the ones you're waiting for. */
+function shoppingRows() {
+  const missing = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const only = missing.size && $('#shopping-missing').checked;
+  return shoppingList(only ? state.parts.filter((p) => missing.has(p.ref)) : state.parts);
+}
+
 function openShopping() {
-  const rows = shoppingList(state.parts);
+  const missing = waitingNow(state.waiting, state.ticked, isKnownRef);
+  $('#shopping-missing-row').hidden = !missing.size;
+  if (!missing.size) $('#shopping-missing').checked = false;
+  $('#shopping-missing-label').textContent = `Only what's missing (${missing.size} ${missing.size === 1 ? 'part' : 'parts'})`;
+  fillShopping();
+  $('#shopping').showModal();
+}
+
+function fillShopping() {
+  const rows = shoppingRows();
+  const solder = solderNeeded(projectBoard());
+  $('#shopping-solder').hidden = !solder;
+  $('#shopping-solder').textContent = solder ? `About ${solder.joints} solder joints: about ${solder.metres} m of 0.8 mm solder, with some to spare.` : '';
   const body = $('#shopping tbody');
   body.replaceChildren(...rows.map((r) => el('tr', {},
     el('td', {}, String(r.count)),
     el('td', {}, `${r.value} ${r.type}${r.package ? `, ${r.package}` : ''}`),
     el('td', {}, r.refs.join(', ')))));
-  $('#shopping').showModal();
 }
 
 // ---- Send to Shape (1.0 design §3): the board into Shape's Your parts, on the address both apps share ----
@@ -2372,7 +2515,7 @@ function sendToShape() {
 
 async function copyShopping() {
   try {
-    await navigator.clipboard.writeText(shoppingText(shoppingList(state.parts)));
+    await navigator.clipboard.writeText(shoppingText(shoppingRows()));
     setStatus('Shopping list copied.');
   } catch {
     setStatus("Couldn't copy: allow the clipboard for this page.");
@@ -2380,7 +2523,7 @@ async function copyShopping() {
 }
 
 function saveShoppingCsv() {
-  const url = URL.createObjectURL(new Blob([shoppingCsv(shoppingList(state.parts))], { type: 'text/csv' }));
+  const url = URL.createObjectURL(new Blob([shoppingCsv(shoppingRows())], { type: 'text/csv' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-shopping-list.csv` });
   document.body.append(link);
   link.click();
@@ -2408,7 +2551,7 @@ const snapshot = () => JSON.parse(exportProgress({
   project: projectName(), revision: state.project ? state.project.revision : null,
   ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
-  looks: state.looks, steps: state.stepEdits,
+  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
 }));
 
 function renderVersions() {
@@ -2453,8 +2596,8 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
@@ -2512,6 +2655,7 @@ function paletteItems() {
   const act = (label, run) => items.push({ label, hint: 'action', run });
   if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
   act('Shopping list', openShopping);
+  act('Sort your parts', openSortParts);
   act('Build log', openLog);
   act('Versions', openVersions);
   act('Build report', saveReport);
@@ -2767,7 +2911,23 @@ function allSteps() {
 /** The build steps you follow: in your order, without the ones you skipped. */
 function stepsOf() {
   allSteps();
-  return stepsCache.shown;
+  // parts you don't have yet wait in a last step (1.0.1)
+  const waiting = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const key = [...waiting].join(' ');
+  if (stepsCache.waitingFor !== stepsCache.shown || stepsCache.waitingKey !== key) {
+    stepsCache.waitingFor = stepsCache.shown;
+    stepsCache.waitingKey = key;
+    stepsCache.guide = withWaiting(stepsCache.shown, waiting);
+  }
+  return stepsCache.guide;
+}
+
+/** Marks a part as not here yet, or here now: one undo step. */
+function setWaiting(ref, on) {
+  const before = [...state.waiting];
+  if (on === state.waiting.has(ref)) return;
+  const after = on ? [...before, ref] : before.filter((r) => r !== ref);
+  history.do({ label: on ? `Waiting for ${ref}` : `${ref} is here`, apply: () => setProgress({ waiting: after }), revert: () => setProgress({ waiting: before }) });
 }
 
 /** Changes your steps as one undo step. */
@@ -2903,11 +3063,17 @@ function autoNextStep(wasDone) {
   }
 }
 
+/** A step's parts as project parts (for their types). */
+const stepParts = (step) => step.parts.map((ref) => state.partsByRef.get(ref)).filter(Boolean);
+
 function stepExtras(step) {
   const board = projectBoard();
   const joints = board ? step.parts.reduce((n, ref) => n + (board.parts[ref] ? Object.keys(board.parts[ref].pins).length : 0), 0) : 0;
   return {
     joints,
+    bridges: stepBridges(step).map((f) => f.text),
+    tools: toolsFor(step, stepParts(step)),
+    tips: stepTips(step, stepParts(step), (p) => (libraryFor(p) || {}).id || null),
     note: state.notes[`step.${step.id}`] || '',
     onNote: (text) => setNote(`step.${step.id}`, text),
     onPrint: () => {
@@ -2925,7 +3091,47 @@ function renderChecksPanel() {
     checks: powerChecks(projectBoard()),
     done: state.checks,
     onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check before power`),
+    bridges: bridgesNow(),
+    openBridge: state.openBridge,
+    onBridge: openBridge,
+    onBridges3D: state.project && state.project.board ? showBridges3D : null,
   });
+}
+
+// ---- bridge risk (1.0.1): joints on different lines one hole apart underneath ----
+let bridgesCache = { board: null, list: [] };
+function bridgesNow() {
+  const board = projectBoard();
+  if (bridgesCache.board !== board) bridgesCache = { board, list: bridgeRisks(board) };
+  return bridgesCache.list;
+}
+
+/** The bridges the open step's parts (or its buses) make. */
+function stepBridges(step) {
+  const refs = new Set(step.parts);
+  const buses = (step.what || []).includes('buses');
+  return bridgesNow().filter((f) => (f.kind === 'buses' ? buses : f.refs.some((r) => refs.has(r))));
+}
+
+/** A bridge risk from the list or a 3D mark: its line in Checks, and its part's card. */
+function openBridge(f) {
+  state.openBridge = f.id;
+  renderChecksPanel();
+  if (f.refs.length) selectPart(f.refs[0]);
+  else {
+    const at = stepsOf().findIndex((s) => (s.what || []).includes('buses'));
+    if (at >= 0) openStep(at);
+  }
+}
+
+async function showBridges3D() {
+  $('#board3d-bridges').checked = true;
+  if (board3dSource !== 'sheet4') setBoard3DSource('sheet4');
+  await setBoard3D(true);
+  if (board3d) {
+    board3d.setMarks(marksFor3D());
+    board3d.view('bottom');
+  }
 }
 
 function renderStepsPanel() {
@@ -2944,7 +3150,53 @@ function renderStepsPanel() {
     onDoneNext: doneNextStep,
     partInfo: guidePart,
     adjust: stepsAdjustOptions(),
+    welcome: state.welcome ? welcomeOptions() : null,
+    timeLeft: timeLeftText(),
   });
+}
+
+// ---- welcome back and time left (1.0.1, ideas 1 and 2) ----
+/** "today at 21:40", "yesterday at 21:40" or "on 2026-11-12 at 21:40". */
+function whenWords(t) {
+  const today = day(Date.now());
+  const yesterday = day(Date.now() - 24 * 60 * 60 * 1000);
+  const d = day(t);
+  return `${d === today ? 'today' : d === yesterday ? 'yesterday' : `on ${d}`} at ${clock(t)}`;
+}
+
+function welcomeOptions() {
+  const steps = stepsOf();
+  const at = steps.findIndex((s) => !stepDone(s));
+  const step = at >= 0 ? steps[at] : null;
+  const ref = step ? step.parts.find((r) => !step.missing.includes(r) && isKnownRef(r) && !state.ticked.has(r)) : null;
+  const last = lastTick(state.log);
+  const lastWords = last && state.ticked.has(last.ref) ? `${last.ref} soldered` : `${state.ticked.size} ${state.ticked.size === 1 ? 'part' : 'parts'} soldered so far`;
+  let next = 'Every step is done.';
+  if (step) {
+    const part = ref ? state.partsByRef.get(ref) : null;
+    const where = ref ? guideWhere(ref) : '';
+    next = `Next: step ${at + 1} of ${steps.length}, ${ref ? `${ref}${part && part.value ? ` (${part.value})` : ''}${where ? `, ${where}` : ''}` : step.title}.`;
+  }
+  const lastT = state.log.length ? state.log[state.log.length - 1].t : Date.now();
+  return {
+    text: `Welcome back. Last time (${whenWords(lastT)}): ${lastWords}. ${next}`,
+    onCarryOn: step ? () => {
+      state.welcome = false;
+      openStep(at);
+      if (ref) selectPart(ref);
+    } : null,
+    onClose: () => {
+      state.welcome = false;
+      renderStepsPanel();
+    },
+  };
+}
+
+function timeLeftText() {
+  const known = state.parts.filter((p) => isKnownRef(p.ref));
+  const waiting = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const left = known.filter((p) => !state.ticked.has(p.ref) && !waiting.has(p.ref)).length;
+  return timeLeft(timeSpent(state.log), known.filter((p) => state.ticked.has(p.ref)).length, left);
 }
 
 /** A part in the guide: its value, whether it's soldered, and where it goes (your hole names when they're on). */
@@ -3047,6 +3299,8 @@ function loadProgress() {
   state.log = data ? data.log : [];
   state.looks = data ? data.looks : Object.create(null);
   state.stepEdits = data ? data.steps : NO_EDITS;
+  state.waiting = new Set(data ? data.waiting : []);
+  state.welcome = state.ticked.size > 0 && awayFor(state.log, Date.now()) > 60 * 60 * 1000;
   refreshNotes();
 }
 
@@ -3061,7 +3315,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] });
   if (saved) flashSaved();
 }
 
@@ -3113,14 +3367,12 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting }) {
   const stepWasDone = autoStepWasDone();
-  if (steps) {
-    const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
-    state.stepEdits = steps;
-    const at = openId ? stepsOf().findIndex((s) => s.id === openId) : -1;
-    state.openStep = at >= 0 ? at : null; // the open step follows its id, or closes when skipped
-  }
+  // your steps, waiting parts and ticks (a waiting part ticked has come) change the steps you follow
+  const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
+  if (steps) state.stepEdits = steps;
+  if (waiting) state.waiting = new Set(waiting);
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -3148,6 +3400,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
   }
+  if (openId && (steps || waiting || ticked)) {
+    const at = stepsOf().findIndex((s) => s.id === openId);
+    state.openStep = at >= 0 ? at : null; // the open step follows its id, or closes when it's gone
+  }
   refreshNotes();
   applyTickMarks();
   saveProgress();
@@ -3160,7 +3416,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   updateMyBoard();
   updateTabCounts();
   if (looks) resetBoard3D();
-  if (steps) updateStepRings();
+  if (steps || waiting || (ticked && state.waiting.size)) updateStepRings();
   autoNextStep(stepWasDone);
 }
 
@@ -3202,6 +3458,7 @@ function renderChecklist() {
     const li = el('li', { 'data-ref': part.ref }, box, name);
     if (stepOf.has(part.ref)) li.append(el('span', { className: 'step-no', title: `Build step ${stepOf.get(part.ref) + 1}` }, `S${stepOf.get(part.ref) + 1}`));
     if (part.polarized) li.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
+    if (state.waiting.has(part.ref) && !state.ticked.has(part.ref)) li.append(el('span', { className: 'waiting-mark', title: "You don't have this part yet" }, 'waiting'));
     return li;
   };
   const items = el('div', { className: 'checklist-list' });
@@ -3250,7 +3507,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -3278,8 +3535,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -3521,7 +3778,7 @@ function updateTabCounts() {
 }
 
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #sort-parts, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
@@ -3657,6 +3914,9 @@ async function start() {
   // the Menu's own entries (0.8): what the Parts tab's buttons do, from any tab
   $('#menu-save').addEventListener('click', saveProgressFile);
   $('#menu-shopping').addEventListener('click', openShopping);
+  $('#menu-sort').addEventListener('click', openSortParts);
+  $('#sort-print').addEventListener('click', printSortParts);
+  $('#sort-done').addEventListener('click', () => $('#sort-parts').close());
   $('#menu-shape').addEventListener('click', () => openShapeSend('drawing'));
   $('#shape-which').addEventListener('change', (e) => fillShapeFor(e.target.value));
   for (const id of ['#shape-w', '#shape-d']) $(id).addEventListener('change', showShapeFound);
@@ -3729,6 +3989,11 @@ async function start() {
   $('#versions-done').addEventListener('click', () => $('#versions').close());
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
+  $('#shopping-missing').addEventListener('change', fillShopping);
+  $('#toast-undo').addEventListener('click', undoFromToast);
+  $('#iron-yes').addEventListener('click', () => ironAnswer(true));
+  $('#iron-off').addEventListener('click', () => ironAnswer(false));
+  setInterval(checkIron, 60 * 1000);
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());
@@ -3787,6 +4052,7 @@ async function start() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   $('#board3d-wiring').addEventListener('change', (e) => board3d && board3d.showWiring(e.target.checked));
+  $('#board3d-bridges').addEventListener('change', () => board3d && board3d.setMarks(marksFor3D()));
   // the 3D view handles its own pointer and wheel: don't let the sheet underneath pan or zoom
   for (const type of ['pointerdown', 'wheel', 'dblclick']) $('#board3d').addEventListener(type, (e) => e.stopPropagation());
   $('#stage2-sheet').addEventListener('change', (e) => showInSplit(e.target.value));
