@@ -2295,6 +2295,26 @@ async function setWake(on) {
   $('#wake').setAttribute('aria-pressed', String(wakeWanted));
 }
 
+// ---- sort your parts first (1.0.1, idea 4): each step's parts by value, to lay out in a tray ----
+function openSortParts() {
+  const sections = [];
+  stepsOf().forEach((step, i) => {
+    const refs = new Set(step.parts.filter((r) => !step.missing.includes(r) && isKnownRef(r)));
+    const parts = state.parts.filter((p) => refs.has(p.ref));
+    if (!parts.length) return;
+    const rows = shoppingList(parts).map((r) => el('li', {}, `${r.count} × ${r.value}: ${r.refs.join(', ')}`));
+    sections.push(el('section', {}, el('h3', {}, `Step ${i + 1}: ${step.title} (${parts.length} ${parts.length === 1 ? 'part' : 'parts'})`), el('ul', {}, ...rows)));
+  });
+  $('#sort-list').replaceChildren(...(sections.length ? sections : [el('p', { className: 'hint' }, 'No build steps with parts in this project.')]));
+  $('#sort-parts').showModal();
+}
+
+function printSortParts() {
+  document.body.classList.add('print-sort');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-sort'), 500);
+}
+
 /** The shopping list's rows: every part, or only the ones you're waiting for. */
 function shoppingRows() {
   const missing = waitingNow(state.waiting, state.ticked, isKnownRef);
@@ -2569,6 +2589,7 @@ function paletteItems() {
   const act = (label, run) => items.push({ label, hint: 'action', run });
   if (state.project && state.project.board) act('3D board', () => setBoard3D(!board3dOn));
   act('Shopping list', openShopping);
+  act('Sort your parts', openSortParts);
   act('Build log', openLog);
   act('Versions', openVersions);
   act('Build report', saveReport);
@@ -3644,7 +3665,7 @@ function updateTabCounts() {
 }
 
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #sort-parts, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
@@ -3780,6 +3801,9 @@ async function start() {
   // the Menu's own entries (0.8): what the Parts tab's buttons do, from any tab
   $('#menu-save').addEventListener('click', saveProgressFile);
   $('#menu-shopping').addEventListener('click', openShopping);
+  $('#menu-sort').addEventListener('click', openSortParts);
+  $('#sort-print').addEventListener('click', printSortParts);
+  $('#sort-done').addEventListener('click', () => $('#sort-parts').close());
   $('#menu-shape').addEventListener('click', () => openShapeSend('drawing'));
   $('#shape-which').addEventListener('change', (e) => fillShapeFor(e.target.value));
   for (const id of ['#shape-w', '#shape-d']) $(id).addEventListener('change', showShapeFound);

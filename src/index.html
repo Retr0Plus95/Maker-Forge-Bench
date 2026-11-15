@@ -26,6 +26,7 @@
     <button id="fullscreen" class="tool" type="button" aria-pressed="false" title="Fill the screen with Bench (Esc leaves)">Full screen</button>
     <button id="menu-save" class="tool" type="button" title="Your ticks, wiring, board and notes as a file (Ctrl+S)">Save progress</button>
     <button id="menu-shopping" class="tool" type="button">Shopping list</button>
+    <button id="menu-sort" class="tool" type="button" aria-haspopup="dialog" title="Each step's parts by value, to lay out in a tray before you start">Sort your parts</button>
     <button id="menu-shape" class="tool" type="button" aria-haspopup="dialog" title="Put this board in Maker Forge Shape's Your parts, to make a box for it">Send to Shape</button>
     <button id="menu-log" class="tool" type="button">Build log</button>
     <button id="menu-versions" class="tool" type="button">Versions</button>
@@ -226,6 +227,15 @@
   </div>
   <ul id="versions-list"></ul>
   <div class="dialog-actions"><button id="versions-done" type="button">Done</button></div>
+</dialog>
+<dialog id="sort-parts" aria-labelledby="sort-title">
+  <h2 id="sort-title">Sort your parts</h2>
+  <p class="hint">Each step's parts grouped by value, to lay out in a tray before you start.</p>
+  <div id="sort-list"></div>
+  <div class="dialog-actions">
+    <button id="sort-print" type="button">Print</button>
+    <button id="sort-done" class="primary" type="button">Done</button>
+  </div>
 </dialog>
 <dialog id="shopping" aria-labelledby="shopping-title">
   <h2 id="shopping-title">Shopping list</h2>

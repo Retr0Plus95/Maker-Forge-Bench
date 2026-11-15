@@ -5,7 +5,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { FIXTURES, copyFixture, openPage, startDevServer } from './harness.js';
+import { FIXTURES, copyFixture, fromMenu, openPage, startDevServer } from './harness.js';
 
 const PROJECT = path.join(FIXTURES, 'forge-project', 'fume-extractor.json');
 
@@ -84,6 +84,24 @@ describe('at the bench: reading the board', () => {
     await page.locator('#shopping-open').click();
     assert.equal(await page.locator('#shopping-solder').textContent(), 'About 163 solder joints: about 2 m of 0.8 mm solder, with some to spare.');
     await page.locator('#shopping-done').click();
+  });
+
+  test("sort your parts: each step's parts by value, to print", async () => {
+    await page.evaluate(() => {
+      window.benchPrinted = [];
+      window.print = () => window.benchPrinted.push(document.body.classList.contains('print-sort'));
+    });
+    await fromMenu(page, '#menu-sort');
+    assert.equal(await page.locator('#sort-parts section').count(), 6);
+    const fans = page.locator('#sort-parts section', { hasText: 'Fan drive and tach' });
+    assert.equal(await fans.locator('h3').textContent(), 'Step 7: Fan drive and tach (8 parts)');
+    const rows = await fans.locator('li').allTextContents();
+    assert.ok(rows.includes('4 × 10k: R8, R9, R7, R6'), rows.join(' | '));
+    assert.ok(rows.includes('2 × 4.7k: R12, R13'), rows.join(' | '));
+    await page.locator('#sort-print').click();
+    assert.deepEqual(await page.evaluate(() => window.benchPrinted), [true]);
+    await page.locator('#sort-done').click();
+    assert.equal(await page.locator('#sort-parts').isVisible(), false);
   });
 });
 

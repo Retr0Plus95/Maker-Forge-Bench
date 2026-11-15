@@ -580,6 +580,14 @@ h1 {
 #step-note { width: 100%; box-sizing: border-box; font: inherit; }
 body.print-step #top, body.print-step #status, body.print-step #stage, body.print-step #stage2, body.print-step #panel > section:not(#steps) { display: none !important; }
 @media print { body.print-step #steps .steps-list, body.print-step #steps .step-nav, body.print-step #steps .step-extras { display: none !important; } }
+#sort-list section { margin: 8px 0; break-inside: avoid; }
+#sort-list h3 { margin: 6px 0 2px; font-size: 1rem; }
+#sort-list ul { margin: 0; padding-left: 1.2em; }
+@media print {
+  body.print-sort > :not(#sort-parts) { display: none !important; }
+  body.print-sort #sort-parts { position: static; display: block; max-width: none; max-height: none; border: 0; padding: 0; overflow: visible; color: #000; background: #fff; }
+  body.print-sort #sort-parts .dialog-actions { display: none !important; }
+}
 
 /* ---- your board: check, wires, marks (0.5) ---- */
 #myboard h3 { margin: 10px 0 4px; font-size: .95rem; }
