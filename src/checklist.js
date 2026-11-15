@@ -4,6 +4,7 @@ import { cleanLooks } from './looks.js';
 import { cleanStepEdits } from './mysteps.js';
 import { cleanMyBoard } from './myboard.js';
 import { cleanLog } from './buildlog.js';
+import { cleanWaiting } from './waiting.js';
 
 export class ProgressError extends Error {
   constructor() {
@@ -22,8 +23,8 @@ export function sheetPrint(sheet) {
   return `${sheet.size}:${sheet.mtime}`;
 }
 
-export function exportProgress({ project, revision, ticked, sheetPrints, flipped, wired = [], myBoard = null, notes = {}, checks = [], continuity = {}, log = [], looks = {}, steps = null }) {
-  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped, wired, myBoard, notes, checks, continuity, log, looks, steps }, null, 2);
+export function exportProgress({ project, revision, ticked, sheetPrints, flipped, wired = [], myBoard = null, notes = {}, checks = [], continuity = {}, log = [], looks = {}, steps = null, waiting = [] }) {
+  return JSON.stringify({ format: 'bench-progress', version: 1, project, revision, ticked, sheetPrints, flipped, wired, myBoard, notes, checks, continuity, log, looks, steps, waiting }, null, 2);
 }
 
 // Fields added after 0.3 are optional: a file without them, or with bad entries, still opens.
@@ -68,6 +69,7 @@ export function importProgress(text) {
     log: cleanLog(data.log),
     looks: cleanLooks(data.looks, (r) => REF.test(r)),
     steps: cleanStepEdits(data.steps),
+    waiting: cleanWaiting(data.waiting, (r) => REF.test(r)),
   };
 }
 

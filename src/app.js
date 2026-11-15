@@ -47,6 +47,7 @@ import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, st
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
 import { bridgeRisks } from './bridges.js';
 import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
+import { waitingNow, withWaiting } from './waiting.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -93,6 +94,7 @@ const state = {
   looks: Object.create(null), // what each part looks like as you fitted it: { ref: { holder, colour, swap, ... } } (0.8 §2)
   looksOpen: false, // the card's Looks like is open
   stepEdits: NO_EDITS, // your changes to the build steps: { order, skipped, added } (0.8 §3)
+  waiting: new Set(), // parts you don't have yet (1.0.1)
   stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
   dragPreview: null, // a part being dragged on a photo: { ref, from, dc, dr }
@@ -630,6 +632,8 @@ function renderPartCard() {
     datasheetHref: datasheetHref(part),
     ticked: state.ticked.has(part.ref),
     onTick: () => toggleTick(part.ref),
+    waiting: state.ticked.has(part.ref) || !isKnownRef(part.ref) ? null
+      : { on: state.waiting.has(part.ref), onToggle: () => setWaiting(part.ref, !state.waiting.has(part.ref)) },
     ask: {
       placeholder: DEFAULT_QUESTION,
       onCopy: copyForClaude,
@@ -2291,8 +2295,24 @@ async function setWake(on) {
   $('#wake').setAttribute('aria-pressed', String(wakeWanted));
 }
 
+/** The shopping list's rows: every part, or only the ones you're waiting for. */
+function shoppingRows() {
+  const missing = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const only = missing.size && $('#shopping-missing').checked;
+  return shoppingList(only ? state.parts.filter((p) => missing.has(p.ref)) : state.parts);
+}
+
 function openShopping() {
-  const rows = shoppingList(state.parts);
+  const missing = waitingNow(state.waiting, state.ticked, isKnownRef);
+  $('#shopping-missing-row').hidden = !missing.size;
+  if (!missing.size) $('#shopping-missing').checked = false;
+  $('#shopping-missing-label').textContent = `Only what's missing (${missing.size} ${missing.size === 1 ? 'part' : 'parts'})`;
+  fillShopping();
+  $('#shopping').showModal();
+}
+
+function fillShopping() {
+  const rows = shoppingRows();
   const solder = solderNeeded(projectBoard());
   $('#shopping-solder').hidden = !solder;
   $('#shopping-solder').textContent = solder ? `About ${solder.joints} solder joints: about ${solder.metres} m of 0.8 mm solder, with some to spare.` : '';
@@ -2301,7 +2321,6 @@ function openShopping() {
     el('td', {}, String(r.count)),
     el('td', {}, `${r.value} ${r.type}${r.package ? `, ${r.package}` : ''}`),
     el('td', {}, r.refs.join(', ')))));
-  $('#shopping').showModal();
 }
 
 // ---- Send to Shape (1.0 design §3): the board into Shape's Your parts, on the address both apps share ----
@@ -2410,7 +2429,7 @@ function sendToShape() {
 
 async function copyShopping() {
   try {
-    await navigator.clipboard.writeText(shoppingText(shoppingList(state.parts)));
+    await navigator.clipboard.writeText(shoppingText(shoppingRows()));
     setStatus('Shopping list copied.');
   } catch {
     setStatus("Couldn't copy: allow the clipboard for this page.");
@@ -2418,7 +2437,7 @@ async function copyShopping() {
 }
 
 function saveShoppingCsv() {
-  const url = URL.createObjectURL(new Blob([shoppingCsv(shoppingList(state.parts))], { type: 'text/csv' }));
+  const url = URL.createObjectURL(new Blob([shoppingCsv(shoppingRows())], { type: 'text/csv' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-shopping-list.csv` });
   document.body.append(link);
   link.click();
@@ -2446,7 +2465,7 @@ const snapshot = () => JSON.parse(exportProgress({
   project: projectName(), revision: state.project ? state.project.revision : null,
   ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
-  looks: state.looks, steps: state.stepEdits,
+  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
 }));
 
 function renderVersions() {
@@ -2491,8 +2510,8 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
@@ -2805,7 +2824,23 @@ function allSteps() {
 /** The build steps you follow: in your order, without the ones you skipped. */
 function stepsOf() {
   allSteps();
-  return stepsCache.shown;
+  // parts you don't have yet wait in a last step (1.0.1)
+  const waiting = waitingNow(state.waiting, state.ticked, isKnownRef);
+  const key = [...waiting].join(' ');
+  if (stepsCache.waitingFor !== stepsCache.shown || stepsCache.waitingKey !== key) {
+    stepsCache.waitingFor = stepsCache.shown;
+    stepsCache.waitingKey = key;
+    stepsCache.guide = withWaiting(stepsCache.shown, waiting);
+  }
+  return stepsCache.guide;
+}
+
+/** Marks a part as not here yet, or here now: one undo step. */
+function setWaiting(ref, on) {
+  const before = [...state.waiting];
+  if (on === state.waiting.has(ref)) return;
+  const after = on ? [...before, ref] : before.filter((r) => r !== ref);
+  history.do({ label: on ? `Waiting for ${ref}` : `${ref} is here`, apply: () => setProgress({ waiting: after }), revert: () => setProgress({ waiting: before }) });
 }
 
 /** Changes your steps as one undo step. */
@@ -3131,6 +3166,7 @@ function loadProgress() {
   state.log = data ? data.log : [];
   state.looks = data ? data.looks : Object.create(null);
   state.stepEdits = data ? data.steps : NO_EDITS;
+  state.waiting = new Set(data ? data.waiting : []);
   refreshNotes();
 }
 
@@ -3145,7 +3181,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] });
   if (saved) flashSaved();
 }
 
@@ -3197,14 +3233,12 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting }) {
   const stepWasDone = autoStepWasDone();
-  if (steps) {
-    const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
-    state.stepEdits = steps;
-    const at = openId ? stepsOf().findIndex((s) => s.id === openId) : -1;
-    state.openStep = at >= 0 ? at : null; // the open step follows its id, or closes when skipped
-  }
+  // your steps, waiting parts and ticks (a waiting part ticked has come) change the steps you follow
+  const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
+  if (steps) state.stepEdits = steps;
+  if (waiting) state.waiting = new Set(waiting);
   if (ticked) {
     const wasEmpty = state.ticked.size === 0;
     state.ticked = new Set(ticked);
@@ -3232,6 +3266,10 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
     state.flipped = new Set(flipped.filter(isLayout));
     syncFlip();
   }
+  if (openId && (steps || waiting || ticked)) {
+    const at = stepsOf().findIndex((s) => s.id === openId);
+    state.openStep = at >= 0 ? at : null; // the open step follows its id, or closes when it's gone
+  }
   refreshNotes();
   applyTickMarks();
   saveProgress();
@@ -3244,7 +3282,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   updateMyBoard();
   updateTabCounts();
   if (looks) resetBoard3D();
-  if (steps) updateStepRings();
+  if (steps || waiting || (ticked && state.waiting.size)) updateStepRings();
   autoNextStep(stepWasDone);
 }
 
@@ -3286,6 +3324,7 @@ function renderChecklist() {
     const li = el('li', { 'data-ref': part.ref }, box, name);
     if (stepOf.has(part.ref)) li.append(el('span', { className: 'step-no', title: `Build step ${stepOf.get(part.ref) + 1}` }, `S${stepOf.get(part.ref) + 1}`));
     if (part.polarized) li.append(el('span', { className: 'badge-polarity' }, 'Way round matters'));
+    if (state.waiting.has(part.ref) && !state.ticked.has(part.ref)) li.append(el('span', { className: 'waiting-mark', title: "You don't have this part yet" }, 'waiting'));
     return li;
   };
   const items = el('div', { className: 'checklist-list' });
@@ -3334,7 +3373,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting],
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -3362,8 +3401,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting] };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 
@@ -3813,6 +3852,7 @@ async function start() {
   $('#versions-done').addEventListener('click', () => $('#versions').close());
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
+  $('#shopping-missing').addEventListener('change', fillShopping);
   $('#board3d-top').addEventListener('click', () => board3d && board3d.view('top'));
   $('#board3d-under').addEventListener('click', () => board3d && board3d.view('bottom'));
   $('#board3d-reset').addEventListener('click', () => board3d && board3d.resetView());

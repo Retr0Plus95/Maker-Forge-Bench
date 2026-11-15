@@ -134,6 +134,7 @@ export function renderCard(container, part, o) {
   if (part.guessed) {
     children.push(el('p', { className: 'part-guessed' }, 'Guessed from the drawing. Add it to forge-project.json to describe it.'));
   }
+  if (o.waiting && o.waiting.on) children.push(el('p', { className: 'part-waiting', role: 'note' }, 'Waiting for this part: the guide brings it back in the last step.'));
 
   const x = o.extras || {};
   if (x.solderedAt) children.push(el('p', { className: 'part-soldered-at' }, x.solderedAt));
@@ -284,6 +285,12 @@ export function renderCard(container, part, o) {
   }
   if (o.datasheetHref) {
     actions.append(el('a', { id: 'part-datasheet', className: 'button-link', href: o.datasheetHref, target: '_blank', rel: 'noopener noreferrer' }, 'Datasheet'));
+  }
+  if (o.waiting) {
+    const wait = el('button', { id: 'part-waiting', type: 'button', 'data-focus': 'waiting', title: 'The guide skips it and brings it back at the end' },
+      o.waiting.on ? "It's here now" : "I don't have this one yet");
+    wait.addEventListener('click', o.waiting.onToggle);
+    actions.append(wait);
   }
   if (o.onTick) {
     const tick = el('button', { id: 'part-tick', type: 'button', 'aria-pressed': String(Boolean(o.ticked)) },
@@ -471,6 +478,7 @@ function guideBox(step, steps, o, stepDraft) {
       const words = el('span', { className: 'step-part-words' });
       if (info.value) words.append(el('span', { className: 'step-part-value' }, info.value));
       if (info.where) words.append(el('span', { className: 'step-part-where' }, info.where));
+      if (step.from && step.from[ref]) words.append(el('span', { className: 'step-part-from' }, `from step: ${step.from[ref]}`));
       parts.append(el('li', { className: info.ticked ? 'ticked' : '' }, tick, b, words));
     }
     box.append(parts);

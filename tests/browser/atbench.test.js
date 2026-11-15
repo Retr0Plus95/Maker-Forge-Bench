@@ -86,3 +86,69 @@ describe('at the bench: reading the board', () => {
     await page.locator('#shopping-done').click();
   });
 });
+
+describe("at the bench: parts you don't have yet", () => {
+  let server; let browser; let page; let problems;
+
+  before(async () => {
+    server = await startDevServer(await fumeProject());
+    ({ browser, page, problems } = await openPage(server.url, { width: 1400, height: 950 }));
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+  });
+
+  after(async () => {
+    await browser?.close();
+    await server?.stop();
+  });
+
+  const stepTitles = () => page.locator('#steps .steps-list li button').allTextContents();
+
+  test('a part you don\'t have yet waits at the end, and comes back when it\'s ticked', async () => {
+    await openCard(page, 'R6');
+    await page.locator('#part-waiting').click();
+    assert.equal(await page.locator('#part-card .part-waiting').textContent(), 'Waiting for this part: the guide brings it back in the last step.');
+    assert.equal(await page.locator('#part-waiting').textContent(), "It's here now");
+    let titles = await stepTitles();
+    assert.equal(titles.length, 11);
+    assert.equal(titles.at(-1), 'Waiting for parts');
+    assert.equal(await page.locator('#checklist li[data-ref="R6"] .waiting-mark').textContent(), 'waiting');
+    await openStepNamed(page, 'Fan drive and tach');
+    assert.equal(await page.locator('#steps .step-parts input[data-step-ref="R6"]').count(), 0);
+    await page.locator('#undo').click();
+    assert.equal((await stepTitles()).length, 10, 'undone');
+    await page.locator('#redo').click();
+    await openStepNamed(page, 'Waiting for parts');
+    assert.match(await page.locator('#steps .step-parts li').first().textContent(), /from step: Fan drive and tach/);
+    await page.locator('#steps .step-parts input[data-step-ref="R6"]').click(); // (its box goes with the Waiting step, so not .check())
+    titles = await stepTitles();
+    assert.equal(titles.length, 10, 'ticking it takes it off the list');
+    assert.ok(!titles.includes('Waiting for parts'));
+    assert.equal(await page.locator('#checklist input[data-ref="R6"]').isChecked(), true);
+  });
+
+  test('a step whose parts all wait leaves the list, and the open step stays open', async () => {
+    await openStepNamed(page, 'The panel side');
+    for (const ref of ['R4', 'C6', 'C7']) {
+      await openCard(page, ref);
+      await page.locator('#part-waiting').click();
+    }
+    const titles = await stepTitles();
+    assert.ok(!titles.some((t) => t.startsWith("The chip's support parts")), titles.join(' | '));
+    assert.match(await page.locator('#steps .step-title').textContent(), /: The panel side$/);
+  });
+
+  test("the shopping list can show only what's missing, and it's kept", async () => {
+    await page.locator('#shopping-open').click();
+    assert.equal(await page.locator('#shopping-missing-label').textContent(), "Only what's missing (3 parts)");
+    await page.locator('#shopping-missing').check();
+    const rows = await page.locator('#shopping tbody tr').allTextContents();
+    assert.equal(rows.length, 2);
+    assert.ok(rows.some((r) => /R4/.test(r)) && rows.some((r) => /C6, C7/.test(r)), rows.join(' | '));
+    await page.locator('#shopping-done').click();
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#checklist input[data-ref]').length > 0);
+    await openCard(page, 'R4');
+    assert.equal(await page.locator('#part-waiting').textContent(), "It's here now");
+    assert.deepEqual(problems, []);
+  });
+});
