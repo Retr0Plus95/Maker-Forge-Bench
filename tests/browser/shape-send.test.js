@@ -47,6 +47,7 @@ describe('Send to Shape, on this computer', () => {
     await openDialog(page);
     assert.match(await note(page), /works on forge\.retr0plus\.se/);
     assert.equal(await page.locator('#shape-send-go').isDisabled(), true);
+    assert.ok(Number(await page.locator('#shape-send-go').evaluate((x) => getComputedStyle(x).opacity)) < 1, "a Send that can't send looks it");
     assert.equal(await page.evaluate(() => localStorage.getItem('makerforge.parts')), null);
     await closeDialog(page);
   });
@@ -116,6 +117,23 @@ describe('Send to Shape, at forge.retr0plus.se', () => {
     await page.locator('#shape-send-go').click();
     assert.deepEqual((await stored(page))[0].holes, [[3, 3], [78, 3]]);
     assert.match(await note(page), /2 holes? left out/);
+    await closeDialog(page);
+  });
+
+  test("holes too far in from the corners aren't sent; a size past Shape's 300 mm is said", async () => {
+    const was = JSON.stringify(await stored(page));
+    await openDialog(page);
+    await page.locator('#shape-holes').selectOption('corners');
+    await page.locator('#shape-inset').fill('30');
+    await page.locator('#shape-send-go').click();
+    assert.equal(await note(page), "Not sent. Holes 30 mm in from each corner don't fit a 81.3 × 53.3 mm board: use less than 26.65 mm.");
+    assert.equal(JSON.stringify(await stored(page)), was, 'nothing written');
+    assert.equal(await page.locator('#shape-open').isVisible(), false);
+    await page.locator('#shape-inset').fill('3');
+    await page.locator('#shape-w').fill('400');
+    await page.locator('#shape-send-go').click();
+    assert.match(await note(page), /Shape takes boards 5 to 300 mm, so the width is sent as 300 mm \(not 400\)\./);
+    assert.equal((await stored(page))[0].w, 300);
     await closeDialog(page);
   });
 

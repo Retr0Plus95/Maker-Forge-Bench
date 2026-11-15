@@ -156,38 +156,83 @@ export function portsAndPanel(board, values = {}, size = defaultSize(board)) {
 /** Shape's encWireText: no <>&", spaces collapsed, at most 20 characters. */
 const cleanLabel = (v) => (typeof v === 'string' ? v.replace(/[<>&"]/g, '').replace(/\s+/g, ' ').trim().slice(0, 20) : '');
 
+const NUMBER = String.raw`-?\d+(?:[.,]\d+)?`;
+const BY_SPACE = new RegExp(`^(${NUMBER})\\s+(${NUMBER})$`); // "3,5 4,5": a decimal comma or point
+const BY_COMMA = /^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/; // "3.5, 4.5" or "3,3"
+
+/** Holes typed as "x,y" or "x y", one pair per ; or line, and how many pairs weren't two numbers. */
+export function parseHoles(text) {
+  const holes = [];
+  let bad = 0;
+  for (const pair of String(text).split(/[;\n]/).map((t) => t.trim()).filter(Boolean)) {
+    const m = pair.match(BY_SPACE) || pair.match(BY_COMMA);
+    if (m) holes.push([Number(m[1].replace(',', '.')), Number(m[2].replace(',', '.'))]);
+    else bad++;
+  }
+  return { holes, bad };
+}
+
+const holeWords = (n) => `${n} ${n === 1 ? 'hole' : 'holes'}`;
+
+/** The holes Shape gets, and how many were off the board or past Shape's 16. */
 function holesFor(holes, w, d) {
   if (holes && typeof holes === 'object' && !Array.isArray(holes) && Number.isFinite(holes.inset)) {
     const i = holes.inset;
     holes = [[i, i], [w - i, i], [i, d - i], [w - i, d - i]];
   }
-  if (!Array.isArray(holes)) return [];
-  return holes.filter((h) => isHole(h) && h[0] >= 0 && h[0] <= w && h[1] >= 0 && h[1] <= d).slice(0, 16).map((h) => [r2(h[0]), r2(h[1])]);
+  if (!Array.isArray(holes)) return { kept: [], outside: 0, over: 0 };
+  const inside = holes.filter((h) => isHole(h) && h[0] >= 0 && h[0] <= w && h[1] >= 0 && h[1] <= d);
+  return { kept: inside.slice(0, 16).map((h) => [r2(h[0]), r2(h[1])]), outside: holes.length - inside.length, over: Math.max(0, inside.length - 16) };
+}
+
+/** A typed size inside Shape's 5 to 300 mm, and what it was if that changed it. */
+function fitSize(typed, fallback) {
+  const v = Number(typed);
+  if (!Number.isFinite(v)) return { mm: fallback, was: null };
+  const mm = r2(clamp(v, 5, 300));
+  return { mm, was: mm === r2(v) ? null : r2(v) };
 }
 
 /**
- * The board for Shape's Your parts, and the refs whose wires leave the box.
- * opts = { name, project, which, size: [w, d], holes: 'none' | { inset } | [[x, y]], screw, tall }:
- * the id comes from the project's name (else name), so a board renamed for Shape still replaces itself.
+ * The board for Shape's Your parts, the refs whose wires leave the box, what was changed to fit
+ * Shape (notes, in plain words) and what stops the send (problem, else null).
+ * opts = { name, project, which, size: [w, d], holes: 'none' | { inset } | [[x, y]], holesBad, screw, tall }:
+ * holesBad counts typed pairs that weren't two numbers. The id comes from the project's name (else
+ * name), so a board renamed for Shape still replaces itself.
  */
 export function shapeBoard(board, values, opts) {
-  const w = r2(clamp(Number(opts.size?.[0]) || 50, 5, 300));
-  const d = r2(clamp(Number(opts.size?.[1]) || 40, 5, 300));
+  const fitW = fitSize(opts.size?.[0], 50);
+  const fitD = fitSize(opts.size?.[1], 40);
+  const w = fitW.mm;
+  const d = fitD.mm;
   const { ports, panel, wires } = portsAndPanel(board, values, [w, d]);
   const tall = Number.isFinite(opts.tall) ? opts.tall : 10;
+  const holes = holesFor(opts.holes, w, d);
+  const notes = [];
+  const resized = [['width', fitW], ['depth', fitD]].filter(([, f]) => f.was !== null)
+    .map(([what, f], i) => `the ${what}${i === 0 ? ' is sent' : ''} as ${f.mm} mm (not ${f.was})`);
+  if (resized.length) notes.push(`Shape takes boards 5 to 300 mm, so ${resized.join(' and ')}.`);
+  const leftOut = holes.outside + (Number.isInteger(opts.holesBad) && opts.holesBad > 0 ? opts.holesBad : 0);
+  if (leftOut) notes.push(`${holeWords(leftOut)} left out: each needs two numbers inside the board.`);
+  if (holes.over) notes.push(`Shape keeps up to 16 holes, so ${holes.over} more ${holes.over === 1 ? 'was' : 'were'} left out.`);
+  const inset = opts.holes && typeof opts.holes === 'object' && !Array.isArray(opts.holes) ? opts.holes.inset : null;
+  const room = r2(Math.min(w, d) / 2);
+  const problem = Number.isFinite(inset) && inset >= room ? `Holes ${r2(inset)} mm in from each corner don't fit a ${w} × ${d} mm board: use less than ${room} mm.` : null;
   return {
     board: {
       id: shapeId(typeof opts.project === 'string' && opts.project ? opts.project : opts.name, opts.which),
       label: cleanLabel(opts.name) || 'My board',
       w,
       d,
-      holes: holesFor(opts.holes, w, d),
+      holes: holes.kept,
       screw: SCREWS.includes(opts.screw) ? opts.screw : 'M3',
       tall: clamp(Math.ceil(tall - 1e-9), 1, 60),
       ports: ports.slice(0, 16),
       panel: panel.slice(0, 32),
     },
     wires,
+    notes,
+    problem,
   };
 }
 

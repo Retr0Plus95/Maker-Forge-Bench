@@ -104,7 +104,7 @@ h1 {
   cursor: pointer;
 }
 .tool:hover:not(:disabled), #panel button:hover { border-color: var(--accent); }
-.tool:disabled { opacity: .45; cursor: not-allowed; }
+.tool:disabled, dialog button:disabled { opacity: .45; cursor: not-allowed; }
 .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 
 #tabs {

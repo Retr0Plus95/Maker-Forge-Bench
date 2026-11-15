@@ -41,7 +41,7 @@ import { DEFAULT_SETTINGS, applySettings, cleanSettings, fillSettings, wireSetti
 import { applyLooks, lookFields, lookSummary } from './looks.js';
 import { modelFor, modelsThatFit } from './library-match.js';
 import { EDGE_WORDS, PORT_WORDS, moduleFacts, moduleText } from './modules.js';
-import { SHAPE_URL, canReachShape, defaultSize, portsAndPanel, shapeBoard, simpleHeights, writeShapeParts } from './shape-send.js';
+import { SHAPE_URL, canReachShape, defaultSize, parseHoles, portsAndPanel, shapeBoard, simpleHeights, writeShapeParts } from './shape-send.js';
 import { OwnModelError, listOwnModels, ownModelBytes, saveOwnModel } from './ownmodels.js';
 import { NO_EDITS, addOwnStep, hasEdits, moveStep, removeOwnStep, setSkipped, stepsWithEdits } from './mysteps.js';
 import { PANEL_TABS, cleanTab, panelTabs } from './paneltabs.js';
@@ -2335,19 +2335,6 @@ function openShapeSend(which = 'drawing') {
   $('#shape-send').showModal();
 }
 
-/** "3,3; 78,3" as holes on the board, and how many pairs were left out. */
-function typedHoles(text, w, d) {
-  const holes = [];
-  let out = 0;
-  for (const pair of String(text).split(';').map((t) => t.trim()).filter(Boolean)) {
-    const xy = pair.split(',').map((t) => t.trim());
-    const [x, y] = xy.map(Number);
-    if (xy.length === 2 && xy.every((t) => t !== '') && Number.isFinite(x) && Number.isFinite(y) && x >= 0 && x <= w && y >= 0 && y <= d) holes.push([x, y]);
-    else out++;
-  }
-  return { holes, out };
-}
-
 function sendToShape() {
   if (!canReachShape(location.hostname)) return;
   const which = $('#shape-which').value;
@@ -2356,26 +2343,29 @@ function sendToShape() {
   const size = shapeSize(board);
   const tallTyped = Number($('#shape-tall').value);
   let holes = 'none';
-  let leftOut = 0;
+  let holesBad = 0;
   if ($('#shape-holes').value === 'corners') {
     const inset = Number($('#shape-inset').value);
     holes = { inset: Number.isFinite(inset) && inset >= 0 ? inset : 3 };
   } else if ($('#shape-holes').value === 'typed') {
-    const typed = typedHoles($('#shape-holes-typed').value, size[0], size[1]);
-    holes = typed.holes;
-    leftOut = typed.out;
+    ({ holes, bad: holesBad } = parseHoles($('#shape-holes-typed').value));
   }
-  const { board: entry } = shapeBoard(board, partValues(), {
-    name: $('#shape-name').value, project: projectName() || 'My board', which, size, holes, screw: $('#shape-screw').value,
+  const { board: entry, notes, problem } = shapeBoard(board, partValues(), {
+    name: $('#shape-name').value, project: projectName() || 'My board', which, size, holes, holesBad, screw: $('#shape-screw').value,
     tall: $('#shape-tall').value !== '' && Number.isFinite(tallTyped) ? tallTyped : shapeTall(which, board),
   });
+  if (problem) {
+    $('#shape-send-note').textContent = `Not sent. ${problem}`;
+    $('#shape-open').hidden = true;
+    return;
+  }
   const storage = { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v) };
   const r = writeShapeParts(storage, entry);
   if (!r.ok) {
     $('#shape-send-note').textContent = r.why;
     return;
   }
-  const extra = leftOut ? ` ${leftOut} ${leftOut === 1 ? 'hole' : 'holes'} left out: each needs two numbers inside the board.` : '';
+  const extra = notes.map((n) => ` ${n}`).join('');
   $('#shape-send-note').textContent = `${r.replaced ? 'Updated' : 'Sent'}: ${entry.label} is in Shape's Your parts. In Shape: Project box → Board mounts → Your parts.${extra}`;
   $('#shape-open').hidden = false;
 }

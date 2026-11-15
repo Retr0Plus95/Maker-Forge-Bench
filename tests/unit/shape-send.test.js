@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SHAPE_HOST, SHAPE_KEY, SHAPE_MAX, SHAPE_URL, canReachShape, defaultSize, portsAndPanel, shapeBoard, shapeId, simpleHeights, writeShapeParts } from '../../src/shape-send.js';
+import { SHAPE_HOST, SHAPE_KEY, SHAPE_MAX, SHAPE_URL, canReachShape, defaultSize, parseHoles, portsAndPanel, shapeBoard, shapeId, simpleHeights, writeShapeParts } from '../../src/shape-send.js';
 import { parseProject } from '../../src/project.js';
 import { readFixture } from './helpers.js';
 
@@ -121,6 +121,37 @@ test('tall is a whole mm from 1 to 60, and holes typed in stay on the board', ()
   assert.equal(at({ tall: 99 }).tall, 60);
   assert.deepEqual(at({ holes: [[2, 2], [48, 38], [70, 10]] }).holes, [[2, 2], [48, 38]]);
   assert.equal(at({ screw: 'M5' }).screw, 'M3');
+});
+
+// 1.0 deferred minors, fixed after the merge: nothing is changed to fit Shape without saying so
+test('a size past 5 to 300 mm, holes off the board and holes past 16 are said, not changed silently', () => {
+  const sent = (opts) => shapeBoard(board, values, { name: 'X', which: 'mine', size: [50, 40], holes: 'none', screw: 'M3', tall: 12, ...opts });
+  const odd = sent({ size: [400, 2], holes: [[350, 1]] });
+  assert.equal(odd.board.w, 300);
+  assert.equal(odd.board.d, 5);
+  assert.deepEqual(odd.notes, [
+    'Shape takes boards 5 to 300 mm, so the width is sent as 300 mm (not 400) and the depth as 5 mm (not 2).',
+    '1 hole left out: each needs two numbers inside the board.',
+  ]);
+  const many = sent({ holes: Array.from({ length: 20 }, (_, i) => [2 + i, 2]), holesBad: 2 });
+  assert.equal(many.board.holes.length, 16);
+  assert.deepEqual(many.notes, ['2 holes left out: each needs two numbers inside the board.', 'Shape keeps up to 16 holes, so 4 more were left out.']);
+  assert.deepEqual(sent({}).notes, []);
+  assert.equal(sent({}).problem, null);
+});
+
+test("holes in from the corners that would meet in the middle stop the send, saying what fits", () => {
+  const at = (inset) => shapeBoard(board, values, { name: 'X', which: 'mine', size: [40, 30], holes: { inset }, screw: 'M3', tall: 12 });
+  assert.equal(at(15).problem, "Holes 15 mm in from each corner don't fit a 40 × 30 mm board: use less than 15 mm.");
+  assert.equal(at(14.9).problem, null);
+  assert.deepEqual(at(14.9).board.holes, [[14.9, 14.9], [25.1, 14.9], [14.9, 15.1], [25.1, 15.1]]);
+});
+
+test('holes typed as "x,y" or "x y", with a decimal point or comma, one pair per ; or line', () => {
+  assert.deepEqual(parseHoles('3,3; 78,3'), { holes: [[3, 3], [78, 3]], bad: 0 });
+  assert.deepEqual(parseHoles('3,5 4,5\n10.5 2'),{ holes: [[3.5, 4.5], [10.5, 2]], bad: 0 });
+  assert.deepEqual(parseHoles('3.5, 4.5; oops; 1,2,3; 7'), { holes: [[3.5, 4.5]], bad: 3 });
+  assert.deepEqual(parseHoles('  '), { holes: [], bad: 0 });
 });
 
 const memory = (raw = null) => { let v = raw; return { getItem: () => v, setItem: (k, x) => { v = x; } }; };
