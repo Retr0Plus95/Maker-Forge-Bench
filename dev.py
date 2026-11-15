@@ -131,7 +131,7 @@ def host_allowed(host: str | None, port: int) -> bool:
     return host.lower() in (f"127.0.0.1:{port}", f"localhost:{port}")
 
 
-def diff_snapshots(old: dict[str, float], new: dict[str, float]) -> list[tuple[str, str]]:
+def diff_snapshots(old: dict[str, object], new: dict[str, object]) -> list[tuple[str, str]]:
     events = [("change", p) for p, m in new.items() if old.get(p) != m]
     events += [("remove", p) for p in old if p not in new]
     return sorted(events, key=lambda e: e[1])
@@ -155,8 +155,10 @@ class Watcher:
     def _run(self) -> None:
         while not self.stopped.wait(WATCH_INTERVAL):
             new = self._take()
-            events = diff_snapshots({p: f["mtime"] for p, f in self.snapshot.items()},
-                                    {p: f["mtime"] for p, f in new.items()})
+            # the time and the size: a file seen half-saved and finished within the same clock tick
+            # keeps its time, but not its size
+            events = diff_snapshots({p: (f["mtime"], f["size"]) for p, f in self.snapshot.items()},
+                                    {p: (f["mtime"], f["size"]) for p, f in new.items()})
             self.snapshot = new
             for kind, path in events:
                 data = {"path": path, "mtime": new[path]["mtime"]} if kind == "change" else {"path": path}

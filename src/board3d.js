@@ -665,7 +665,8 @@ export async function createBoard3D(host, board, {
     return [...poking];
   }
 
-  // ---- findings as marks (0.9): Check my board's, a red mark each over the hole it's about
+  // ---- findings as marks (0.9): Check my board's, a red mark each over the hole it's about (and the
+  // fault finder's probes, 1.0.2)
   const findingMarks = [];
   function setMarks(list) {
     for (const mk of findingMarks) {
@@ -682,7 +683,10 @@ export async function createBoard3D(host, board, {
       if (!f || !Number.isFinite(f.x) || !Number.isFinite(f.y)) continue;
       const below = f.side === 'bottom';
       const y = below ? under : over;
-      const sprite = markSprite('!', f.level === 'warning' ? '#ffb020' : '#ff3b30', f.level === 'warning' ? '#111111' : '#ffffff');
+      // a probe (1.0.2, the fault finder): a red + or a black − where that probe goes
+      const sprite = f.level === 'probe'
+        ? markSprite(f.mark === '−' ? '−' : '+', f.mark === '−' ? '#1b1b1b' : '#e0281e', '#ffffff')
+        : markSprite('!', f.level === 'warning' ? '#ffb020' : '#ff3b30', f.level === 'warning' ? '#111111' : '#ffffff');
       sprite.position.set(f.x, y, f.y);
       const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(f.x, y, f.y), new THREE.Vector3(f.x, below ? -T : 0, f.y)]), markLine);
       line.renderOrder = 10;

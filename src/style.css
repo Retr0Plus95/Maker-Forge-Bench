@@ -592,6 +592,31 @@ body.print-step #top, body.print-step #status, body.print-step #stage, body.prin
   body.print-sort #sort-parts .dialog-actions { display: none !important; }
 }
 
+/* ---- the fault finder (1.0.2) ---- */
+#faults progress { width: 100%; height: 10px; accent-color: var(--good); }
+#fault-symptoms { list-style: none; padding: 0; margin: 6px 0; }
+#fault-symptoms li { margin: 4px 0; }
+.fault-symptom { width: 100%; text-align: left; }
+.fault-progress { display: block; margin: 2px 0 0 4px; }
+#fault-title { margin: 6px 0 2px; }
+.fault-warn { margin: 6px 0; padding: 8px 10px; border-left: 4px solid var(--danger); background: var(--accent-soft); font-weight: 700; }
+#fault-now { margin: 8px 0; padding: 10px; border-radius: var(--r); border: 2px solid var(--accent); background: var(--accent-soft); }
+#fault-now[data-kind="nobeep"] { border-color: var(--warn); }
+.fault-switch { margin: 0 0 6px; font-weight: 700; color: var(--warn); }
+.fault-setup { margin: 0 0 4px; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; opacity: .85; }
+.fault-text { margin: 0 0 4px; font-size: 1.05rem; }
+.fault-expect { margin: 0 0 6px; font-weight: 700; }
+.fault-why { margin: 0 0 6px; font-size: .9rem; opacity: .9; }
+.fault-said { margin: 0 0 4px; font-style: italic; }
+.fault-fix { margin: 6px 0; padding: 6px 8px; border-left: 4px solid var(--danger); background: var(--panel); }
+.fault-actions, .fault-nav { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+#fault-reading { width: 7em; font: inherit; }
+#fault-problems li { margin: 6px 0; padding-left: 8px; border-left: 4px solid var(--danger); }
+#fault-readings li[data-verdict="wrong"] { color: var(--danger); font-weight: 700; }
+.fault-readings-title { margin: 6px 0 2px; }
+#fault-claude { margin: 8px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+#fault-claude .hint, #fault-claude .ask-answer { flex-basis: 100%; }
+
 /* ---- your board: check, wires, marks (0.5) ---- */
 #myboard h3 { margin: 10px 0 4px; font-size: .95rem; }
 #myboard-check { margin: 4px 0; padding-left: 0; list-style: none; }
