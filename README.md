@@ -159,6 +159,22 @@ repo straight away.
     (warnings amber); click one to open it.
   - **Save GLB, Save OBJ and Turntable video** next to Save picture and Save STL. Shadows switch
     off with Reduce motion and on small screens.
+- **Taken from Maker Forge Shape (1.0):**
+  - **Wire to cut** (Wiring tab): every link with where it runs, its line and "cut 15 mm, strip 5 mm
+    at each end", every bare-wire bus with its length, and totals in plain words ("Insulated wire: 44
+    links, about 1.3 m in all"). The suggested wires on your own board get the same, with a colour
+    hint per line: red for supplies, black for 0 V. Link numbers match sheet 4's wire list. **Copy as
+    text** for paper.
+  - **Boards and modules:** 62 of Shape's boards and modules (Arduino, Raspberry Pi, ESP32 and
+    ESP8266, power converters, relays, motor drivers, sensors) in the Maker Forge Library as small 3D
+    models at their real size, with their mounting holes and ports. A part whose value names one
+    ("Arduino Nano Every", "LM2596") gets its model, a card line ("Module: 45 × 18 mm, no mounting
+    holes, mini-USB on the left edge") and the whole group in Looks like. Pins come from KiCad's
+    footprints for the Nano, Feather, Pico and D1 mini, and from Seeed's drawing for the XIAO.
+  - **Send to Shape** (Menu, and Tools in the 3D view): your board's size, mounting holes, screw
+    size, tallest part, ports at the edges and LEDs and buttons on top go straight into Shape's Your
+    parts, ready for its box maker. Sending again replaces it. It works at forge.retr0plus.se, where
+    both apps share this browser's storage; anywhere else the dialog says so and sends nothing.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).
@@ -214,9 +230,11 @@ The browser checks use Chrome or Edge; set `BENCH_BROWSER` to a browser's path t
 - Design for 0.7 Everywhere (GitHub, folders, phones, AI help): [`docs/design/2026-11-13-release-0.7-design.md`](docs/design/2026-11-13-release-0.7-design.md)
 - Design for 0.8 True to life (3D parts, Looks like, tabs and the guide): [`docs/design/2026-11-13-release-0.8-design.md`](docs/design/2026-11-13-release-0.8-design.md)
 - Design for 0.9 Real parts (the Maker Forge Library, KiCad's 3D models, a better 3D view): [`docs/design/2026-11-14-release-0.9-design.md`](docs/design/2026-11-14-release-0.9-design.md)
+- Design for 1.0 Launch (Wire to cut, Shape's boards and modules, Send to Shape): [`docs/design/2026-11-15-release-1.0-design.md`](docs/design/2026-11-15-release-1.0-design.md)
 - Roadmap, including ideas for future suite apps: [`ROADMAP.md`](ROADMAP.md)
 
 MIT licence: see [`LICENSE`](LICENSE). The Atkinson Hyperlegible font is under the SIL Open Font
 Licence: see [`FONTS-LICENSE.md`](FONTS-LICENSE.md). three.js r128 is MIT: see [`THREE-LICENSE`](THREE-LICENSE).
 The 3D models converted from KiCad's library are CC-BY-SA 4.0, by the KiCad library team: see
-[`src/library/LICENSE-KICAD-3D.md`](src/library/LICENSE-KICAD-3D.md). The models made for Bench are MIT.
+[`src/library/LICENSE-KICAD-3D.md`](src/library/LICENSE-KICAD-3D.md). The models made for Bench are MIT,
+and so are the boards and modules made from Maker Forge Shape's data.
