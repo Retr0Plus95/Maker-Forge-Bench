@@ -53,7 +53,8 @@ test('LEDs: 5 mm unless the value or D says 3 mm', () => {
 
 test('our own MP1584 module by its value; an unknown module has none', () => {
   assert.equal(idOf({ type: 'module', value: 'MP1584EN buck module', pins: { INp: [4, 2], INn: [4, 4], OUTp: [8, 6], OUTn: [8, 4] } }), 'mp1584-module');
-  assert.equal(idOf({ type: 'module', value: 'XL4015', pins: { INp: [4, 2], INn: [4, 4] } }), null);
+  assert.equal(idOf({ type: 'module', value: 'XY-9999 widget', pins: { INp: [4, 2], INn: [4, 4] } }), null);
+  assert.equal(idOf({ type: 'module', value: 'XL4015', pins: { INp: [4, 2], INn: [4, 4] } }), 'mod-buck4015', "one of Shape's boards (1.0)");
   assert.equal(idOf({ type: 'module', pins: { INp: [4, 2] } }), null);
 });
 

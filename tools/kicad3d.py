@@ -1,7 +1,8 @@
 """Converts KiCad's 3D models (.wrl) into small GLB files for the Maker Forge Library (Bench 0.9).
 
 Run it once, on a computer with KiCad, and commit what it writes:
-    python tools/kicad3d.py --kicad D:\\KiCad --list tools/kicad3d-parts.tsv --ours tools/our-models --out src/library
+    python tools/kicad3d.py --kicad D:\\KiCad --list tools/kicad3d-parts.tsv --ours tools/our-models \\
+        --modules tools/shape-boards.json --out src/library
 
 KiCad's .wrl files all come from the same exporter ("kicad StepUp wrl exported"): a list of
 materials (DEF name Material {...}), then shapes made of faces (IndexedFaceSet) that USE them.
@@ -358,20 +359,150 @@ def build_ours(spec: dict) -> tuple[bytes, dict]:
         metal = bool(shape.get("metal", False))
         name = shape.get("name") or f"{'MET' if metal else 'BODY'}-{k:02d}"
         tris = _box_triangles(*shape["box"]) if "box" in shape else _cyl_triangles(*shape["cyl"])
-        key = (name, colour, metal)
+        key = (name, colour, metal) if not shape.get("copies") else (name, colour, metal, k)  # repeated: its own mesh
         if key not in groups:
             groups[key] = []
             order.append(key)
         groups[key].extend(tris)
-    meshes = [_mesh(name, colour, metal, 0.3 if metal else 0.6, 1.0, groups[(name, colour, metal)]) for name, colour, metal in order]
+    meshes = []
+    for key in order:
+        name, colour, metal = key[:3]
+        mesh = _mesh(name, colour, metal, 0.3 if metal else 0.6, 1.0, groups[key])
+        if len(key) == 4:  # one shape placed once per copy (a module's header pins), as convert() does
+            mesh["copies"] = [tuple(c) for c in spec["shapes"][key[3]]["copies"]]
+        meshes.append(mesh)
     plastic = [m for m in meshes if not m["metal"]]
     entry = {"id": spec["id"], "name": spec["name"], "kind": spec["kind"], "mount": spec.get("mount", "tht"),
              "footprint": {"pins": spec["footprint"]["pins"], "pitch": spec["footprint"].get("pitch", 2.54),
                            "drill": spec["footprint"].get("drill")},
              "model": {"box": _box(meshes), "body": spec.get("body") or (max(plastic, key=_area)["name"] if plastic else None)},
-             "paint": spec.get("paint"), "source": {"from": "Maker Forge", "licence": "MIT"}}
+             "paint": spec.get("paint"), "source": spec.get("source") or {"from": "Maker Forge", "licence": "MIT"}}
     entry["fit"] = spec.get("fit", {})
+    if "module" in spec:
+        entry["module"] = spec["module"]
     return write_glb(meshes), entry
+
+
+# ---- Shape's boards and modules (Bench 1.0): tools/shape-boards.json, copied from Maker Forge Shape b6e372b ----
+SHAPE_DATA = "Maker Forge Shape b6e372b"
+PCB_T = 1.6  # the module's board
+HEADER_H = 2.5  # a module with pins stands on its male header's plastic strip
+PIN_LOW = -3.0  # its pins go down through the perfboard under it
+PIN_SIDE = 0.64
+SCREW_R = {"M2": 1.1, "M2.5": 1.35, "M3": 1.6, "M4": 2.1}
+# each port's face (width, height) is Shape's opening size for that kind; the depth into the board is our call
+PORT_FACE = {"usbb": (12.2, 11), "dcpcb": (9.2, 11.2), "micro": (8.2, 3.2), "usbc": (9.2, 3.4), "usbmini": (7.8, 4.2),
+             "usba": (13.2, 5.8), "usba2": (13.6, 14.8), "rj45": (16.2, 13.8), "hdmi": (15.4, 6.2), "hdmimicro": (7.6, 3.8),
+             "hdmimini": (11.6, 4.2), "jack35": (6.2, 6.2)}
+PORT_DEPTH = {"usbb": 16, "dcpcb": 14, "micro": 5.5, "usbc": 7.3, "usbmini": 7.5, "usba": 14, "usba2": 17, "rj45": 21,
+              "hdmi": 11, "hdmimicro": 7.5, "hdmimini": 7.5, "jack35": 12}
+METAL_PORTS = {"usbb", "micro", "usbc", "usbmini", "usba", "usba2", "hdmi", "hdmimicro", "hdmimini"}
+PCB_COLOURS = {"arduino": (0.0, 0.47, 0.55), "pi": (0.12, 0.45, 0.24), "esp": (0.1, 0.1, 0.12), "mcu": (0.13, 0.24, 0.55),
+               "power": (0.1, 0.32, 0.66), "motor": (0.12, 0.3, 0.62), "module": (0.32, 0.16, 0.46)}
+DARK = (0.05, 0.05, 0.05)
+GOLD = (0.83, 0.69, 0.22)
+STEEL = (0.78, 0.78, 0.8)
+
+
+def _turner(turn: int, corner):
+    """Shape's frame (x along w, y along d, from the board's lower-left corner) to the model's."""
+    c, s = {0: (1, 0), 90: (0, 1), 180: (-1, 0), 270: (0, -1)}[turn]
+    return lambda x, y: (corner[0] + c * x - s * y, corner[1] + s * x + c * y)
+
+
+def _rect(to, x0, y0, x1, y1):
+    """A rectangle in Shape's frame as (x, y, w, d) in the model's."""
+    a, b = to(x0, y0), to(x1, y1)
+    return _r(min(a[0], b[0])), _r(min(a[1], b[1])), _r(abs(b[0] - a[0])), _r(abs(b[1] - a[1]))
+
+
+def _pin_rows(pins: list) -> list:
+    """The header strips under a module's pins: (x, y, w, d) each, split where a row skips a place."""
+    xs = {round(p[0], 2) for p in pins}
+    ys = {round(p[1], 2) for p in pins}
+    along_y = len(xs) <= len(ys)
+    lines: dict = {}
+    for x, y in pins:
+        lines.setdefault(round(x, 2) if along_y else round(y, 2), []).append(y if along_y else x)
+    strips = []
+    for line in sorted(lines):
+        values = sorted(lines[line])
+        runs = [[values[0], values[0]]]
+        for v in values[1:]:
+            if v - runs[-1][1] > 2.54 * 1.5:
+                runs.append([v, v])
+            else:
+                runs[-1][1] = v
+        for lo, hi in runs:
+            a, b = _r(lo - 1.27), _r(hi - lo + 2.54)
+            strips.append((_r(line - 1.27), a, 2.54, b) if along_y else (a, _r(line - 1.27), b, 2.54))
+    return strips
+
+
+def module_spec(board: dict, footprint_text: str | None) -> dict:
+    """A board or module from Shape's list as a spec for build_ours, with Shape's facts for its part card.
+
+    With pins (KiCad's footprint, else our own rows) it stands on its header, its origin at pin 1; the board is
+    turned and placed by the data's "turn" and "corner" when it gives them, else centred on the pins. Without pins
+    it lies on the board under it from its lower-left corner, like the MP1584. Either way mm, x right, y up, z up.
+    """
+    w, d = board["w"], board["d"]
+    if board.get("kicad") and footprint_text:
+        fp = footprint_pins(footprint_text)
+        pins, drill = fp["pins"], fp["drill"]
+    elif board.get("pins"):
+        pins, drill = [[_r(x), _r(y)] for x, y in board["pins"]], 1.0
+    else:
+        pins, drill = [], None
+    if pins and "turn" in board:
+        turn, corner = board["turn"], board["corner"]
+    elif pins:
+        xs, ys = [p[0] for p in pins], [p[1] for p in pins]
+        cx, cy, span_x, span_y = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, max(xs) - min(xs), max(ys) - min(ys)
+        turn = 90 if (span_x > w or span_y > d) and span_x <= d and span_y <= w else 0
+        corner = (cx - w / 2, cy - d / 2) if turn == 0 else (cx + d / 2, cy - w / 2)
+    else:
+        turn, corner = 0, (0, 0)
+    to = _turner(turn, corner)
+    base = HEADER_H if pins else 0
+    top = base + PCB_T
+    body = f"PCB-{board['group'].upper()}"
+    x, y, bw, bd = _rect(to, 0, 0, w, d)
+    shapes = [{"name": body, "box": [x, y, base, bw, bd, PCB_T], "colour": list(PCB_COLOURS.get(board["group"], (0.1, 0.4, 0.2)))}]
+    holes = [to(hx, hy) for hx, hy in board.get("holes") or []]
+    if holes:  # one dark disc, placed at every mounting hole
+        h0 = holes[0]
+        shapes.append({"name": "HOLE", "cyl": [_r(h0[0]), _r(h0[1]), top, SCREW_R.get(board.get("screw"), 1.6), 0.05, 16],
+                       "colour": list(DARK), "copies": [[_r(h[0] - h0[0]), _r(h[1] - h0[1]), 0] for h in holes]})
+    for edge, along, kind, up in board.get("ports") or []:
+        fw, fh = PORT_FACE.get(kind, (8, 4))
+        depth = PORT_DEPTH.get(kind, 8)
+        x0, y0, x1, y1 = {"x0": (-1, along - fw / 2, depth - 1, along + fw / 2),
+                          "x1": (w - depth + 1, along - fw / 2, w + 1, along + fw / 2),
+                          "y0": (along - fw / 2, -1, along + fw / 2, depth - 1),
+                          "y1": (along - fw / 2, d - depth + 1, along + fw / 2, d + 1)}[edge]
+        px, py, pw, pd = _rect(to, x0, y0, x1, y1)
+        z0 = max(top, top + up - fh / 2)
+        metal = kind in METAL_PORTS
+        shapes.append({"name": "MET-PORT" if metal else "PORT", "port": kind,
+                       "box": [px, py, _r(z0), pw, pd, _r(top + up + fh / 2 - z0)],
+                       "colour": list(STEEL if metal else DARK), "metal": metal})
+    if pins:
+        for sx, sy, sw, sd in _pin_rows(pins):
+            shapes.append({"name": "HEADER", "box": [sx, sy, 0, sw, sd, HEADER_H], "colour": list(DARK)})
+        p0 = pins[0]
+        shapes.append({"name": "MET-PIN", "box": [_r(p0[0] - PIN_SIDE / 2), _r(p0[1] - PIN_SIDE / 2), PIN_LOW, PIN_SIDE, PIN_SIDE, HEADER_H - PIN_LOW],
+                       "colour": list(GOLD), "metal": True, "copies": [[_r(p[0] - p0[0]), _r(p[1] - p0[1]), 0] for p in pins]})
+    source = {"from": "Maker Forge", "licence": "MIT", "data": SHAPE_DATA}
+    if pins and board.get("kicad"):
+        lib, _, file = board["kicad"].partition("/")
+        source["pins"] = f"{KICAD_VERSION} footprint {lib.removesuffix('.pretty')}:{file.removesuffix('.kicad_mod')} ({LICENCE})"
+    elif pins and board.get("pinsFrom"):
+        source["pins"] = board["pinsFrom"]
+    return {"id": f"mod-{board['key']}", "name": board["label"], "kind": "module", "mount": "tht", "paint": None,
+            "fit": {"value": board["match"][0], "also": board["match"][1:]}, "body": body,
+            "footprint": {"pins": pins, "pitch": 2.54, "drill": drill}, "shapes": shapes, "source": source,
+            "module": {k: board.get(k) for k in ("group", "groupLabel", "w", "d", "holes", "screw", "ports", "check")}}
 
 
 def check_library(folder: Path) -> list[str]:
@@ -444,6 +575,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--kicad", required=True, help="KiCad's folder (with share/kicad/3dmodels)")
     ap.add_argument("--list", required=True, help="the TSV list of models to convert")
     ap.add_argument("--ours", help="a folder of our own model specs (*.json)")
+    ap.add_argument("--modules", help="Shape's boards and modules (tools/shape-boards.json)")
     ap.add_argument("--out", required=True, help="the library folder to write (src/library)")
     args = ap.parse_args(argv)
     share = Path(args.kicad) / "share" / "kicad"
@@ -469,6 +601,15 @@ def main(argv: list[str] | None = None) -> int:
         spec = json.loads(spec_path.read_text(encoding="utf-8"))
         glb, entry = build_ours(spec)
         file = f"models/{spec['id']}.glb"
+        (out / file).write_bytes(glb)
+        written.add(file)
+        entry["model"] = {"file": file, "bytes": len(glb), **entry["model"]}
+        parts.append(entry)
+    boards = json.loads(Path(args.modules).read_text(encoding="utf-8"))["boards"] if args.modules else []
+    for board in boards:
+        mod = share / "footprints" / board["kicad"] if board.get("kicad") else None
+        glb, entry = build_ours(module_spec(board, mod.read_text(encoding="utf-8") if mod else None))
+        file = f"models/{entry['id']}.glb"
         (out / file).write_bytes(glb)
         written.add(file)
         entry["model"] = {"file": file, "bytes": len(glb), **entry["model"]}

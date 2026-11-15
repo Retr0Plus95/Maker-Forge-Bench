@@ -12687,6 +12687,4056 @@
     "from": "Maker Forge",
     "licence": "MIT"
    }
+  },
+  {
+   "fit": {
+    "also": [
+     "Uno R3",
+     "Uno R4"
+    ],
+    "value": "Arduino Uno"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-uno",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      68.6,
+      53.3,
+      12.8
+     ]
+    ],
+    "bytes": 5600,
+    "file": "models/mod-uno.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 53.3,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [
+     [
+      13.97,
+      2.54
+     ],
+     [
+      15.24,
+      50.8
+     ],
+     [
+      66.04,
+      7.62
+     ],
+     [
+      66.04,
+      35.56
+     ]
+    ],
+    "ports": [
+     [
+      "x0",
+      37.5,
+      "usbb",
+      5.5
+     ],
+     [
+      "x0",
+      7.8,
+      "dcpcb",
+      5.6
+     ]
+    ],
+    "screw": "M3",
+    "w": 68.6
+   },
+   "mount": "tht",
+   "name": "Arduino Uno (R3, R4 Minima and WiFi)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Arduino Leonardo"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-leonardo",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      68.6,
+      53.3,
+      12.8
+     ]
+    ],
+    "bytes": 5600,
+    "file": "models/mod-leonardo.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 53.3,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [
+     [
+      13.97,
+      2.54
+     ],
+     [
+      15.24,
+      50.8
+     ],
+     [
+      66.04,
+      7.62
+     ],
+     [
+      66.04,
+      35.56
+     ]
+    ],
+    "ports": [
+     [
+      "x0",
+      38,
+      "micro",
+      1.6
+     ],
+     [
+      "x0",
+      7.8,
+      "dcpcb",
+      5.6
+     ]
+    ],
+    "screw": "M3",
+    "w": 68.6
+   },
+   "mount": "tht",
+   "name": "Arduino Leonardo",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Mega 2560"
+    ],
+    "value": "Arduino Mega"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-mega",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      101.6,
+      53.3,
+      12.8
+     ]
+    ],
+    "bytes": 5684,
+    "file": "models/mod-mega.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 53.3,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [
+     [
+      13.97,
+      2.54
+     ],
+     [
+      15.24,
+      50.8
+     ],
+     [
+      66.04,
+      7.62
+     ],
+     [
+      66.04,
+      35.56
+     ],
+     [
+      90.17,
+      50.8
+     ],
+     [
+      96.52,
+      2.54
+     ]
+    ],
+    "ports": [
+     [
+      "x0",
+      37.5,
+      "usbb",
+      5.5
+     ],
+     [
+      "x0",
+      7.8,
+      "dcpcb",
+      5.6
+     ]
+    ],
+    "screw": "M3",
+    "w": 101.6
+   },
+   "mount": "tht",
+   "name": "Arduino Mega 2560",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Arduino Due"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-due",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      101.6,
+      53.3,
+      1.65
+     ]
+    ],
+    "bytes": 3540,
+    "file": "models/mod-due.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 53.3,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [
+     [
+      13.97,
+      2.54
+     ],
+     [
+      15.24,
+      50.8
+     ],
+     [
+      66.04,
+      7.62
+     ],
+     [
+      66.04,
+      35.56
+     ],
+     [
+      90.17,
+      50.8
+     ],
+     [
+      96.52,
+      2.54
+     ]
+    ],
+    "ports": [],
+    "screw": "M3",
+    "w": 101.6
+   },
+   "mount": "tht",
+   "name": "Arduino Due",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Nano Every",
+     "Nano 33"
+    ],
+    "value": "Arduino Nano"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      15.24,
+      -35.56
+     ],
+     [
+      15.24,
+      -33.02
+     ],
+     [
+      15.24,
+      -30.48
+     ],
+     [
+      15.24,
+      -27.94
+     ],
+     [
+      15.24,
+      -25.4
+     ],
+     [
+      15.24,
+      -22.86
+     ],
+     [
+      15.24,
+      -20.32
+     ],
+     [
+      15.24,
+      -17.78
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mod-nano",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      -1.39,
+      -41.94,
+      -3
+     ],
+     [
+      16.61,
+      4.06,
+      8.2
+     ]
+    ],
+    "bytes": 6252,
+    "file": "models/mod-nano.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 18,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      9,
+      "usbmini",
+      2
+     ]
+    ],
+    "screw": null,
+    "w": 45
+   },
+   "mount": "tht",
+   "name": "Arduino Nano (classic, Every, 33, ESP32)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT",
+    "pins": "KiCad 9.0.6 footprint Module:Arduino_Nano (CC-BY-SA-4.0)"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Arduino Micro"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-micro",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      48,
+      18,
+      4.8
+     ]
+    ],
+    "bytes": 2520,
+    "file": "models/mod-micro.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 18,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      9,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 48
+   },
+   "mount": "tht",
+   "name": "Arduino Micro",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Pro Mini"
+    ],
+    "value": "Arduino Pro Mini"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-promini",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      33,
+      18,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-promini.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 18,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 33
+   },
+   "mount": "tht",
+   "name": "Arduino Pro Mini",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "MKR WiFi 1010",
+     "MKR Zero"
+    ],
+    "value": "Arduino MKR"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-mkr",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ARDUINO",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      61.5,
+      25,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-mkr.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 25,
+    "group": "arduino",
+    "groupLabel": "Arduino",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 61.5
+   },
+   "mount": "tht",
+   "name": "Arduino MKR (WiFi 1010, Zero and others)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Raspberry Pi 5",
+     "Raspberry Pi 3"
+    ],
+    "value": "Raspberry Pi 4"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pi",
+   "kind": "module",
+   "model": {
+    "body": "PCB-PI",
+    "box": [
+     [
+      0.0,
+      -1,
+      0.0
+     ],
+     [
+      86,
+      56,
+      17
+     ]
+    ],
+    "bytes": 7400,
+    "file": "models/mod-pi.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 56,
+    "group": "pi",
+    "groupLabel": "Raspberry Pi",
+    "holes": [
+     [
+      3.5,
+      3.5
+     ],
+     [
+      61.5,
+      3.5
+     ],
+     [
+      3.5,
+      52.5
+     ],
+     [
+      61.5,
+      52.5
+     ]
+    ],
+    "ports": [
+     [
+      "y0",
+      11.2,
+      "usbc",
+      1.6
+     ],
+     [
+      "y0",
+      26,
+      "hdmimicro",
+      1.5
+     ],
+     [
+      "y0",
+      39.5,
+      "hdmimicro",
+      1.5
+     ],
+     [
+      "y0",
+      54,
+      "jack35",
+      3
+     ],
+     [
+      "x1",
+      9,
+      "usba2",
+      8
+     ],
+     [
+      "x1",
+      27,
+      "usba2",
+      8
+     ],
+     [
+      "x1",
+      45.75,
+      "rj45",
+      6.9
+     ]
+    ],
+    "screw": "M2.5",
+    "w": 85
+   },
+   "mount": "tht",
+   "name": "Raspberry Pi 5 / 4 / 3",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Raspberry Pi 3 A+"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pi3a",
+   "kind": "module",
+   "model": {
+    "body": "PCB-PI",
+    "box": [
+     [
+      0.0,
+      -1,
+      0.0
+     ],
+     [
+      66,
+      56,
+      8
+     ]
+    ],
+    "bytes": 6312,
+    "file": "models/mod-pi3a.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 56,
+    "group": "pi",
+    "groupLabel": "Raspberry Pi",
+    "holes": [
+     [
+      3.5,
+      3.5
+     ],
+     [
+      61.5,
+      3.5
+     ],
+     [
+      3.5,
+      52.5
+     ],
+     [
+      61.5,
+      52.5
+     ]
+    ],
+    "ports": [
+     [
+      "y0",
+      10.6,
+      "micro",
+      1.6
+     ],
+     [
+      "y0",
+      32,
+      "hdmi",
+      3.2
+     ],
+     [
+      "y0",
+      53.5,
+      "jack35",
+      3
+     ],
+     [
+      "x1",
+      31.5,
+      "usba",
+      3.5
+     ]
+    ],
+    "screw": "M2.5",
+    "w": 65
+   },
+   "mount": "tht",
+   "name": "Raspberry Pi 3 A+",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Pi Zero 2 W",
+     "Pi Zero"
+    ],
+    "value": "Raspberry Pi Zero"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pizero",
+   "kind": "module",
+   "model": {
+    "body": "PCB-PI",
+    "box": [
+     [
+      0.0,
+      -1,
+      0.0
+     ],
+     [
+      65,
+      30,
+      5.4
+     ]
+    ],
+    "bytes": 5244,
+    "file": "models/mod-pizero.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 30,
+    "group": "pi",
+    "groupLabel": "Raspberry Pi",
+    "holes": [
+     [
+      3.5,
+      3.5
+     ],
+     [
+      61.5,
+      3.5
+     ],
+     [
+      3.5,
+      26.5
+     ],
+     [
+      61.5,
+      26.5
+     ]
+    ],
+    "ports": [
+     [
+      "y0",
+      12.4,
+      "hdmimini",
+      1.7
+     ],
+     [
+      "y0",
+      41.4,
+      "micro",
+      1.6
+     ],
+     [
+      "y0",
+      54,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": "M2.5",
+    "w": 65
+   },
+   "mount": "tht",
+   "name": "Raspberry Pi Zero / Zero 2 W",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Pico W",
+     "Pico 2"
+    ],
+    "value": "Raspberry Pi Pico"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      0.0,
+      -40.64
+     ],
+     [
+      0.0,
+      -43.18
+     ],
+     [
+      0.0,
+      -45.72
+     ],
+     [
+      0.0,
+      -48.26
+     ],
+     [
+      17.78,
+      -48.26
+     ],
+     [
+      17.78,
+      -45.72
+     ],
+     [
+      17.78,
+      -43.18
+     ],
+     [
+      17.78,
+      -40.64
+     ],
+     [
+      17.78,
+      -38.1
+     ],
+     [
+      17.78,
+      -35.56
+     ],
+     [
+      17.78,
+      -33.02
+     ],
+     [
+      17.78,
+      -30.48
+     ],
+     [
+      17.78,
+      -27.94
+     ],
+     [
+      17.78,
+      -25.4
+     ],
+     [
+      17.78,
+      -22.86
+     ],
+     [
+      17.78,
+      -20.32
+     ],
+     [
+      17.78,
+      -17.78
+     ],
+     [
+      17.78,
+      -15.24
+     ],
+     [
+      17.78,
+      -12.7
+     ],
+     [
+      17.78,
+      -10.16
+     ],
+     [
+      17.78,
+      -7.62
+     ],
+     [
+      17.78,
+      -5.08
+     ],
+     [
+      17.78,
+      -2.54
+     ],
+     [
+      17.78,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mod-pico",
+   "kind": "module",
+   "model": {
+    "body": "PCB-PI",
+    "box": [
+     [
+      -1.61,
+      -49.63,
+      -3
+     ],
+     [
+      19.39,
+      2.37,
+      7.3
+     ]
+    ],
+    "bytes": 8684,
+    "file": "models/mod-pico.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 21,
+    "group": "pi",
+    "groupLabel": "Raspberry Pi",
+    "holes": [
+     [
+      2,
+      4.8
+     ],
+     [
+      49,
+      4.8
+     ],
+     [
+      2,
+      16.2
+     ],
+     [
+      49,
+      16.2
+     ]
+    ],
+    "ports": [
+     [
+      "x0",
+      10.5,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": "M2",
+    "w": 51
+   },
+   "mount": "tht",
+   "name": "Raspberry Pi Pico / Pico W / Pico 2",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT",
+    "pins": "KiCad 9.0.6 footprint Module:RaspberryPi_Pico_Common_THT (CC-BY-SA-4.0)"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ESP32-DevKitC",
+     "ESP32 DevKit",
+     "ESP32 38-pin"
+    ],
+    "value": "ESP32 DevKitC"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-esp32devkit",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      55,
+      28,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-esp32devkit.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 28,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      14,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 55
+   },
+   "mount": "tht",
+   "name": "ESP32 DevKit (38-pin, DevKitC)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ESP32-DevKit V1",
+     "DOIT ESP32",
+     "ESP32 30-pin"
+    ],
+    "value": "ESP32 DevKit V1"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-esp32doit",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      51.5,
+      28.5,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-esp32doit.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 28.5,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      14.25,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 51.5
+   },
+   "mount": "tht",
+   "name": "ESP32 DevKit V1 (30-pin, DOIT)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ESP32-S3-DevKitC",
+     "ESP32-S3"
+    ],
+    "value": "ESP32-S3 DevKitC"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-esp32s3",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      63,
+      26,
+      4.9
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-esp32s3.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 26,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      13,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 63
+   },
+   "mount": "tht",
+   "name": "ESP32-S3 DevKitC-1",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ESP32-C3 Super Mini",
+     "C3 SuperMini"
+    ],
+    "value": "ESP32-C3 SuperMini"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-esp32c3mini",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      22.5,
+      18,
+      4.9
+     ]
+    ],
+    "bytes": 2516,
+    "file": "models/mod-esp32c3mini.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 18,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      9,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 22.5
+   },
+   "mount": "tht",
+   "name": "ESP32-C3 SuperMini",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ESP32 CAM",
+     "AI Thinker ESP32"
+    ],
+    "value": "ESP32-CAM"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-esp32cam",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      27,
+      40.5,
+      1.6
+     ]
+    ],
+    "bytes": 1440,
+    "file": "models/mod-esp32cam.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 40.5,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 27
+   },
+   "mount": "tht",
+   "name": "ESP32-CAM (camera board)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Seeeduino XIAO",
+     "XIAO ESP32",
+     "XIAO RP2040",
+     "XIAO SAMD21"
+    ],
+    "value": "Seeed XIAO"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      15.24,
+      -15.24
+     ],
+     [
+      15.24,
+      -12.7
+     ],
+     [
+      15.24,
+      -10.16
+     ],
+     [
+      15.24,
+      -7.62
+     ],
+     [
+      15.24,
+      -5.08
+     ],
+     [
+      15.24,
+      -2.54
+     ],
+     [
+      15.24,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mod-xiao",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1.28,
+      -18.12,
+      -3
+     ],
+     [
+      16.52,
+      3.88,
+      7.4
+     ]
+    ],
+    "bytes": 5580,
+    "file": "models/mod-xiao.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17.8,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      8.9,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 21
+   },
+   "mount": "tht",
+   "name": "Seeed XIAO (ESP32-C3, S3, RP2040, SAMD21)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT",
+    "pins": "Seeed Studio, XIAO Series Package and PCB Design: two rows of 7 at 2.54 mm, 15.24 mm apart"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "NodeMCU v2",
+     "NodeMCU Amica"
+    ],
+    "value": "NodeMCU"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-nodemcu2",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      48,
+      26,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-nodemcu2.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 26,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      13,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 48
+   },
+   "mount": "tht",
+   "name": "NodeMCU ESP8266 v2 (Amica)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "NodeMCU LoLin",
+     "LoLin NodeMCU"
+    ],
+    "value": "NodeMCU v3"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-nodemcu3",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      58,
+      31,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-nodemcu3.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 31,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      15.5,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 58
+   },
+   "mount": "tht",
+   "name": "NodeMCU ESP8266 v3 (LoLin)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "LOLIN D1 mini",
+     "D1 mini"
+    ],
+    "value": "Wemos D1 mini"
+   },
+   "footprint": {
+    "drill": 0.9,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      22.86,
+      -17.78
+     ],
+     [
+      22.86,
+      -15.24
+     ],
+     [
+      22.86,
+      -12.7
+     ],
+     [
+      22.86,
+      -10.16
+     ],
+     [
+      22.86,
+      -7.62
+     ],
+     [
+      22.86,
+      -5.08
+     ],
+     [
+      22.86,
+      -2.54
+     ],
+     [
+      22.86,
+      0.0
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mod-d1mini",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1.37,
+      -26.99,
+      -3
+     ],
+     [
+      24.23,
+      8.21,
+      7.3
+     ]
+    ],
+    "bytes": 5672,
+    "file": "models/mod-d1mini.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 25.6,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      12.8,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 34.2
+   },
+   "mount": "tht",
+   "name": "Wemos D1 mini (ESP8266, ESP32 mini)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT",
+    "pins": "KiCad 9.0.6 footprint RF_Module:WEMOS_D1_mini_light (CC-BY-SA-4.0)"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "TTGO T-Display",
+     "T-Display"
+    ],
+    "value": "LilyGO T-Display"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-tdisplay",
+   "kind": "module",
+   "model": {
+    "body": "PCB-ESP",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      51.5,
+      25.5,
+      4.9
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-tdisplay.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 25.5,
+    "group": "esp",
+    "groupLabel": "ESP32 and ESP8266",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      12.75,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 51.5
+   },
+   "mount": "tht",
+   "name": "LilyGO T-Display (ESP32 with a screen)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Teensy 4.0"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-teensy40",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      35.6,
+      17.8,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-teensy40.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17.8,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      8.9,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 35.6
+   },
+   "mount": "tht",
+   "name": "Teensy 4.0",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "Teensy 4.1"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-teensy41",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      61,
+      17.8,
+      4.8
+     ]
+    ],
+    "bytes": 2512,
+    "file": "models/mod-teensy41.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17.8,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      8.9,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 61
+   },
+   "mount": "tht",
+   "name": "Teensy 4.1",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Blue Pill",
+     "BluePill"
+    ],
+    "value": "STM32 Blue Pill"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-bluepill",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      53,
+      22.5,
+      4.8
+     ]
+    ],
+    "bytes": 2516,
+    "file": "models/mod-bluepill.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 22.5,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      11.25,
+      "micro",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 53
+   },
+   "mount": "tht",
+   "name": "STM32 Blue Pill",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Black Pill",
+     "BlackPill"
+    ],
+    "value": "STM32 Black Pill"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-blackpill",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      53,
+      21,
+      4.9
+     ]
+    ],
+    "bytes": 2516,
+    "file": "models/mod-blackpill.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 21,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      10.5,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 53
+   },
+   "mount": "tht",
+   "name": "STM32 Black Pill",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "Feather M0",
+     "Feather M4",
+     "Feather 32u4",
+     "Feather ESP32"
+    ],
+    "value": "Adafruit Feather"
+   },
+   "footprint": {
+    "drill": 1.0,
+    "pins": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -2.54
+     ],
+     [
+      0.0,
+      -5.08
+     ],
+     [
+      0.0,
+      -7.62
+     ],
+     [
+      0.0,
+      -10.16
+     ],
+     [
+      0.0,
+      -12.7
+     ],
+     [
+      0.0,
+      -15.24
+     ],
+     [
+      0.0,
+      -17.78
+     ],
+     [
+      0.0,
+      -20.32
+     ],
+     [
+      0.0,
+      -22.86
+     ],
+     [
+      0.0,
+      -25.4
+     ],
+     [
+      0.0,
+      -27.94
+     ],
+     [
+      0.0,
+      -30.48
+     ],
+     [
+      0.0,
+      -33.02
+     ],
+     [
+      0.0,
+      -35.56
+     ],
+     [
+      0.0,
+      -38.1
+     ],
+     [
+      20.32,
+      -38.1
+     ],
+     [
+      20.32,
+      -35.56
+     ],
+     [
+      20.32,
+      -33.02
+     ],
+     [
+      20.32,
+      -30.48
+     ],
+     [
+      20.32,
+      -27.94
+     ],
+     [
+      20.32,
+      -25.4
+     ],
+     [
+      20.32,
+      -22.86
+     ],
+     [
+      20.32,
+      -20.32
+     ],
+     [
+      20.32,
+      -17.78
+     ],
+     [
+      20.32,
+      -15.24
+     ],
+     [
+      20.32,
+      -12.7
+     ],
+     [
+      20.32,
+      -10.16
+     ]
+    ],
+    "pitch": 2.54
+   },
+   "id": "mod-feather",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      -1.38,
+      -44.7,
+      -3
+     ],
+     [
+      21.59,
+      7.1,
+      7.4
+     ]
+    ],
+    "bytes": 6172,
+    "file": "models/mod-feather.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 22.9,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      11.45,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 50.8
+   },
+   "mount": "tht",
+   "name": "Adafruit Feather (any)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT",
+    "pins": "KiCad 9.0.6 footprint Module:Adafruit_Feather (CC-BY-SA-4.0)"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "ItsyBitsy",
+     "QT Py"
+    ],
+    "value": "Adafruit ItsyBitsy"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-itsybitsy",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      35.6,
+      17.8,
+      1.6
+     ]
+    ],
+    "bytes": 1444,
+    "file": "models/mod-itsybitsy.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17.8,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 35.6
+   },
+   "mount": "tht",
+   "name": "Adafruit ItsyBitsy / QT Py footprint",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "BBC micro:bit",
+     "microbit"
+    ],
+    "value": "micro:bit"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-microbit",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MCU",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      51.6,
+      42,
+      1.6
+     ]
+    ],
+    "bytes": 1444,
+    "file": "models/mod-microbit.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 42,
+    "group": "mcu",
+    "groupLabel": "Other microcontrollers",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 51.6
+   },
+   "mount": "tht",
+   "name": "BBC micro:bit",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "LM2596S"
+    ],
+    "value": "LM2596"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-buck2596",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      43,
+      21,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-buck2596.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 21,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 43
+   },
+   "mount": "tht",
+   "name": "Buck converter LM2596 (blue module)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "XL4015"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-buck4015",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      54,
+      23,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-buck4015.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 23,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 54
+   },
+   "mount": "tht",
+   "name": "Buck converter XL4015 (5 A)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "MT3608"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-mt3608",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      36,
+      17,
+      1.6
+     ]
+    ],
+    "bytes": 1444,
+    "file": "models/mod-mt3608.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 36
+   },
+   "mount": "tht",
+   "name": "Boost converter MT3608",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "TP4056"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-tp4056",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      -1,
+      0.0,
+      0.0
+     ],
+     [
+      25,
+      19,
+      4.9
+     ]
+    ],
+    "bytes": 2520,
+    "file": "models/mod-tp4056.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 19,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [
+     [
+      "x0",
+      9.5,
+      "usbc",
+      1.6
+     ]
+    ],
+    "screw": null,
+    "w": 25
+   },
+   "mount": "tht",
+   "name": "Li-ion charger TP4056 (USB-C or micro-USB)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "IP5306"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-ip5306",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      25,
+      21,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-ip5306.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 21,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 25
+   },
+   "mount": "tht",
+   "name": "Power bank board IP5306 (charge and 5 V out)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "4S BMS",
+     "BMS 3S",
+     "BMS 4S"
+    ],
+    "value": "3S BMS"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-bms3s",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      50,
+      22,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-bms3s.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 22,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 50
+   },
+   "mount": "tht",
+   "name": "Battery protection board 3S / 4S",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "LRS-50"
+    ],
+    "value": "LRS-35"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-lrs35",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      99,
+      82,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-lrs35.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 82,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 99
+   },
+   "mount": "tht",
+   "name": "Mean Well LRS-35 / LRS-50 power supply",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "LRS-100"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-lrs100",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      129,
+      97,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-lrs100.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 97,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 129
+   },
+   "mount": "tht",
+   "name": "Mean Well LRS-100 power supply",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "LRS-200"
+    ],
+    "value": "LRS-150"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-lrs150",
+   "kind": "module",
+   "model": {
+    "body": "PCB-POWER",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      159,
+      97,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-lrs150.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 97,
+    "group": "power",
+    "groupLabel": "Power: converters, chargers, supplies",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 159
+   },
+   "mount": "tht",
+   "name": "Mean Well LRS-150 / LRS-200 power supply",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "1 channel relay",
+     "1-channel relay",
+     "SRD-05VDC"
+    ],
+    "value": "relay module"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-relay1",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      50,
+      26,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-relay1.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 26,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 50
+   },
+   "mount": "tht",
+   "name": "Relay module, 1 channel",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "2-channel relay",
+     "relay module, 2 channels"
+    ],
+    "value": "2 channel relay"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-relay2",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      50,
+      39,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-relay2.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 39,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 50
+   },
+   "mount": "tht",
+   "name": "Relay module, 2 channels",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "4-channel relay",
+     "relay module, 4 channels"
+    ],
+    "value": "4 channel relay"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-relay4",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      75,
+      55,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-relay4.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 55,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 75
+   },
+   "mount": "tht",
+   "name": "Relay module, 4 channels",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "8-channel relay",
+     "relay module, 8 channels"
+    ],
+    "value": "8 channel relay"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-relay8",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      138,
+      56,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-relay8.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 56,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 138
+   },
+   "mount": "tht",
+   "name": "Relay module, 8 channels",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "L298N"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-l298n",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      43,
+      43,
+      1.65
+     ]
+    ],
+    "bytes": 3452,
+    "file": "models/mod-l298n.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 43,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [
+     [
+      3,
+      3
+     ],
+     [
+      40,
+      3
+     ],
+     [
+      3,
+      40
+     ],
+     [
+      40,
+      40
+     ]
+    ],
+    "ports": [],
+    "screw": "M3",
+    "w": 43
+   },
+   "mount": "tht",
+   "name": "Motor driver L298N",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "TB6612"
+    ],
+    "value": "TB6612FNG"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-tb6612",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      21,
+      20,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-tb6612.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 20,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 21
+   },
+   "mount": "tht",
+   "name": "Motor driver TB6612FNG",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "A4988",
+     "TMC2208",
+     "StepStick"
+    ],
+    "value": "DRV8825"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-drv8825",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      20,
+      15,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-drv8825.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 15,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 20
+   },
+   "mount": "tht",
+   "name": "Stepper driver A4988 / DRV8825 / TMC2208",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "MOSFET module",
+     "D4184",
+     "IRF520"
+    ],
+    "value": "IRF520 module"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-mosfet",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      34,
+      20,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-mosfet.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 20,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 34
+   },
+   "mount": "tht",
+   "name": "MOSFET switch module (IRF520 / D4184)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "PCA9685"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pca9685",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MOTOR",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      62,
+      25.4,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-pca9685.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 25.4,
+    "group": "motor",
+    "groupLabel": "Motors and relays",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 62
+   },
+   "mount": "tht",
+   "name": "Servo driver PCA9685 (16 channels)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "HX711"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-hx711",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      34,
+      20,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-hx711.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 20,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 34
+   },
+   "mount": "tht",
+   "name": "Load cell amplifier HX711",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "DS3231"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-ds3231",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      38,
+      22,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-ds3231.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 22,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 38
+   },
+   "mount": "tht",
+   "name": "Real-time clock DS3231",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "microSD module",
+     "micro SD module",
+     "SD module"
+    ],
+    "value": "SD card module"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-sdcard",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      42,
+      24,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-sdcard.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 24,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 42
+   },
+   "mount": "tht",
+   "name": "SD card module",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "MFRC522"
+    ],
+    "value": "RC522"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-rc522",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      60,
+      40,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-rc522.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 40,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 60
+   },
+   "mount": "tht",
+   "name": "RFID reader RC522",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "PN532"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pn532",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      43,
+      41,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-pn532.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 41,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 43
+   },
+   "mount": "tht",
+   "name": "NFC reader PN532",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "NEO6M",
+     "GY-NEO6MV2"
+    ],
+    "value": "NEO-6M"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-neo6m",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      25,
+      35,
+      1.6
+     ]
+    ],
+    "bytes": 1448,
+    "file": "models/mod-neo6m.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 35,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 25
+   },
+   "mount": "tht",
+   "name": "GPS module NEO-6M (with its antenna)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "DFPlayer"
+    ],
+    "value": "DFPlayer Mini"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-dfplayer",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      21,
+      21,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-dfplayer.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 21,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 21
+   },
+   "mount": "tht",
+   "name": "MP3 player DFPlayer Mini",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "MAX98357A"
+    ],
+    "value": "MAX98357"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-max98357",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      18,
+      18,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-max98357.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 18,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 18
+   },
+   "mount": "tht",
+   "name": "I2S amplifier MAX98357",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "PAM8403"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-pam8403",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      21,
+      18,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-pam8403.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 18,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 21
+   },
+   "mount": "tht",
+   "name": "Stereo amplifier PAM8403",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "BMP280"
+    ],
+    "value": "BME280"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-bme280",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      13,
+      10.5,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-bme280.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 10.5,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 13
+   },
+   "mount": "tht",
+   "name": "Weather sensor BME280 / BMP280",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "MPU6050",
+     "GY-521"
+    ],
+    "value": "MPU-6050"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-mpu6050",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      21,
+      16,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-mpu6050.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 16,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 21
+   },
+   "mount": "tht",
+   "name": "Motion sensor MPU-6050 (gyro)",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "ADS1115"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-ads1115",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      28,
+      17.8,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-ads1115.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 17.8,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 28
+   },
+   "mount": "tht",
+   "name": "ADC ADS1115",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "nRF24L01+",
+     "nRF24"
+    ],
+    "value": "nRF24L01"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-nrf24",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      29,
+      15,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-nrf24.glb"
+   },
+   "module": {
+    "check": false,
+    "d": 15,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 29
+   },
+   "mount": "tht",
+   "name": "Radio nRF24L01",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [
+     "RFM95",
+     "RFM95W",
+     "LoRa module"
+    ],
+    "value": "SX1276"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-lora",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      25,
+      25,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-lora.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 25,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 25
+   },
+   "mount": "tht",
+   "name": "LoRa module SX1276 / RFM95 on a breakout",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
+  },
+  {
+   "fit": {
+    "also": [],
+    "value": "SIM800L"
+   },
+   "footprint": {
+    "drill": null,
+    "pins": [],
+    "pitch": 2.54
+   },
+   "id": "mod-sim800l",
+   "kind": "module",
+   "model": {
+    "body": "PCB-MODULE",
+    "box": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      25,
+      23,
+      1.6
+     ]
+    ],
+    "bytes": 1452,
+    "file": "models/mod-sim800l.glb"
+   },
+   "module": {
+    "check": true,
+    "d": 23,
+    "group": "module",
+    "groupLabel": "Sensors and other modules",
+    "holes": [],
+    "ports": [],
+    "screw": null,
+    "w": 25
+   },
+   "mount": "tht",
+   "name": "GSM module SIM800L",
+   "paint": null,
+   "source": {
+    "data": "Maker Forge Shape b6e372b",
+    "from": "Maker Forge",
+    "licence": "MIT"
+   }
   }
  ],
  "version": 1
