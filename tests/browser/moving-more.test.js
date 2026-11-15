@@ -195,7 +195,7 @@ describe('moving around, lists, and the app extras', () => {
     await page.reload();
     await ready(page);
     assert.equal(await page.locator('#whats-new').isVisible(), true);
-    assert.match(await page.locator('#whats-new').textContent(), /New in Bench 0\.9:.*real 3D parts/);
+    assert.match(await page.locator('#whats-new').textContent(), /New in Bench 1\.0\.1:.*Welcome back.*solder bridges.*From 1\.0: Wire to cut/);
     await page.locator('#whats-new-close').click();
     await page.reload();
     await ready(page);
