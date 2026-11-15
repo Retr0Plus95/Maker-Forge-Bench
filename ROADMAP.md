@@ -316,6 +316,92 @@ answers always match. Bench adds the calculations that belong to a part:
   soldered that the new revision changed gets flagged: "R4 moved two holes since you soldered it."
   This is what makes changing drawings on the fly *while you build* safe.
 
+### Waiting for a release: 50 more improvements ★ New (2026-11-15)
+Asked for as "50 more improvements, small and medium, and 10 of them large". Checked against
+this roadmap and the code, so none repeats what's built or planned. The small ones go out in
+batches alongside the main releases, the way 0.4.1 did. **Picked to come first,** because they help
+the fume extractor build now: 24 Bridge risk, L1 Fault finder, 8 "I don't have this one yet",
+20 Mix-up warning and 1 Welcome back. S = small, M = medium.
+
+**At the bench**
+1. (S) Welcome back: "Last time: R6 soldered, step 12. Next: C4 (100 nF), holes L12–L13."
+2. (S) Time left, from your own speed: "step 12 of 31, about 50 minutes left".
+3. (S) Iron reminder, if you turn it on: nothing ticked for 20 minutes → "Is the iron still on?"
+4. (M) Sort your parts first: the parts by step with how many of each, to lay out in a tray. Printable.
+5. (S) Joints and solder on the shopping list: "about 180 joints, about 1.5 m of 0.8 mm solder".
+6. (S) Tools for this step (flush cutters, pliers, multimeter), from the parts in the step.
+7. (S) A soldering tip on each card: "LEDs don't like heat: 3 seconds, then let it cool".
+8. (M) "I don't have this one yet": the guide skips the part and brings it back at the end, and the
+   shopping list shows only what's missing.
+9. (S) A small buzz on Android phones when you tick a part.
+10. (S) Undo by tap: "R6 soldered · Undo" for a few seconds after each tick.
+
+**The drawings**
+11. (M) Mark up a sheet: circles and notes on any sheet, kept with your progress, undoable.
+12. (S) A ruler on the drawing: two clicks give the distance in holes and mm (3D has one already).
+13. (S) A small map in the corner when zoomed in.
+14. (S) Lock the view, so a finger with flux on it can't move the drawing on a tablet.
+15. (M) Print a sheet at real size, with a 10 mm square to check the scale, to lay the board on.
+16. (S) Dark drawings: the sheet's white paper goes dark in the dark theme.
+17. (S) Small pictures of each sheet in the sheet strip.
+
+**Part cards**
+18. (M) Real size on screen: set up once with a bank card, then hold a part against the screen.
+19. (S) Bend gauge: "bend the legs 4 holes apart (10.16 mm)" for flat parts, with a ruler to print.
+20. (S) Mix-up warning: "R4 (4.7 k) and R7 (47 k) look almost the same: yellow-violet-red against
+    yellow-violet-orange."
+
+**Your board, wiring and 3D**
+21. (M) Pick your wire colours, one per line: in the wire list, on your photo and in 3D.
+22. (M) Straighten a slanted photo: four taps on the board's corners fix a photo taken at an angle.
+23. (S) Fix list: mark a joint "redo" on the photo or in 3D. Check my board shows it until fixed.
+24. (M) Bridge risk: two joints on different lines side by side underneath get an amber "watch for a
+    bridge here".
+25. (M) Low parts first: "C1 (13 mm tall) is soldered before R4 next to it, so R4 will be hard to
+    reach."
+26. (S) Line colours colour-blind people can tell apart, with dashed patterns as well as colours.
+27. (M) The drawing's board as a ghost over My board in 3D, so the parts you moved stand out.
+
+**Files and sharing**
+28. (S) Recent projects on the start screen.
+29. (M) Open a project's `.zip`.
+30. (S) Drag and drop a folder or files onto the window.
+31. (M) GitLab and Codeberg links, as well as GitHub.
+32. (M) Hand over to your phone: a QR code carries your ticks across, with no server.
+33. (S) Automatic versions: one a day, kept for a week, next to your named versions.
+34. (S) History list: your last changes, and jump back to any of them.
+35. (S) Two tabs stay in step, so one tab can't overwrite the other's progress.
+36. (S) "What Bench keeps on this device": the size per project, and delete one project's data.
+37. (S) "Open in Bench" badge: a ready button and link for a project's README.
+
+**Help**
+38. (S) Tap a word for its meaning: bus, link, bridge, pitch, wiper, 0 V.
+39. (M) The project's README in a tab, cleaned the same way as the drawings.
+40. (M) Explain this area: draw a box on the schematic, and Claude (your own key) explains it in
+    plain words.
+
+**Large**
+- **L1 Fault finder by symptom.** Pick "LCD blank" or "fans always at full speed", and Bench walks
+  you through checks with the meter, lighting where to measure. Claude helps when the checks run
+  out. Goes with 1.4.
+- **L2 Build book.** The whole guide as a booklet to print: one step per page with its 3D picture,
+  the parts, the holes and tick boxes. Goes further than 1.2's printed checklist.
+- **L3 Make a project file in the browser.** For projects that only have drawings: fix the guessed
+  parts, values, polarity and steps, then download `forge-project.json`. No Python needed.
+- **L4 Project file doctor.** Checks any project file in plain words ("R6 is in step 4 but not in
+  the parts list"), with a ready GitHub Action that runs the same check on every push.
+- **L5 See-through camera.** Point your phone at the board, and the layout is drawn over the live
+  picture, so a missed link shows at a glance.
+- **L6 Swedish.** All of Bench in Swedish, picked automatically. This would settle open decision 4.
+- **L7 Screen reader and keyboard only.** Everything works without seeing the screen ("R6 soldered,
+  12 left"), with the drawings' parts in a list too.
+- **L8 More than one board per project,** like a main board and an LCD board, each with its own
+  steps, 3D view and My board.
+- **L9 Stripboard.** Track cuts shown and ticked, broken tracks in 3D, and checks like "track cut
+  missing under U2". Circuit designs stripboards later; Bench builds them.
+- **L10 Try it on a breadboard first.** The circuit laid out on a breadboard, in 2D and 3D, to test
+  before soldering.
+
 ---
 
 ## Stage 3: the Maker Forge suite (2.0 and on)
@@ -632,7 +718,7 @@ Circuit comes first and Parts last (see "The order from here"). The smaller apps
     ourselves.
 
 **Still open**
-4. Languages: English only at first, or Swedish too.
+4. Languages: English only at first, or Swedish too. (Swedish is waiting as idea L6.)
 5. The order of the smaller apps (Calc, Pins, Serial, Labels, Journal, Live) around the main plan.
 
 ## Not planned
