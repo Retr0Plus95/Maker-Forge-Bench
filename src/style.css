@@ -498,6 +498,31 @@ h1 {
 #part-own-note { width: 100%; box-sizing: border-box; font: inherit; }
 .part-own-note-label { display: block; margin-top: 8px; font-weight: 700; }
 #find-results .find-line { border-color: #e5484d; }
+
+/* ---- wires read from the drawing (1.0.3) ---- */
+#wires progress { width: 100%; height: 10px; accent-color: var(--good); }
+.wire-needs { border: 1px solid var(--warn); border-radius: 8px; background: var(--accent-soft); padding: 6px 10px; margin: 8px 0; }
+.wire-needs h3 { margin: 0 0 4px; font-size: 1rem; color: var(--warn); }
+#wire-needs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.wire-need-text { margin: 0; }
+.wire-need-answer { display: flex; gap: 6px; margin-top: 4px; }
+.wire-need-input { flex: 1; min-width: 0; font: inherit; padding: 3px 8px; }
+.wire-need-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.drawn-wires { list-style: none; margin: 4px 0; padding: 0 0 0 8px; border-left: 4px solid var(--line); display: grid; gap: 6px; }
+.drawn-wires-danger { border-left-color: #e5484d; }
+.drawn-wires-mains { margin: 8px 0 2px; color: var(--danger); }
+.drawn-wire { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.drawn-wire > label { flex: 1; min-width: 12em; }
+.drawn-wire > p { flex-basis: 100%; margin: 0 0 0 1.8em; }
+.drawn-wire-note { color: var(--warn); }
+.drawn-wire-answer { color: var(--good); }
+.drawn-wire-show[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.drawn-checks li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.drawn-checks li > label { flex: 1; min-width: 12em; }
+#wires-checks { margin-top: 8px; }
+@media (pointer: coarse) {
+  #wires input[type=checkbox], .drawn-checks input[type=checkbox] { width: 22px; height: 22px; }
+}
 #find-results .find-value { border-color: var(--accent); }
 
 /* ---- step progress and checks before power (0.4) ---- */

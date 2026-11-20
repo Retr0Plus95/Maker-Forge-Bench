@@ -1,7 +1,7 @@
 // Maker Forge Bench: the page. Joins the sources, the cleaner, the sheets and the viewer together.
 import { SheetError, prepareSvg } from './sanitize.js';
 import { ProjectError, connectionsOf, guessParts, labelDone, parseProject, projectProblemText, refOfLabel, sheetsForProject, sheetsFromFiles } from './project.js';
-import { renderCard, renderChecks, renderContinuity, renderFaults, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWiring } from './panel.js';
+import { renderCard, renderChecks, renderContinuity, renderFaults, renderHint, renderMyBoard, renderSteps, renderWireCut, renderWires, renderWiring } from './panel.js';
 import { lengthText, suggestedCut, wireCut, wireCutText } from './wirecut.js';
 import { continuitySummary, continuityTests, faultText } from './continuity.js';
 import { powerChecks, wiringGroups, wiringText } from './wiring.js';
@@ -26,7 +26,6 @@ import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
 import { createBoard3D } from './board3d.js';
 import { BOARD_COLOURS } from './board3d-geometry.js';
-import { indexSheet } from './search.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
 import { EXAMPLES } from './examples.js';
@@ -50,6 +49,7 @@ import { solderNeeded, stepTips, tipFor, toolsFor } from './benchtips.js';
 import { waitingNow, withWaiting } from './waiting.js';
 import { FAULT_SYSTEM, answerText, checksFor, faultQuestion, faultSummary, judge, symptomsFor } from './faults.js';
 import { awayFor, lastTick, timeLeft } from './resume.js';
+import { cleanDrawingProgress, drawingNeeds, notAPart, readDrawing, sheetTexts, wiresText } from './drawing.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -100,6 +100,10 @@ const state = {
   faults: {}, // the fault finder's answers: { symptomId: { checkId: { said } | { reading } } } (1.0.2)
   faultOpen: null, // the symptom open in the fault finder
   faultAt: null, // the check showing, when you went back to one
+  drawing: cleanDrawingProgress(null), // the wires done and the questions answered, read from the drawings (1.0.3)
+  drawingReads: [], // what each drawing says about the wiring, read with the sheets
+  wiresOpenOnly: false, // Wires shows only the wires not done yet
+  shownOnDrawing: null, // a wire or test point ringed on its drawing: { sheetId, id }
   welcome: false, // Welcome back on show: opened after more than an hour away (1.0.1)
   stepsAdjusting: false, // the steps panel shows the step list to change
   contSkipped: new Set(), // tests skipped for now (not saved)
@@ -118,7 +122,7 @@ const state = {
   wiringFilter: '',
   openBridge: null, // the bridge risk last opened from 3D or Checks (1.0.1)
 };
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -162,6 +166,7 @@ function tickWords(label) {
   if ((m = /^Tick step (\d+)$/.exec(label))) return { text: `Step ${m[1]} ticked`, buzz: true };
   if ((m = /^Step (\d+) done$/.exec(label))) return { text: `Step ${m[1]} done`, buzz: true };
   if ((m = /^Tick all (.+)$/.exec(label))) return { text: `Ticked all ${m[1]}`, buzz: true };
+  if ((m = /^Wired (W\d+)$/.exec(label))) return { text: `${m[1]} wired`, buzz: true };
   return null;
 }
 function afterTick(label) {
@@ -299,7 +304,8 @@ async function prepare(sheet) {
     root.setAttribute('width', String(box.w));
     root.setAttribute('height', String(box.h));
     root.style.display = 'block';
-    return { sheet, kind: 'svg', root, pristine: root.cloneNode(true), labels: indexSheet(sheet.id, root), size };
+    const texts = sheetTexts(root); // every label with its place: <text>, and labels kept as comments (1.0.3)
+    return { sheet, kind: 'svg', root, pristine: root.cloneNode(true), texts, labels: texts.map(({ text, el }) => ({ sheetId: sheet.id, text, el })), size };
   }
   const img = new Image();
   img.alt = sheet.label;
@@ -1138,13 +1144,19 @@ function sheetsFor(files) {
 
 /** The project's parts, or parts guessed from every read sheet's labels. */
 function updateParts() {
+  state.drawingReads = state.sheets.flatMap((s) => {
+    const entry = state.loaded.get(s.id);
+    return entry && entry.kind === 'svg' ? [readDrawing(s.id, entry.texts)] : [];
+  });
+  if (state.shownOnDrawing && !state.drawingReads.some((r) => r.sheetId === state.shownOnDrawing.sheetId)) state.shownOnDrawing = null;
   if (state.project) {
     state.parts = state.project.parts;
   } else {
+    const skip = notAPart(state.drawingReads); // wire tags and test points aren't parts
     state.parts = guessParts(state.sheets.flatMap((s) => {
       const entry = state.loaded.get(s.id);
       return entry && entry.kind === 'svg' ? entry.labels : [];
-    }));
+    })).filter((p) => !skip(p.ref));
   }
   state.partsByRef = new Map(state.parts.map((p) => [p.ref, p]));
   if (state.selected && !state.partsByRef.has(state.selected)) state.selected = null;
@@ -2244,11 +2256,12 @@ function foldTarget(e) {
 function panelCounts() {
   const steps = stepsOf();
   const legs = currentGroups().flatMap((g) => g.members);
-  const checks = groupsFor(projectBoard()).checks;
+  const checks = [...groupsFor(projectBoard()).checks.map((c) => c.id), ...drawnCheckIds()];
+  const wires = wireKeys();
   return {
     guide: { done: steps.filter((s) => stepDone(s)).length, total: steps.length },
-    wiring: { done: legs.filter((m) => state.wired.has(m.key)).length, total: legs.length },
-    checks: { done: checks.filter((c) => state.checks.has(c.id)).length, total: checks.length },
+    wiring: { done: legs.filter((m) => state.wired.has(m.key)).length + wires.filter((k) => state.drawing.done.includes(k)).length, total: legs.length + wires.length },
+    checks: { done: checks.filter((id) => state.checks.has(id)).length, total: checks.length },
     parts: { done: state.parts.filter((p) => state.ticked.has(p.ref)).length, total: state.parts.length },
   };
 }
@@ -2559,7 +2572,7 @@ const snapshot = () => JSON.parse(exportProgress({
   project: projectName(), revision: state.project ? state.project.revision : null,
   ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired],
   myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity,
-  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults,
+  looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults, drawing: state.drawing,
 }));
 
 function renderVersions() {
@@ -2604,8 +2617,8 @@ function restoreVersion(v) {
     setStatus(`Version "${v.name}" couldn't be read.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults, drawing: state.drawing };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults, drawing: data.drawing };
   history.do({ label: `Restore version "${v.name}"`, apply: () => setProgress(after), revert: () => setProgress(before) });
   setStatus(`Restored "${v.name}". Ctrl+Z goes back.`);
 }
@@ -2641,8 +2654,9 @@ function startOver() {
     return;
   }
   state.startOverAt = 0;
-  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults };
-  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {} }), revert: () => setProgress(before) });
+  const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults, drawing: state.drawing };
+  const drawing = { ...state.drawing, done: [] }; // the wires done go; your answers about the drawing stay true
+  history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {}, drawing }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
 
@@ -2825,6 +2839,11 @@ function groupsFor(board) {
 const currentGroups = () => groupsFor(projectBoard()).groups;
 
 function updateNetRings() {
+  if (state.shownOnDrawing) {
+    viewer.netRings(drawingRingEls());
+    if (board3d && board3dOn) board3d.setNet([]);
+    return;
+  }
   const group = state.shownNet ? currentGroups().find((g) => g.net === state.shownNet) : null;
   const refs = group ? [...new Set(group.members.map((m) => m.ref))] : [];
   viewer.netRings(refs.map((ref) => (firstLabelFor(state.current, ref) || {}).el).filter(Boolean));
@@ -2833,6 +2852,7 @@ function updateNetRings() {
 
 function showNet(net) {
   state.shownNet = state.shownNet === net ? null : net;
+  state.shownOnDrawing = null;
   updateNetRings();
   renderWiringPanel();
 }
@@ -2846,7 +2866,128 @@ async function copyWiring() {
   }
 }
 
+// ---- wires read from the drawings (1.0.3 design §4) ----
+/** Every need Bench sees in the drawings, answered or not. */
+function allDrawingNeeds() {
+  const shapes = state.sheets.filter((s) => {
+    const e = state.loaded.get(s.id);
+    return e && e.kind === 'svg' && e.texts.length === 0;
+  }).map((s) => s.id);
+  return drawingNeeds(state.drawingReads, { hasBoard: Boolean(projectBoard()), shapes, labelOf: sheetLabel, partsFound: state.parts.length });
+}
+const needOpen = (n) => !state.drawing.dismissed.includes(n.id) && !state.drawing.answers[n.id];
+const tableReads = () => state.drawingReads.filter((r) => r.hasTable);
+const wireKeys = () => tableReads().flatMap((r) => r.wires.map((w) => `${r.sheetId}#${w.id}`));
+const drawnCheckIds = () => state.drawingReads.flatMap((r) => r.checks.map((c) => `dcheck:${r.sheetId}:${c.i}`));
+
+function setDrawing(next, label) {
+  const before = state.drawing;
+  history.do({ label, apply: () => setProgress({ drawing: next }), revert: () => setProgress({ drawing: before }) });
+}
+
+function tickWire(sheetId, wire, on) {
+  const key = `${sheetId}#${wire.id}`;
+  if (on === state.drawing.done.includes(key)) return;
+  const done = state.drawing.done.filter((k) => k !== key);
+  if (on) done.push(key);
+  setDrawing({ ...state.drawing, done }, `${on ? 'Wired' : 'Unwired'} ${wire.id}`);
+}
+
+function answerNeed(need, text) {
+  setDrawing({ ...state.drawing, answers: { ...state.drawing.answers, [need.id]: text } }, `Answered: ${need.question || need.text}`.slice(0, 90));
+}
+
+function dismissNeed(need) {
+  if (state.drawing.dismissed.includes(need.id)) return;
+  setDrawing({ ...state.drawing, dismissed: [...state.drawing.dismissed, need.id] }, `Not needed: ${need.text}`.slice(0, 90));
+}
+
+/** The answers you gave to the questions a wire's notes ask. */
+function answersFor(needs, sheetId, wireId) {
+  return needs.filter((n) => n.kind === 'ask' && n.sheetId === sheetId && n.wires.includes(wireId) && state.drawing.answers[n.id])
+    .map((n) => ({ n: Number(n.id.split(':').pop()), text: state.drawing.answers[n.id] }));
+}
+
+/** The labels to ring for what's shown on the drawing: a wire's tags and its ends' parts, or a test point. */
+function drawingRingEls() {
+  const s = state.shownOnDrawing;
+  if (!s || s.sheetId !== state.current) return [];
+  const read = state.drawingReads.find((r) => r.sheetId === s.sheetId);
+  const entry = state.loaded.get(s.sheetId);
+  if (!read || !entry || entry.kind !== 'svg') return [];
+  if (read.testPoints.has(s.id)) return read.testPoints.get(s.id).map((t) => t.el);
+  const wire = read.wires.find((w) => w.id === s.id);
+  const tags = (read.tags.get(s.id) || []).map((t) => t.el);
+  const refs = wire ? [...new Set([...wire.fromEnds, ...wire.toEnds].map((e) => e.ref).filter(Boolean))] : [];
+  const parts = refs.map((ref) => (entry.texts.find((t) => !read.used.has(t) && t.text.split(' ')[0] === ref) || {}).el).filter(Boolean);
+  return [...tags, ...parts];
+}
+
+/** Show: rings a wire (or a test point) on its drawing, opening that sheet; again hides it. */
+async function showOnDrawing(sheetId, id) {
+  const same = state.shownOnDrawing && state.shownOnDrawing.sheetId === sheetId && state.shownOnDrawing.id === id;
+  state.shownOnDrawing = same ? null : { sheetId, id };
+  state.shownNet = null;
+  if (!same && state.current !== sheetId) await selectSheet(sheetId);
+  updateNetRings();
+  renderWiresPanel();
+  const els = drawingRingEls().filter((e) => e.isConnected);
+  if (same || !els.length) return;
+  const rects = els.map((e) => viewer.labelRect(e));
+  const x0 = Math.min(...rects.map((r) => r.x));
+  const y0 = Math.min(...rects.map((r) => r.y));
+  const x1 = Math.max(...rects.map((r) => r.x + r.w));
+  const y1 = Math.max(...rects.map((r) => r.y + r.h));
+  const side = Math.max(x1 - x0, y1 - y0) / 9; // zoomToRect makes a rect a twelfth of the view: all of them fit
+  viewer.zoomToRect({ x: (x0 + x1) / 2 - side / 2, y: (y0 + y1) / 2 - side / 2, w: side, h: side });
+}
+
+async function copyWires() {
+  const text = tableReads().map((r) => wiresText(r, new Set(state.drawing.done), sheetLabel(r.sheetId))).join('\n\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus('Wire list copied.');
+  } catch {
+    setStatus("Couldn't copy: allow the clipboard for this page.");
+  }
+}
+
+/** The last resort for a drawing Bench can't read: ask Claude for one it can. */
+function askClaudeForDrawing(need) {
+  const prompt = `I'm building from the drawing I've attached (${sheetLabel(need.sheetId)}). Its text is drawn as shapes, ` +
+    'so my building app can\'t read it. Please make the same drawing as an SVG file that keeps every label as real <text>, with: ' +
+    'a wire table whose columns are W, From, To, Wire and Note (one row per wire, each end written as the part and its pin, like "U1 OUT +"); ' +
+    'a list titled "Checks" with a short key (OFF, TP1...) and what to measure and expect; ' +
+    'and a list titled "Notes", numbered. Tag each wire on the drawing with its number (W1, W2...).';
+  const copying = navigator.clipboard.writeText(prompt).then(() => true, () => false);
+  window.open('https://claude.ai/new', '_blank', 'noopener');
+  copying.then((ok) => setStatus(ok ? 'Copied: paste it into Claude and attach the picture. Save the SVG it makes into your folder.' : "Couldn't copy: the browser didn't allow it."));
+}
+
+function renderWiresPanel() {
+  const all = allDrawingNeeds();
+  renderWires($('#wires'), {
+    blocks: tableReads().map((r) => ({ sheetId: r.sheetId, label: sheetLabel(r.sheetId), wires: r.wires, notes: r.notes })),
+    needs: all.filter(needOpen),
+    done: new Set(state.drawing.done),
+    answersFor: (sheetId, wireId) => answersFor(all, sheetId, wireId),
+    openOnly: state.wiresOpenOnly,
+    shown: state.shownOnDrawing,
+    hasChecks: state.drawingReads.some((r) => r.checks.length),
+    onTick: tickWire,
+    onShow: showOnDrawing,
+    onAnswer: answerNeed,
+    onDismiss: dismissNeed,
+    onClaude: askClaudeForDrawing,
+    onOpenOnly: (on) => { state.wiresOpenOnly = on; renderWiresPanel(); },
+    onCopy: copyWires,
+    onChecks: () => chooseTab('checks', true),
+  });
+  queueTabs();
+}
+
 function renderWiringPanel() {
+  renderWiresPanel();
   renderWiring($('#wiring'), currentGroups(), {
     wired: state.wired,
     openOnly: state.wiringOpenOnly,
@@ -3334,11 +3475,23 @@ function stepExtras(step) {
   };
 }
 
+/** A drawing check's key, for the build log: "dcheck:wiring:2" → "TP1". */
+function drawnCheckKey(id) {
+  const [, sheetId, i] = id.split(':');
+  const read = state.drawingReads.find((r) => r.sheetId === sheetId);
+  const check = read && read.checks.find((c) => String(c.i) === i);
+  return check ? check.key : 'from the drawing';
+}
+
 function renderChecksPanel() {
   renderChecks($('#checks'), {
     checks: powerChecks(projectBoard()),
     done: state.checks,
-    onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check before power`),
+    onCheck: (id, on) => setCheck(id, on, `${on ? 'Tick' : 'Untick'} check ${id.startsWith('dcheck:') ? drawnCheckKey(id) : 'before power'}`),
+    drawingChecks: state.drawingReads.filter((r) => r.checks.length).map((r) => ({
+      sheetId: r.sheetId, label: sheetLabel(r.sheetId), items: r.checks.map((c) => ({ id: `dcheck:${r.sheetId}:${c.i}`, key: c.key, text: c.text, tp: c.tp })),
+    })),
+    onShowTp: showOnDrawing,
     bridges: bridgesNow(),
     openBridge: state.openBridge,
     onBridge: openBridge,
@@ -3549,6 +3702,8 @@ function loadProgress() {
   state.stepEdits = data ? data.steps : NO_EDITS;
   state.waiting = new Set(data ? data.waiting : []);
   state.faults = data ? data.faults : {};
+  state.drawing = data ? data.drawing : cleanDrawingProgress(null);
+  state.shownOnDrawing = null;
   state.faultOpen = null;
   state.faultAt = null;
   state.welcome = state.ticked.size > 0 && awayFor(state.log, Date.now()) > 60 * 60 * 1000;
@@ -3566,7 +3721,7 @@ function refreshNotes() {
 function saveProgress() {
   if (state.projectProblem) return;
   const saved = store.set(state.progressKey || projectKey(state.project, state.root),
-    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults });
+    { ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults, drawing: state.drawing });
   if (saved) flashSaved();
 }
 
@@ -3619,7 +3774,7 @@ function applyTickMarks() {
   }
 }
 
-function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting, faults }) {
+function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, continuity, looks, steps, waiting, faults, drawing }) {
   const stepWasDone = autoStepWasDone();
   // your steps, waiting parts and ticks (a waiting part ticked has come) change the steps you follow
   const openId = state.openStep !== null && stepsOf()[state.openStep] ? stepsOf()[state.openStep].id : null;
@@ -3644,6 +3799,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   if (notes) state.notes = notes;
   if (checks) state.checks = new Set(checks);
   if (continuity) state.continuity = continuity;
+  if (drawing) state.drawing = drawing;
   if (faults) {
     state.faults = faults;
     if (board3d) board3d.setMarks(marksFor3D()); // the probes follow the check showing, undo too
@@ -3764,7 +3920,7 @@ function renderChecklist() {
 function saveProgressFile() {
   const text = exportProgress({
     project: projectName(), revision: state.project ? state.project.revision : null,
-    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults,
+    ticked: [...state.ticked], sheetPrints: state.tickPrints, flipped: [...state.flipped], wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, log: state.log, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults, drawing: state.drawing,
   });
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = el('a', { href: url, download: `${projectName().replace(/[\\/:*?"<>|]/g, '_')}-progress.json` });
@@ -3792,8 +3948,8 @@ async function openProgressFile(input) {
     setStatus(`That progress file is for ${data.project}, not ${projectName()}.`);
     return;
   }
-  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults };
-  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults };
+  const before = { ticked: [...state.ticked], flipped: [...state.flipped], prints: { ...state.tickPrints }, wired: [...state.wired], myBoard: state.myBoard, notes: state.notes, checks: [...state.checks], continuity: state.continuity, looks: state.looks, steps: state.stepEdits, waiting: [...state.waiting], faults: state.faults, drawing: state.drawing };
+  const after = { ticked: data.ticked, flipped: data.flipped, prints: data.sheetPrints, wired: data.wired, myBoard: data.myBoard, notes: data.notes, checks: data.checks, continuity: data.continuity, looks: data.looks, steps: data.steps, waiting: data.waiting, faults: data.faults, drawing: data.drawing };
   history.do({ label: 'Open progress file', apply: () => setProgress(after), revert: () => setProgress(before) });
 }
 

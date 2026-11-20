@@ -6,7 +6,7 @@ import {
   cleanDrawingProgress, drawingNeeds, endsOf, expectedVolts, notAPart, parseTransform, questionOf, readChecks,
   readDrawing, readNotes, readWireTable, rowsOf, sheetTexts, wiresText,
 } from '../../src/drawing.js';
-import { nodeParser, readFixture } from './helpers.js';
+import { FUME_SVGS, nodeParser, readFixture, sheetIdOf } from './helpers.js';
 
 const PSU = 'psu-like/wiring.svg';
 const root = (rel) => prepareSvg(readFixture(rel), nodeParser(), rel).doc.documentElement;
@@ -175,4 +175,14 @@ test('progress read back from storage or a file: anything odd is dropped', () =>
   assert.deepEqual(clean.done, ['wiring#W9']);
   assert.deepEqual({ ...clean.answers }, { 'ask:wiring:4': 'left and middle' });
   assert.deepEqual(clean.dismissed, ['notag:wiring']);
+});
+
+test('the fume extractor drawings have no wire table, checks or notes to read, so Bench shows them as before', () => {
+  const reads = FUME_SVGS.map((rel) => readDrawing(sheetIdOf(rel), sheetTexts(root(rel))));
+  for (const r of reads) {
+    assert.equal(r.hasTable, false, r.sheetId);
+    assert.deepEqual(r.wires, [], r.sheetId);
+    assert.deepEqual(r.checks, [], r.sheetId);
+  }
+  assert.deepEqual(drawingNeeds(reads, { hasBoard: true, shapes: [], partsFound: 40 }), []);
 });

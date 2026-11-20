@@ -42,3 +42,13 @@ test('sheets that changed since ticking are named, with the right plural', () =>
   assert.deepEqual(changedSince(prints, sheets, 0), []);
   assert.deepEqual(changedSince({}, sheets, 2), []);
 });
+
+test('the wires done and your answers about a drawing travel in the progress file (1.0.3)', () => {
+  const drawing = { done: ['wiring#W9'], answers: { 'ask:wiring:4': 'left and middle' }, dismissed: ['notag:wiring'] };
+  const back = importProgress(exportProgress({ ...sample, drawing }));
+  assert.deepEqual(back.drawing.done, drawing.done);
+  assert.deepEqual({ ...back.drawing.answers }, drawing.answers);
+  assert.deepEqual(back.drawing.dismissed, drawing.dismissed);
+  const none = importProgress(exportProgress(sample)).drawing; // an older file has none
+  assert.deepEqual([none.done, { ...none.answers }, none.dismissed], [[], {}, []]);
+});

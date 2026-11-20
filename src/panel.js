@@ -727,11 +727,30 @@ function holeNamesBlock(container, h) {
 /** Before power (0.4 improvement 30): meter checks to tick. o: { checks: [{ id, text }], done: Set, onCheck(id, on) } */
 export function renderChecks(container, o) {
   const bridges = o.bridges || [];
-  if (!o.checks.length && !bridges.length) {
+  const drawn = (o.drawingChecks || []).filter((b) => b.items.length);
+  if (!o.checks.length && !bridges.length && !drawn.length) {
     container.replaceChildren();
     return;
   }
   const children = [];
+  // the checks a drawing lists (1.0.3 design §4.4), in its own order
+  for (const b of drawn) {
+    const list = el('ol', { className: 'checks-list drawn-checks', 'data-sheet': b.sheetId });
+    for (const c of b.items) {
+      const box = el('input', { type: 'checkbox', 'data-check': c.id, 'data-focus': `check-${c.id}` });
+      box.checked = o.done.has(c.id);
+      box.addEventListener('change', () => o.onCheck(c.id, box.checked));
+      const li = el('li', { 'data-key': c.key }, el('label', {}, box, ' ', el('strong', {}, c.key), ` ${c.text}`));
+      if (c.tp && o.onShowTp) {
+        const show = el('button', { type: 'button', className: 'drawn-check-show', 'data-focus': `show-${c.id}`, 'aria-label': `Show ${c.tp} on the drawing` }, 'Show');
+        show.addEventListener('click', () => o.onShowTp(b.sheetId, c.tp));
+        li.append(show);
+      }
+      list.append(li);
+    }
+    children.push(el('h2', {}, drawn.length > 1 ? `Checks from ${b.label}` : 'Checks from the drawing'),
+      el('p', { className: 'hint' }, `In the order ${b.label} lists them.`), list);
+  }
   if (o.checks.length) {
     const list = el('ul', { className: 'checks-list' });
     for (const c of o.checks) {
@@ -1241,4 +1260,103 @@ export function renderWireCut(container, cut, o) {
   copy.addEventListener('click', o.onCopy);
   children.push(el('div', { className: 'wiring-actions' }, copy));
   keepFocus(container, () => container.replaceChildren(...children), '#wirecut-copy');
+}
+
+/**
+ * Wires read from the drawings (1.0.3 design §4.2 and §4.3): what Bench needs, then each drawing's
+ * wire list to tick, mains first. o: { blocks: [{ sheetId, label, wires, notes }], needs, done (Set of
+ * "sheet#W9"), answersFor(sheetId, wireId) → [{ n, text }], openOnly, shown ({ sheetId, id } | null),
+ * hasChecks, onTick(sheetId, wire, on), onShow(sheetId, id), onAnswer(need, text), onDismiss(need),
+ * onClaude(need), onOpenOnly(on), onCopy(), onChecks() }
+ */
+export function renderWires(container, o) {
+  const blocks = o.blocks.filter((b) => b.wires.length);
+  if (!blocks.length && !o.needs.length) {
+    container.replaceChildren();
+    return;
+  }
+  const children = [el('h2', {}, 'Wires')];
+  const total = blocks.reduce((n, b) => n + b.wires.length, 0);
+  if (total) {
+    const done = blocks.reduce((n, b) => n + b.wires.filter((w) => o.done.has(`${b.sheetId}#${w.id}`)).length, 0);
+    const bar = el('progress', { max: String(total) });
+    bar.value = done;
+    const from = blocks.length === 1 ? `, read from ${blocks[0].label}` : '';
+    children.push(el('p', { id: 'wires-progress', className: 'progress-text' }, `${done} of ${total} wires done${from}`), bar);
+  }
+  if (o.needs.length) {
+    const list = el('ul', { id: 'wire-needs-list' });
+    for (const need of o.needs) {
+      const li = el('li', { className: 'wire-need', 'data-need': need.id }, el('p', { className: 'wire-need-text' }, need.text));
+      if (need.question) {
+        const input = el('input', { type: 'text', className: 'wire-need-input', 'aria-label': `Your answer: ${need.question}`, placeholder: 'Your answer', 'data-focus': `answer-${need.id}` });
+        const form = el('form', { className: 'wire-need-answer' }, input, el('button', { type: 'submit', 'data-focus': `save-${need.id}` }, 'Save'));
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (input.value.trim()) o.onAnswer(need, input.value.trim());
+        });
+        li.append(form);
+      }
+      const buttons = el('div', { className: 'wire-need-buttons' });
+      if (need.kind === 'shapes') {
+        const claude = el('button', { type: 'button', className: 'wire-need-claude', 'data-focus': `claude-${need.id}` }, 'Ask Claude (last resort)');
+        claude.addEventListener('click', () => o.onClaude(need));
+        buttons.append(claude);
+      }
+      const no = el('button', { type: 'button', className: 'wire-need-dismiss', 'data-focus': `dismiss-${need.id}` }, 'Not needed');
+      no.addEventListener('click', () => o.onDismiss(need));
+      buttons.append(no);
+      li.append(buttons);
+      list.append(li);
+    }
+    const n = o.needs.length;
+    children.push(el('div', { id: 'wire-needs', className: 'wire-needs', role: 'region', 'aria-label': 'What Bench needs' },
+      el('h3', {}, `Bench needs ${n} ${n === 1 ? 'thing' : 'things'}`), list));
+  }
+  if (total) {
+    const only = el('input', { type: 'checkbox', id: 'wires-open-only', 'data-focus': 'wires-open-only' });
+    only.checked = o.openOnly;
+    only.addEventListener('change', () => o.onOpenOnly(only.checked));
+    const copy = el('button', { type: 'button', id: 'wires-copy', 'data-focus': 'wires-copy' }, 'Copy as text');
+    copy.addEventListener('click', o.onCopy);
+    children.push(el('div', { className: 'wiring-actions' }, el('label', { className: 'check' }, only, ' Only not done'), copy));
+  }
+  for (const b of blocks) {
+    if (blocks.length > 1) children.push(el('h3', { className: 'drawn-wires-from' }, `From ${b.label}`));
+    const row = (w) => {
+      const key = `${b.sheetId}#${w.id}`;
+      const box = el('input', { type: 'checkbox', 'data-wire': w.id, 'data-focus': `wire-${key}` });
+      box.checked = o.done.has(key);
+      box.addEventListener('change', () => o.onTick(b.sheetId, w, box.checked));
+      const show = el('button', { type: 'button', className: 'drawn-wire-show', 'data-focus': `show-${key}`, 'aria-label': `Show ${w.id} on the drawing` }, 'Show');
+      const shown = Boolean(o.shown && o.shown.sheetId === b.sheetId && o.shown.id === w.id);
+      show.setAttribute('aria-pressed', String(shown));
+      show.addEventListener('click', () => o.onShow(b.sheetId, w.id));
+      const li = el('li', { className: 'drawn-wire', 'data-wire': w.id, 'data-sheet': b.sheetId },
+        el('label', {}, box, ' ', el('strong', { className: 'drawn-wire-id' }, w.id), ` ${w.from || '?'} → ${w.to || '?'}`), show);
+      const extra = [w.wire, w.note].filter(Boolean).join(' · ');
+      if (extra) li.append(el('p', { className: 'drawn-wire-extra hint' }, extra));
+      for (const n of w.notes) {
+        const note = b.notes.find((x) => x.n === n);
+        if (note) li.append(el('p', { className: 'drawn-wire-note' }, `Note ${n}: ${note.text}`));
+      }
+      for (const a of o.answersFor(b.sheetId, w.id)) li.append(el('p', { className: 'drawn-wire-answer' }, `Your answer to note ${a.n}: ${a.text}`));
+      return li;
+    };
+    const visible = b.wires.filter((w) => !o.openOnly || !o.done.has(`${b.sheetId}#${w.id}`));
+    const mains = visible.filter((w) => w.mains);
+    const rest = visible.filter((w) => !w.mains);
+    if (mains.length) {
+      children.push(el('h4', { className: 'drawn-wires-mains' }, 'Mains: unplug before touching'), el('ul', { className: 'drawn-wires drawn-wires-danger' }, ...mains.map(row)));
+      if (rest.length) children.push(el('h4', {}, 'The rest'));
+    }
+    if (rest.length) children.push(el('ul', { className: 'drawn-wires' }, ...rest.map(row)));
+    if (!visible.length) children.push(el('p', { className: 'hint' }, 'Every wire on this drawing is done.'));
+  }
+  if (total && o.hasChecks) {
+    const then = el('button', { type: 'button', id: 'wires-checks', 'data-focus': 'wires-checks' }, 'Then the checks');
+    then.addEventListener('click', o.onChecks);
+    children.push(then);
+  }
+  keepFocus(container, () => container.replaceChildren(...children));
 }
