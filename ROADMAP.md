@@ -330,7 +330,7 @@ the fume extractor build now: 24 Bridge risk, L1 Fault finder, 8 "I don't have t
 the owner says: 1 At the bench (1–10, 20, 24) as **1.0.1**, merged 2026-11-15 (design
 `docs/design/2026-11-15-release-1.0.1-design.md`); 2 L1 Fault finder as **1.0.2**, merged
 2026-11-15 (design `docs/design/2026-11-15-release-1.0.2-design.md`); then **1.0.3** Wires from the
-drawing, put ahead of batch 3 at the owner's word on 2026-11-20 (design
+drawing, merged 2026-11-20, put ahead of batch 3 at the owner's word on 2026-11-20 (design
 `docs/design/2026-11-20-release-1.0.3-design.md`): Bench reads a drawing's wire table, checks and notes,
 says what's missing and asks for what it needs, with Claude only as a last resort. It is the first of
 three: next, teaching Bench from a picture (tap and name, type or paste the wires, one question at a
