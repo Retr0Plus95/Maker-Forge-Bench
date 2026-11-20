@@ -426,11 +426,15 @@ export function wiresText(read, done, label) {
 
 const KEY = /^[^\s#]{1,200}#W\d{1,3}$/;
 const NEED = /^[a-z]{2,10}(:[^\n]{1,200})?$/;
+const STEP = /^readme:[a-z0-9-]{1,60}:\d{1,4}$/; // a README step ticked (1.0.4)
+const SAFETY_LINE = /^(unplugged|fuse|covered|apart|clamp|earth|beep)$/; // readme.js SAFETY
 
 /** The drawing's progress read back from storage or a file: anything odd is dropped. */
 export function cleanDrawingProgress(raw) {
-  const out = { done: [], answers: {}, dismissed: [] };
+  const out = { done: [], answers: {}, dismissed: [], steps: [], safety: [] };
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  if (Array.isArray(raw.steps)) out.steps = [...new Set(raw.steps.filter((k) => typeof k === 'string' && STEP.test(k)))].slice(0, 2000);
+  if (Array.isArray(raw.safety)) out.safety = [...new Set(raw.safety.filter((k) => typeof k === 'string' && SAFETY_LINE.test(k)))];
   if (Array.isArray(raw.done)) out.done = [...new Set(raw.done.filter((k) => typeof k === 'string' && KEY.test(k)))].slice(0, 5000);
   if (Array.isArray(raw.dismissed)) out.dismissed = [...new Set(raw.dismissed.filter((k) => typeof k === 'string' && NEED.test(k)))].slice(0, 2000);
   if (raw.answers && typeof raw.answers === 'object' && !Array.isArray(raw.answers)) {

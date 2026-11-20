@@ -48,7 +48,7 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 1.0.3:</strong> Wires from the drawing (Wiring). Bench reads a drawing's wire table, its checks and its notes, even when its letters are drawn as shapes by a plotting tool, and lists the wires to tick and the checks in order. It says what's wrong or missing in the drawing and asks you what it needs. <strong>From 1.0.2:</strong> Find a fault (Checks): pick what's wrong and Bench walks you through the checks with your meter, one at a time. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 1.0.4:</strong> How to build it (Guide). Bench reads your project's README and shows its wiring, assembly and first power-up as steps to tick, each with its wires and a picture cut from the drawing. Mains work comes after a short safety list. <strong>From 1.0.3:</strong> Wires from the drawing (Wiring): Bench reads a drawing's wire table, checks and notes, and says what's wrong or missing. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span> <button id="toast-undo" type="button">Undo</button></div>
 <div id="iron" role="alert" hidden><span id="iron-text">Nothing ticked for 20 minutes. Is the iron still on?</span> <button id="iron-yes" type="button">Still working</button> <button id="iron-off" type="button">It's off</button></div>
@@ -144,6 +144,7 @@
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
     <section id="myboard" aria-label="Your board" data-tab-of="board" hidden></section>
+    <section id="readme" aria-label="How to build it, from the README" data-tab-of="guide"></section>
     <section id="steps" aria-label="Build steps" data-tab-of="guide"></section>
     <section id="wires" aria-label="Wires from the drawing" data-tab-of="wiring"></section>
     <section id="wiring" aria-label="What to wire" data-tab-of="wiring"></section>

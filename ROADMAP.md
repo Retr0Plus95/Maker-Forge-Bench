@@ -334,7 +334,12 @@ drawing, merged 2026-11-20, put ahead of batch 3 at the owner's word on 2026-11-
 `docs/design/2026-11-20-release-1.0.3-design.md`): Bench reads a drawing's wire table, checks and notes,
 says what's missing and asks for what it needs, with Claude only as a last resort. It is the first of
 three: next, teaching Bench from a picture (tap and name, type or paste the wires, one question at a
-time); then PDFs, only if a PDF reader fits the security rules; 3 the
+time); then PDFs, only if a PDF reader fits the security rules. Then **1.0.4** How to build it, at the
+owner's word on 2026-11-20 (design `docs/design/2026-11-20-release-1.0.4-design.md`): Bench reads the
+project's README and shows its wiring, assembly and first power-up as steps to tick, each with its wires
+and a picture cut from the drawing, behind a mains safety list. Next agreed on 2026-11-20: **1.0.5** case
+parts (STL/3MF, reusing Shape's readers) with a "What you have" card; then the wires drawn on the 3D
+board; the whole assembly later, once Shape can save one; 3 the
 drawings and part cards (11–19); 4 your board, wiring and 3D (21–23, 25–27); 5 help (38–40); then the
 other large ones one release each, with L6 Swedish last so every new word is translated once.
 **Files and sharing (28–37) is set aside** at the owner's word: they don't want the website's security

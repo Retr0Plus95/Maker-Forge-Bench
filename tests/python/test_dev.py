@@ -36,6 +36,14 @@ class TestFunctions(DevServerTestCase):
         self.assertEqual([f["path"] for f in dev.list_files(self.root)],
                          ["docs/a.svg", "docs/Ö-kort.svg", "forge-project.json", "images/b.PNG"])
 
+    def test_list_files_keeps_the_readme(self):  # 1.0.4: the README is read as a guide; other .md files aren't listed
+        (self.root / "README.md").write_text("# x", encoding="utf-8")
+        (self.root / "docs" / "NOTES.md").write_text("# y", encoding="utf-8")
+        paths = [f["path"] for f in dev.list_files(self.root)]
+        self.assertIn("README.md", paths)
+        self.assertNotIn("docs/NOTES.md", paths)
+        self.assertEqual(dev._project_type("readme.MD"), "text/markdown; charset=utf-8")
+
     def test_list_files_gives_size_and_mtime(self):
         first = dev.list_files(self.root)[0]
         self.assertEqual(first["size"], (self.root / "docs" / "a.svg").stat().st_size)
