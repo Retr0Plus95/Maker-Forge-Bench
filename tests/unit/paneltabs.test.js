@@ -9,8 +9,9 @@ test('five tabs and All, the guide first', () => {
   assert.equal(panelTabs(undefined).open, 'guide');
 });
 
-test('Wire to cut lives in the Wiring tab, under What to wire (1.0)', () => {
-  assert.deepEqual(PANEL_TABS.find((t) => t.id === 'wiring').sections, ['wiring', 'wirecut']);
+test('Wires from the drawing (1.0.3), What to wire, then Wire to cut (1.0), all in the Wiring tab', () => {
+  assert.deepEqual(PANEL_TABS.find((t) => t.id === 'wiring').sections, ['wires', 'wiring', 'wirecut']);
+  assert.equal(tabOf('wires'), 'wiring');
   assert.equal(tabOf('wirecut'), 'wiring');
 });
 

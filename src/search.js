@@ -1,18 +1,14 @@
 // The text index behind Find part (design §7.3). No page code.
 // Every <text> counts, including invisible ones: KiCad 9 writes each label as <text opacity="0">
-// over the lines it draws.
+// over the lines it draws. So does a label a plotting tool keeps as a comment before its letter
+// shapes (1.0.3): its element is the group of shapes.
+import { sheetTexts } from './drawing.js';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 
 /** @returns {{ sheetId: string, text: string, el: Element }[]} in document order */
 export function indexSheet(sheetId, root) {
-  const labels = [];
-  for (const el of Array.from(root.getElementsByTagNameNS(SVG_NS, 'text'))) {
-    const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-    if (text) labels.push({ sheetId, text, el });
-  }
-  return labels;
+  return sheetTexts(root).map(({ text, el }) => ({ sheetId, text, el }));
 }
 
 /** True when the query appears in the text as a whole token: no letter or digit right before or after. */
