@@ -525,6 +525,42 @@ h1 {
 }
 #find-results .find-value { border-color: var(--accent); }
 
+/* ---- how to build it: the README as a guide, with mains safety (1.0.4) ---- */
+#readme progress { width: 100%; height: 10px; accent-color: var(--good); }
+#readme-needs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.readme-safety { border: 2px solid #e5484d; border-radius: 8px; padding: 6px 10px; margin: 8px 0; }
+.readme-safety.all-done { border-color: var(--good); }
+.readme-safety h3 { margin: 0 0 4px; font-size: 1rem; color: var(--danger); }
+.readme-safety.all-done h3 { color: var(--good); }
+.readme-safety-warn { margin: 0 0 6px; font-weight: 700; }
+.readme-section { margin: 12px 0; }
+.readme-section h3 { margin: 0 0 4px; }
+.readme-steps { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 10px; }
+.readme-step { display: flex; gap: 8px; align-items: flex-start; }
+.readme-step.done .readme-step-body { opacity: .65; }
+.readme-step-tick { display: flex; align-items: center; gap: 4px; font-weight: 700; padding-top: 2px; }
+.readme-step-n { min-width: 1.4em; text-align: right; }
+.readme-step-body { flex: 1; min-width: 0; }
+.readme-step-body p, .readme-section > p { margin: 0 0 4px; }
+.readme-step-body ul, .readme-step-body ol { margin: 2px 0 4px; padding-left: 1.3em; }
+.readme-mains { color: var(--danger); font-weight: 700; }
+.readme-crop-show { display: grid; gap: 2px; justify-items: start; padding: 4px; margin: 4px 0; width: 100%; max-width: 420px; text-align: left; }
+.readme-crop-show[aria-pressed="true"] { border-color: var(--accent); outline: 2px solid var(--accent); }
+.readme-crop { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: #fff; border-radius: 4px; }
+.readme-pic { max-width: 100%; max-height: 260px; display: block; margin: 4px 0; border-radius: 4px; }
+.readme-missing { color: var(--warn); font-style: italic; }
+.readme-wires { list-style: none; margin: 4px 0; padding: 0 0 0 8px; border-left: 4px solid var(--line); display: grid; gap: 4px; }
+.readme-wire.mains { color: var(--danger); }
+.readme-wire-by { color: var(--muted, inherit); opacity: .8; font-size: .9em; }
+.readme-table { overflow-x: auto; }
+.readme-table table { border-collapse: collapse; font-size: .9rem; }
+.readme-table th, .readme-table td { border: 1px solid var(--line); padding: 2px 6px; text-align: left; vertical-align: top; }
+#readme blockquote { margin: 6px 0; padding: 2px 10px; border-left: 4px solid var(--warn); }
+#readme pre { overflow-x: auto; }
+@media (pointer: coarse) {
+  #readme input[type=checkbox] { width: 22px; height: 22px; }
+}
+
 /* ---- step progress and checks before power (0.4) ---- */
 .step-check { color: var(--good); font-weight: 700; }
 .checks-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }

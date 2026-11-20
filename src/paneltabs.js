@@ -2,7 +2,7 @@
 // each with its count, and All for the long list of every section as before. No page code: unit-tested.
 
 export const PANEL_TABS = Object.freeze([
-  { id: 'guide', label: 'Guide', sections: ['steps'], title: 'The build, one step at a time' },
+  { id: 'guide', label: 'Guide', sections: ['readme', 'steps'], title: "The README's steps with mains safety, and the build, one step at a time" },
   { id: 'board', label: 'Board', sections: ['myboard'], title: 'Your board: photos and hole names' },
   { id: 'wiring', label: 'Wiring', sections: ['wires', 'wiring', 'wirecut'], title: 'The wires to fit, what to wire line by line, and the wire to cut' },
   { id: 'checks', label: 'Checks', sections: ['checks', 'continuity'], title: 'Before power: meter checks and the continuity test' },

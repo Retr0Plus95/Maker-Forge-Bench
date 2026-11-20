@@ -26,6 +26,8 @@ import { createViewer } from './viewer.js';
 import { createFindBar } from './findbar.js';
 import { createBoard3D } from './board3d.js';
 import { BOARD_COLOURS } from './board3d-geometry.js';
+import { MAX_README, SAFETY, cropFor, guideNeeds, guideWires, mentionsMains, pickReadme, readGuide } from './readme.js';
+import { renderGuide } from './guide-panel.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
 import { EXAMPLES } from './examples.js';
@@ -121,8 +123,11 @@ const state = {
   checklistSort: 'list',
   wiringFilter: '',
   openBridge: null, // the bridge risk last opened from 3D or Checks (1.0.1)
+  files: [], // the project's file list as last read
+  readme: { path: null, mtime: null, guide: null, mains: false }, // the README read as a guide (1.0.4)
+  readmeOpenOnly: false,
 };
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -167,6 +172,7 @@ function tickWords(label) {
   if ((m = /^Step (\d+) done$/.exec(label))) return { text: `Step ${m[1]} done`, buzz: true };
   if ((m = /^Tick all (.+)$/.exec(label))) return { text: `Ticked all ${m[1]}`, buzz: true };
   if ((m = /^Wired (W\d+)$/.exec(label))) return { text: `${m[1]} wired`, buzz: true };
+  if ((m = /^Done: .+ step (\d+)$/.exec(label))) return { text: `Step ${m[1]} done`, buzz: true };
   return null;
 }
 function afterTick(label) {
@@ -1166,6 +1172,7 @@ function updateParts() {
   renderChecklist();
   renderStepsPanel();
   renderWiringPanel();
+  renderGuidePanel();
   renderChecksPanel();
   renderContinuityPanel();
   renderFaultsPanel();
@@ -2259,7 +2266,11 @@ function panelCounts() {
   const checks = [...groupsFor(projectBoard()).checks.map((c) => c.id), ...drawnCheckIds()];
   const wires = wireKeys();
   return {
-    guide: { done: steps.filter((s) => stepDone(s)).length, total: steps.length },
+    guide: {
+      done: steps.filter((s) => stepDone(s)).length + readmeSteps().filter((s) => state.drawing.steps.includes(s.id)).length +
+        (showSafety() ? SAFETY.filter((s) => state.drawing.safety.includes(s.id)).length : 0),
+      total: steps.length + readmeSteps().length + (showSafety() ? SAFETY.length : 0),
+    },
     wiring: { done: legs.filter((m) => state.wired.has(m.key)).length + wires.filter((k) => state.drawing.done.includes(k)).length, total: legs.length + wires.length },
     checks: { done: checks.filter((id) => state.checks.has(id)).length, total: checks.length },
     parts: { done: state.parts.filter((p) => state.ticked.has(p.ref)).length, total: state.parts.length },
@@ -2655,7 +2666,7 @@ function startOver() {
   }
   state.startOverAt = 0;
   const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults, drawing: state.drawing };
-  const drawing = { ...state.drawing, done: [] }; // the wires done go; your answers about the drawing stay true
+  const drawing = { ...state.drawing, done: [], steps: [], safety: [] }; // the wires, README steps and safety ticks go; your answers stay true
   history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {}, drawing }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
@@ -2916,21 +2927,25 @@ function drawingRingEls() {
   const entry = state.loaded.get(s.sheetId);
   if (!read || !entry || entry.kind !== 'svg') return [];
   if (read.testPoints.has(s.id)) return read.testPoints.get(s.id).map((t) => t.el);
-  const wire = read.wires.find((w) => w.id === s.id);
-  const tags = (read.tags.get(s.id) || []).map((t) => t.el);
-  const refs = wire ? [...new Set([...wire.fromEnds, ...wire.toEnds].map((e) => e.ref).filter(Boolean))] : [];
-  const parts = refs.map((ref) => (entry.texts.find((t) => !read.used.has(t) && t.text.split(' ')[0] === ref) || {}).el).filter(Boolean);
-  return [...tags, ...parts];
+  const els = (s.wires || [s.id]).flatMap((id) => { // a README step rings every wire of it (1.0.4)
+    const wire = read.wires.find((w) => w.id === id);
+    const tags = (read.tags.get(id) || []).map((t) => t.el);
+    const refs = wire ? [...new Set([...wire.fromEnds, ...wire.toEnds].map((e) => e.ref).filter(Boolean))] : [];
+    const parts = refs.map((ref) => (entry.texts.find((t) => !read.used.has(t) && t.text.split(' ')[0] === ref) || {}).el).filter(Boolean);
+    return [...tags, ...parts];
+  });
+  return [...new Set(els)];
 }
 
 /** Show: rings a wire (or a test point) on its drawing, opening that sheet; again hides it. */
-async function showOnDrawing(sheetId, id) {
+async function showOnDrawing(sheetId, id, wires = null) {
   const same = state.shownOnDrawing && state.shownOnDrawing.sheetId === sheetId && state.shownOnDrawing.id === id;
-  state.shownOnDrawing = same ? null : { sheetId, id };
+  state.shownOnDrawing = same ? null : { sheetId, id, ...(wires ? { wires } : {}) };
   state.shownNet = null;
   if (!same && state.current !== sheetId) await selectSheet(sheetId);
   updateNetRings();
   renderWiresPanel();
+  renderGuidePanel();
   const els = drawingRingEls().filter((e) => e.isConnected);
   if (same || !els.length) return;
   const rects = els.map((e) => viewer.labelRect(e));
@@ -2982,6 +2997,106 @@ function renderWiresPanel() {
     onOpenOnly: (on) => { state.wiresOpenOnly = on; renderWiresPanel(); },
     onCopy: copyWires,
     onChecks: () => chooseTab('checks', true),
+  });
+  queueTabs();
+}
+
+// ---- the README as a guide, with mains safety (1.0.4) ----
+const EMPTY_README = Object.freeze({ path: null, mtime: null, guide: null, mains: false });
+const readmeSections = () => (state.readme.guide ? state.readme.guide.sections : []);
+const readmeSteps = () => readmeSections().flatMap((s) => s.steps);
+const showSafety = () => state.readme.mains || state.drawingReads.some((r) => r.hasTable && r.wires.some((w) => w.mains));
+
+/** Reads the project's README (when it's new or changed) and draws the guide. */
+async function loadReadme(files) {
+  state.files = files;
+  const path = pickReadme(files);
+  const file = path ? files.find((f) => f.path === path) : null;
+  if (!file) {
+    state.readme = EMPTY_README;
+  } else if (state.readme.path !== path || state.readme.mtime !== file.mtime || !state.readme.guide) {
+    try {
+      if (file.size > MAX_README) throw new RangeError();
+      const { text, size } = await source.text(path);
+      if (size > MAX_README) throw new RangeError();
+      state.readme = { path, mtime: file.mtime, guide: readGuide(text), mains: mentionsMains(text) };
+    } catch (error) {
+      if (error instanceof RangeError) setStatus(`${path} is bigger than 256 KB, so Bench doesn't read it as a guide.`);
+      else if (!(error instanceof ServerError) && !(error instanceof SourceError)) console.warn(error);
+      state.readme = EMPTY_README;
+    }
+  }
+  renderGuidePanel();
+}
+
+/** Where a step's picture is cut from the drawing: { sheetId, path, mtime, view } for each step with wires. */
+function readmeCrops(wiresOf) {
+  const crops = new Map();
+  for (const [stepId, wires] of wiresOf) {
+    if (!wires.length) continue;
+    const sheetId = wires[0].sheetId;
+    const sheet = state.sheets.find((s) => s.id === sheetId);
+    const entry = state.loaded.get(sheetId);
+    const read = state.drawingReads.find((r) => r.sheetId === sheetId);
+    if (!sheet || !entry || entry.kind !== 'svg' || !read) continue;
+    const [x, y, w, h] = (entry.root.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) continue;
+    const ids = wires.filter((one) => one.sheetId === sheetId).map((one) => one.wire.id);
+    const box = cropFor(read, entry.texts, ids, { x, y, w, h });
+    if (box) crops.set(stepId, { sheetId, path: sheet.path, mtime: sheet.mtime, view: `${box.x},${box.y},${box.w},${box.h}` });
+  }
+  return crops;
+}
+
+function toggleReadmeStep(section, step, on) {
+  if (on === state.drawing.steps.includes(step.id)) return;
+  const steps = state.drawing.steps.filter((k) => k !== step.id);
+  if (on) steps.push(step.id);
+  setDrawing({ ...state.drawing, steps }, `${on ? 'Done' : 'Not done'}: ${section.title} step ${step.n}`.slice(0, 90));
+}
+
+function toggleSafety(line, on) {
+  if (on === state.drawing.safety.includes(line.id)) return;
+  const safety = state.drawing.safety.filter((k) => k !== line.id);
+  if (on) safety.push(line.id);
+  const short = line.text.split(/[:.(]/)[0].trim();
+  setDrawing({ ...state.drawing, safety }, `${on ? 'Safety' : 'Not yet'}: ${short}`.slice(0, 90));
+}
+
+function renderGuidePanel() {
+  const guide = state.readme.guide || { sections: [] };
+  const wiresOf = guideWires(guide, state.drawingReads);
+  const filesByPath = new Map(state.files.map((f) => [f.path, f]));
+  const needs = state.readme.guide ? guideNeeds(guide, state.drawingReads, (p) => filesByPath.has(p), state.readme.path).filter(needOpen) : [];
+  renderGuide($('#readme'), {
+    sections: guide.sections,
+    wiresOf,
+    crops: readmeCrops(wiresOf),
+    needs,
+    showSafety: showSafety(),
+    safetyDone: new Set(state.drawing.safety),
+    stepsDone: new Set(state.drawing.steps),
+    wiresDone: new Set(state.drawing.done),
+    openOnly: state.readmeOpenOnly,
+    shown: state.shownOnDrawing,
+    readmePath: state.readme.path || 'README.md',
+    mainsStep: (id) => {
+      const step = readmeSteps().find((s) => s.id === id);
+      return Boolean(step) && ((wiresOf.get(id) || []).some((x) => x.wire.mains) || mentionsMains(step.text));
+    },
+    hasFile: (p) => filesByPath.has(p),
+    mtimeOf: (p) => (filesByPath.get(p) || {}).mtime ?? 0,
+    imageUrl: (p, mtime) => source.imageUrl(p, mtime),
+    fileHref: (p) => (filesByPath.has(p) ? source.fileHref(p) : null),
+    onStep: toggleReadmeStep,
+    onSafety: toggleSafety,
+    onWire: tickWire,
+    onShow: (step) => {
+      const wires = wiresOf.get(step.id) || [];
+      if (wires.length) showOnDrawing(wires[0].sheetId, step.id, wires.filter((x) => x.sheetId === wires[0].sheetId).map((x) => x.wire.id));
+    },
+    onDismiss: dismissNeed,
+    onOpenOnly: (on) => { state.readmeOpenOnly = on; renderGuidePanel(); },
   });
   queueTabs();
 }
@@ -3822,6 +3937,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   renderChecklist();
   renderStepsPanel();
   renderWiringPanel();
+  renderGuidePanel();
   renderChecksPanel();
   renderContinuityPanel();
   renderFaultsPanel();
@@ -4079,6 +4195,7 @@ async function relist(listing = null) {
     return;
   }
   state.modelFiles = modelFilesIn(project.files);
+  loadReadme(project.files); // a README added, changed or gone (1.0.4)
   const sheets = sheetsFor(project.files);
   const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
     s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing &&
@@ -4594,6 +4711,7 @@ async function openProject(src, listing = null) {
   state.modelFiles = modelFilesIn(project.files);
   loadProgress();
   loadOpenStep();
+  await loadReadme(project.files);
   renderTabs();
   if (source.live) {
     connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });

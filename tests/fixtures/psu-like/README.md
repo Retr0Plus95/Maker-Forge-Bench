@@ -40,6 +40,7 @@ picture isn't in the folder, and no step mentions W18).
 ## Safety
 
 This box has 230 V inside it. Never work on it plugged in. <script>alert(1)</script>
+![A web picture](https://example.com/x.png)
 
 ## Troubleshooting
 
