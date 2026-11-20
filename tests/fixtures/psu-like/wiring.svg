@@ -1,0 +1,889 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="600pt" height="400pt" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <defs>
+  <path id="L" d="M 0 0 L 40 0 L 40 70 L 0 70 z"/>
+ </defs>
+ <g id="figure_1">
+  <rect x="0" y="0" width="600" height="400" style="fill: #0e3d75"/>
+  <path d="M 40 85 L 90 85 L 110 105 L 300 105" style="fill: none; stroke: #ff9a3c"/>
+  <g id="text_1">
+   <!-- X1  2-core cable -->
+   <g style="fill: #eef4ff" transform="translate(20 90) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_2">
+   <!-- F1  fuse -->
+   <g style="fill: #eef4ff" transform="translate(60 60) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_3">
+   <!-- S1  switch -->
+   <g style="fill: #eef4ff" transform="translate(120 60) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_4">
+   <!-- T1  transformer -->
+   <g style="fill: #eef4ff" transform="translate(60 130) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_5">
+   <!-- TB1  little board -->
+   <g style="fill: #eef4ff" transform="translate(60 170) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_6">
+   <!-- U1  KIT BOARD -->
+   <g style="fill: #eef4ff" transform="translate(300 60) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_7">
+   <!-- OUT + -->
+   <g style="fill: #eef4ff" transform="translate(350 90) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_8">
+   <!-- OUT − -->
+   <g style="fill: #eef4ff" transform="translate(350 110) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_9">
+   <!-- PM1  meter -->
+   <g style="fill: #eef4ff" transform="translate(500 40) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_10">
+   <!-- J1  + red post -->
+   <g style="fill: #eef4ff" transform="translate(500 80) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_11">
+   <!-- J2  − black post -->
+   <g style="fill: #eef4ff" transform="translate(500 110) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_12">
+   <!-- U2  buck -->
+   <g style="fill: #eef4ff" transform="translate(380 60) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_13">
+   <!-- M1  fan -->
+   <g style="fill: #eef4ff" transform="translate(400 30) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_14">
+   <!-- LED1  strip -->
+   <g style="fill: #eef4ff" transform="translate(440 30) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_15">
+   <!-- W1 -->
+   <g style="fill: #eef4ff" transform="translate(40 80) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_16">
+   <!-- W2 -->
+   <g style="fill: #eef4ff" transform="translate(90 80) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_17">
+   <!-- W3 -->
+   <g style="fill: #eef4ff" transform="translate(110 100) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_18">
+   <!-- W7 -->
+   <g style="fill: #eef4ff" transform="translate(200 150) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_19">
+   <!-- W8 -->
+   <g style="fill: #eef4ff" transform="translate(200 170) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_20">
+   <!-- W9 -->
+   <g style="fill: #eef4ff" transform="translate(420 90) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_21">
+   <!-- W13 -->
+   <g style="fill: #eef4ff" transform="translate(440 110) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_22">
+   <!-- W21 -->
+   <g style="fill: #eef4ff" transform="translate(300 180) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_23">
+   <!-- TP1 -->
+   <g style="fill: #eef4ff" transform="translate(250 120) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_24">
+   <!-- TP2 -->
+   <g style="fill: #eef4ff" transform="translate(330 40) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_25">
+   <!-- TP3 -->
+   <g style="fill: #eef4ff" transform="translate(370 140) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_26">
+   <!-- WIRE SCHEDULE -->
+   <g style="fill: #eef4ff" transform="translate(20 228) scale(0.066 -0.066)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_27">
+   <!-- W -->
+   <g style="fill: #eef4ff" transform="translate(20 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_28">
+   <!-- FROM -->
+   <g style="fill: #eef4ff" transform="translate(40 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+   </g>
+  </g>
+  <g id="text_29">
+   <!-- TO -->
+   <g style="fill: #eef4ff" transform="translate(130 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_30">
+   <!-- WIRE -->
+   <g style="fill: #eef4ff" transform="translate(230 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+   </g>
+  </g>
+  <g id="text_31">
+   <!-- NOTE -->
+   <g style="fill: #eef4ff" transform="translate(290 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+   </g>
+  </g>
+  <g id="text_32">
+   <!-- 1 -->
+   <g style="fill: #eef4ff" transform="translate(22 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_33">
+   <!-- X1 wire A -->
+   <g style="fill: #eef4ff" transform="translate(40 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_34">
+   <!-- F1 in -->
+   <g style="fill: #eef4ff" transform="translate(130 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_35">
+   <!-- mains 0.75 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_36">
+   <!-- through the clamp -->
+   <g style="fill: #eef4ff" transform="translate(290 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_37">
+   <!-- 2 -->
+   <g style="fill: #eef4ff" transform="translate(22 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_38">
+   <!-- F1 out -->
+   <g style="fill: #eef4ff" transform="translate(40 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_39">
+   <!-- S1 1a -->
+   <g style="fill: #eef4ff" transform="translate(130 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_40">
+   <!-- mains 0.75 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_41">
+   <!-- heat-shrink -->
+   <g style="fill: #eef4ff" transform="translate(290 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_42">
+   <!-- 3 -->
+   <g style="fill: #eef4ff" transform="translate(22 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_43">
+   <!-- S1 1b -->
+   <g style="fill: #eef4ff" transform="translate(40 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_44">
+   <!-- T1 primary -->
+   <g style="fill: #eef4ff" transform="translate(130 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_45">
+   <!-- mains 0.75 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_46">
+   <!-- 7 -->
+   <g style="fill: #eef4ff" transform="translate(22 282) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_47">
+   <!-- TB1 out -->
+   <g style="fill: #eef4ff" transform="translate(40 282) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_48">
+   <!-- U1 AC24V input -->
+   <g style="fill: #eef4ff" transform="translate(130 282) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_49">
+   <!-- 0.5 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 282) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_50">
+   <!-- note 4 -->
+   <g style="fill: #eef4ff" transform="translate(290 282) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_51">
+   <!-- 8 -->
+   <g style="fill: #eef4ff" transform="translate(22 292) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_52">
+   <!-- TB1 out -->
+   <g style="fill: #eef4ff" transform="translate(40 292) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_53">
+   <!-- U1 AC24V input -->
+   <g style="fill: #eef4ff" transform="translate(130 292) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_54">
+   <!-- 0.5 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 292) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_55">
+   <!-- note 4 -->
+   <g style="fill: #eef4ff" transform="translate(290 292) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_56">
+   <!-- 9 -->
+   <g style="fill: #eef4ff" transform="translate(22 302) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_57">
+   <!-- U1 OUT + -->
+   <g style="fill: #eef4ff" transform="translate(40 302) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_58">
+   <!-- J1 + red post -->
+   <g style="fill: #eef4ff" transform="translate(130 302) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_59">
+   <!-- 0.5 mm² red -->
+   <g style="fill: #eef4ff" transform="translate(230 302) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_60">
+   <!-- up to 0.7 A -->
+   <g style="fill: #eef4ff" transform="translate(290 302) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_61">
+   <!-- 13 -->
+   <g style="fill: #eef4ff" transform="translate(21 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_62">
+   <!-- PM1 thin black -->
+   <g style="fill: #eef4ff" transform="translate(40 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_63">
+   <!-- U1 OUT − -->
+   <g style="fill: #eef4ff" transform="translate(130 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_64">
+   <!-- meter lead -->
+   <g style="fill: #eef4ff" transform="translate(230 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_65">
+   <!-- NOT GND: note 1 -->
+   <g style="fill: #eef4ff" transform="translate(290 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_66">
+   <!-- 17 -->
+   <g style="fill: #eef4ff" transform="translate(21 322) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_67">
+   <!-- U2 OUT+ -->
+   <g style="fill: #eef4ff" transform="translate(40 322) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_68">
+   <!-- M1 red, LED1 + -->
+   <g style="fill: #eef4ff" transform="translate(130 322) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_69">
+   <!-- 0.25 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 322) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_70">
+   <!-- 12.0 V -->
+   <g style="fill: #eef4ff" transform="translate(290 322) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_71">
+   <!-- 18 -->
+   <g style="fill: #eef4ff" transform="translate(21 332) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+   </g>
+  </g>
+  <g id="text_72">
+   <!-- Q9 leg -->
+   <g style="fill: #eef4ff" transform="translate(40 332) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_73">
+   <!-- J2 − black post -->
+   <g style="fill: #eef4ff" transform="translate(130 332) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_74">
+   <!-- 0.25 mm² -->
+   <g style="fill: #eef4ff" transform="translate(230 332) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_75">
+   <!-- POWER-UP CHECKS · in this order -->
+   <g style="fill: #eef4ff" transform="translate(360 228) scale(0.066 -0.066)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_76">
+   <!-- OFF -->
+   <g style="fill: #eef4ff" transform="translate(360 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_77">
+   <!-- Unplugged, meter on beep: OUT + to OUT − silent. -->
+   <g style="fill: #eef4ff" transform="translate(386 242) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_78">
+   <!-- TP1 -->
+   <g style="fill: #eef4ff" transform="translate(360 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_79">
+   <!-- C1 big cap: 24–27 V with no load. -->
+   <g style="fill: #eef4ff" transform="translate(386 252) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_80">
+   <!-- TP2 -->
+   <g style="fill: #eef4ff" transform="translate(360 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+   </g>
+  </g>
+  <g id="text_81">
+   <!-- Fan header: check it. -->
+   <g style="fill: #eef4ff" transform="translate(386 262) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_82">
+   <!-- LIMIT -->
+   <g style="fill: #eef4ff" transform="translate(360 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_83">
+   <!-- Short OUT through the meter; A knob up to 0.5 A. -->
+   <g style="fill: #eef4ff" transform="translate(386 272) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_84">
+   <!-- Stay at or under 0.7 A. -->
+   <g style="fill: #eef4ff" transform="translate(386 280) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_85">
+   <!-- NOTES -->
+   <g style="fill: #eef4ff" transform="translate(360 300) scale(0.066 -0.066)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+   </g>
+  </g>
+  <g id="text_86">
+   <!-- 1 -->
+   <g style="fill: #eef4ff" transform="translate(362 313) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_87">
+   <!-- METER TRAP: the meter's thin black goes to OUT −, -->
+   <g style="fill: #eef4ff" transform="translate(372 312) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_88">
+   <!-- never to GND. -->
+   <g style="fill: #eef4ff" transform="translate(372 320) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_89">
+   <!-- 4 -->
+   <g style="fill: #eef4ff" transform="translate(362 333) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+   </g>
+  </g>
+  <g id="text_90">
+   <!-- Which AC24V screws? Beep each screw to the diodes; -->
+   <g style="fill: #eef4ff" transform="translate(372 332) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+  <g id="text_91">
+   <!-- the two that beep take W7 and W8. -->
+   <g style="fill: #eef4ff" transform="translate(372 340) scale(0.052 -0.052)">
+    <use xlink:href="#L" transform="translate(0 0)"/>
+    <use xlink:href="#L" transform="translate(60 0)"/>
+    <use xlink:href="#L" transform="translate(120 0)"/>
+    <use xlink:href="#L" transform="translate(180 0)"/>
+    <use xlink:href="#L" transform="translate(240 0)"/>
+    <use xlink:href="#L" transform="translate(300 0)"/>
+   </g>
+  </g>
+ </g>
+</svg>
