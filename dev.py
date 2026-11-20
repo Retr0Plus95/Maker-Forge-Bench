@@ -66,6 +66,8 @@ def _skipped_folder(name: str) -> bool:
 def _project_type(name: str) -> str | None:
     if name == PROJECT_FILE:
         return "application/json"
+    if name.lower() == "readme.md":  # 1.0.4: the README, read as a guide
+        return "text/markdown; charset=utf-8"
     return PROJECT_TYPES.get(os.path.splitext(name)[1].lower())
 
 
