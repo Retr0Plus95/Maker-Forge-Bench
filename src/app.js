@@ -3007,8 +3007,10 @@ const readmeSections = () => (state.readme.guide ? state.readme.guide.sections :
 const readmeSteps = () => readmeSections().flatMap((s) => s.steps);
 const showSafety = () => state.readme.mains || state.drawingReads.some((r) => r.hasTable && r.wires.some((w) => w.mains));
 
-/** Reads the project's README (when it's new or changed) and draws the guide. */
+/** Reads the project's README (when it's new or changed) and draws the guide. The last call wins. */
+let readmeTicket = 0;
 async function loadReadme(files) {
+  const ticket = ++readmeTicket;
   state.files = files;
   const path = pickReadme(files);
   const file = path ? files.find((f) => f.path === path) : null;
@@ -3018,9 +3020,11 @@ async function loadReadme(files) {
     try {
       if (file.size > MAX_README) throw new RangeError();
       const { text, size } = await source.text(path);
+      if (ticket !== readmeTicket) return; // a newer listing is being read
       if (size > MAX_README) throw new RangeError();
       state.readme = { path, mtime: file.mtime, guide: readGuide(text), mains: mentionsMains(text) };
     } catch (error) {
+      if (ticket !== readmeTicket) return;
       if (error instanceof RangeError) setStatus(`${path} is bigger than 256 KB, so Bench doesn't read it as a guide.`);
       else if (!(error instanceof ServerError) && !(error instanceof SourceError)) console.warn(error);
       state.readme = EMPTY_README;

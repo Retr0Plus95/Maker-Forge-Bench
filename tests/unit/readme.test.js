@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { prepareSvg } from '../../src/sanitize.js';
 import { readDrawing, sheetTexts } from '../../src/drawing.js';
 import {
-  MAX_BLOCKS, SAFETY, cropFor, guideNeeds, inline, mentionsMains, parseMarkdown, pickReadme, readGuide, stepWires,
+  MAX_BLOCKS, SAFETY, cropFor, guideNeeds, inline, mentionsMains, parseMarkdown, pathFrom, pickReadme, readGuide, stepWires,
 } from '../../src/readme.js';
 import { nodeParser, readFixture } from './helpers.js';
 
@@ -115,6 +115,13 @@ test('mains is spotted in words, and the safety list is fixed', () => {
   assert.equal(mentionsMains('a 12 V fan, 5 V logic'), false);
   assert.deepEqual(SAFETY.map((s) => s.id), ['unplugged', 'fuse', 'covered', 'apart', 'clamp', 'earth', 'beep']);
   assert.equal(SAFETY[0].text, 'Unplugged: the plug is out of the wall, not just switched off.');
+});
+
+test('a picture address that is badly written is kept as written, never an error', () => {
+  assert.equal(pathFrom('docs/README.md', '../images/a%ZZ.png'), 'images/a%ZZ.png');
+  assert.equal(pathFrom('README.md', './images/my%20photo.png'), 'images/my photo.png');
+  const odd = readGuide('## Wiring\n\n1. **Fan:** ![x](a%ZZ.png) W9\n');
+  assert.deepEqual(guideNeeds(odd, reads, () => false).map((n) => n.id), ['readme:pic:a%ZZ.png', 'readme:left']);
 });
 
 test('the README picked: the one at the top first, else the shallowest', () => {

@@ -318,7 +318,10 @@ export const isWeb = (src) => /^[a-z][a-z0-9+.-]*:|^\/\//i.test(src);
 /** A picture's path in the project, from the README's folder. */
 export function pathFrom(readmePath, src) {
   const parts = String(readmePath || '').split('/').slice(0, -1);
-  for (const p of decodeURI(String(src).split(/[?#]/)[0]).replace(/^\.\//, '').split('/')) {
+  const raw = String(src).split(/[?#]/)[0];
+  let file = raw;
+  try { file = decodeURI(raw); } catch { /* a badly written address is kept as written */ }
+  for (const p of file.replace(/^\.\//, '').split('/')) {
     if (p === '..') parts.pop();
     else if (p && p !== '.') parts.push(p);
   }
