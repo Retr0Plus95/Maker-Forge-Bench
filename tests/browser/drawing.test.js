@@ -3,6 +3,8 @@
 // table, checks and notes, lists the wires mains first, says what's missing and asks what it needs.
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { copyFixture, nextFrame, openPage, startDevServer } from './harness.js';
 
 const text = (page, sel) => page.locator(sel).textContent();
@@ -103,6 +105,36 @@ describe('wires from the drawing', () => {
   test('Copy as text and Then the checks are there; nothing went wrong on the page', async () => {
     assert.equal(await page.locator('#wires-copy').count(), 1);
     assert.equal(await page.locator('#wires-checks').count(), 1);
+    assert.deepEqual(problems, []);
+  });
+});
+
+describe('wires from the drawing, in a folder with a project file', () => {
+  let server; let browser; let page; let problems; let dir;
+
+  before(async () => {
+    dir = await copyFixture('psu-like');
+    await writeFile(path.join(dir, 'forge-project.json'), JSON.stringify({
+      format: 'forge-project', version: 1, name: 'PSU-like', revision: 'A',
+      sheets: [{ id: 'wiring', title: 'Wiring', file: 'wiring.svg', kind: 'schematic' }],
+    }));
+    server = await startDevServer(dir);
+    ({ browser, page, problems } = await openPage(server.url, { width: 1400, height: 950 }));
+    await page.waitForFunction(() => document.querySelector('#wires-progress'));
+    await page.waitForFunction(() => document.querySelector('#live')?.textContent.startsWith('Auto-refresh on'));
+  });
+
+  after(async () => {
+    await browser?.close();
+    await server?.stop();
+  });
+
+  test('a drawing changed on disk is read again', async () => {
+    assert.equal(await page.locator('.drawn-wire[data-wire="W18"]').count(), 1);
+    const file = path.join(dir, 'wiring.svg');
+    await writeFile(file, (await readFile(file, 'utf8')).replace('<!-- 18 -->', '<!-- 19 -->'));
+    await page.waitForFunction(() => document.querySelector('.drawn-wire[data-wire="W19"]'), null, { timeout: 10000 });
+    assert.equal(await page.locator('.drawn-wire[data-wire="W18"]').count(), 0);
     assert.deepEqual(problems, []);
   });
 });

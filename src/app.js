@@ -4039,7 +4039,7 @@ async function refreshSheet(sheet, mtime) {
   if (entry.size !== undefined) current.size = entry.size;
   state.cache.set(current.id, Promise.resolve(entry));
   state.loaded.set(current.id, entry);
-  if (!state.project) updateParts(); // guessed parts follow the drawings
+  updateParts(); // guessed parts and the wires read from a drawing follow the drawings
   applyTickMarks();
   if (split.on && split.sheetId === current.id) showInSplit(current.id, true);
   refreshNotes();
