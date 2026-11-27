@@ -206,6 +206,10 @@ repo straight away.
 
   Bench also says when a file isn't a model, has gaps in its surface, is inside out or looks like the wrong units.
   **Copy as text** gives the list for paper. A 3MF is opened by the browser itself, with nothing to install.
+
+  | The Case tab on the four-channel bench supply | Look in 3D: the part in your printer's build volume |
+  |---|---|
+  | ![The Case tab: nine parts with their sizes, plastic and print notes](docs/images/case-tab.jpg) | ![A case half in 3D inside a green build volume](docs/images/case-3d.jpg) |
 - **What you have (1.0.5, Guide):** one card with every piece of the build, from parts soldered to case parts
   printed. Each shows how far it's got and opens its tab, and "Left to do" sums up the rest.
 - **History:** a build log with times and time spent, named versions of your progress, and a
