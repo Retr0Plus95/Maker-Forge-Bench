@@ -106,7 +106,7 @@ export async function browserInflate(data, limit = MAX_UNZIPPED) {
   return out;
 }
 
-/** A 3MF's model files as text: { files: { '/3D/3dmodel.model': xml, … }, main }. */
+/** A 3MF's model files as text: { files: { '/3D/3dmodel.model': xml, … }, main, config: { settings?, project? } }. */
 export async function unzip3MF(buffer, inflateRaw = browserInflate) {
   const entries = zipEntries(buffer);
   const models = entries.filter((e) => /\.model$/i.test(e.name));
@@ -127,22 +127,47 @@ export async function unzip3MF(buffer, inflateRaw = browserInflate) {
     if (m) main = '/' + m[1].replace(/^\/+/, '');
   }
   if (!main || !(main in files)) main = Object.keys(files).find((k) => /3dmodel\.model$/i.test(k)) || Object.keys(files)[0];
-  return { files, main };
+  // the slicer's settings, for the colours: which filament each part prints in, and each filament's colour
+  const config = {};
+  for (const [name, key] of [[/^metadata\/model_settings\.config$/i, 'settings'], [/^metadata\/project_settings\.config$/i, 'project']]) {
+    const e = entries.find((x) => name.test(x.name));
+    if (e && e.size <= 8 * 1024 * 1024) config[key] = decoder.decode(await zipRead(buffer, e, inflateRaw));
+  }
+  return { files, main, config };
 }
 
 const UNITS = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 };
 
 /**
  * A 3MF's triangles in millimetres: every mesh, placed by its build items and components (as Shape's
- * parse3MFModel, without the slicer painting). files: { path: xml }, main: the start part.
+ * parse3MFModel). files: { path: xml }, main: the start part. colours (optional): { settings, filaments } in, and
+ * { slots, palette } out: each triangle's colour as palette[slots[t]] ('#rrggbb', or null for the part's own colour),
+ * from slicer painting, Bambu's filament per object and part (settings: model_settings.config), or the file's base
+ * materials and colour groups; slots stays null when the file gives no colours.
  */
-export function parse3MF(files, main) {
+export function parse3MF(files, main, colours = null) {
   const norm = (p) => '/' + String(p || '').replace(/^\/+/, '');
   const attr = (tag, name) => {
     const m = new RegExp('\\s' + name + '="([^"]*)"').exec(tag);
     return m ? m[1] : null;
   };
   const objs = new Map();
+  const groups = new Map(); // `${path}#${id}` → the colours of a base materials or colour group
+  const hex = (c) => (/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(c || '') ? c.slice(0, 7).toUpperCase() : null);
+  if (colours) {
+    for (const [path0, xml] of Object.entries(files)) {
+      const path = norm(path0);
+      for (const g of xml.matchAll(/<(?:[a-z]+:)?(basematerials|colorgroup)\b([^>]*)>([\s\S]*?)<\/(?:[a-z]+:)?\1>/gi)) {
+        const list = [...g[3].matchAll(/<(?:[a-z]+:)?(?:base|color)\b([^>]*)\/?>/gi)].map((c) => hex(attr(c[1], 'displaycolor') || attr(c[1], 'color')));
+        groups.set(path + '#' + attr(g[2], 'id'), list);
+      }
+    }
+  }
+  const groupColour = (path, pid, index) => {
+    const list = pid !== null ? groups.get(path + '#' + pid) : null;
+    const c = list ? list[Number(index) || 0] : null;
+    return c ? 'c:' + c : null;
+  };
   for (const [path0, xml] of Object.entries(files)) {
     const path = norm(path0);
     const objRe = /<object\b([^>]*)>([\s\S]*?)<\/object>/g;
@@ -151,20 +176,28 @@ export function parse3MF(files, main) {
       const body = m[2];
       const V = [];
       const T = [];
+      const F = colours ? [] : null;
       const comps = [];
+      const own = colours ? groupColour(path, attr(m[1], 'pid'), attr(m[1], 'pindex')) : null;
       const vr = /<vertex\b([^>]*)\/?>/g;
       let v;
       while ((v = vr.exec(body))) V.push(+attr(v[1], 'x'), +attr(v[1], 'y'), +attr(v[1], 'z'));
       const tr = /<triangle\b([^>]*)\/?>/g;
       let t;
-      while ((t = tr.exec(body))) T.push(+attr(t[1], 'v1'), +attr(t[1], 'v2'), +attr(t[1], 'v3'));
+      while ((t = tr.exec(body))) {
+        T.push(+attr(t[1], 'v1'), +attr(t[1], 'v2'), +attr(t[1], 'v3'));
+        if (F) {
+          const paint = paintSlot(attr(t[1], 'paint_color') || attr(t[1], 'slic3rpe:mmu_segmentation'));
+          F.push(paint !== null ? 'f:' + paint : groupColour(path, attr(t[1], 'pid') ?? attr(m[1], 'pid'), attr(t[1], 'p1') ?? (attr(t[1], 'pid') ? 0 : attr(m[1], 'pindex'))) || own);
+        }
+      }
       const cr = /<component\b([^>]*)\/?>/g;
       let c;
       while ((c = cr.exec(body))) {
         const pp = attr(c[1], 'p:path');
         comps.push({ key: (pp ? norm(pp) : path) + '#' + attr(c[1], 'objectid'), m: attr(c[1], 'transform') });
       }
-      objs.set(path + '#' + attr(m[1], 'id'), { V, T, comps });
+      objs.set(path + '#' + attr(m[1], 'id'), { V, T, F, comps });
       if (objs.size > 20000) break;
     }
   }
@@ -182,8 +215,10 @@ export function parse3MF(files, main) {
   const xml = files[Object.keys(files).find((k) => norm(k) === mainPath)] || '';
   const unit = UNITS[(/<model\b[^>]*\sunit="([a-z]+)"/i.exec(xml) || [])[1]] || 1;
   const out = [];
+  const keys = colours ? [] : null; // each triangle's colour key, when colours are asked for
+  const ext = bambuFilaments(colours && colours.settings);
   let calls = 0; // components can name each other many times over: a budget keeps a hostile file from running away
-  const emit = (key, M, depth) => {
+  const emit = (key, M, depth, inherit = null, item = null) => {
     const o = objs.get(key);
     if (!o || depth > 8) return;
     if (++calls > 200000) throw new RangeError('too many parts inside');
@@ -199,9 +234,13 @@ export function parse3MF(files, main) {
         const z = o.V[3 * k + 2];
         out.push((x * M[0] + y * M[3] + z * M[6] + M[9]) * unit, (x * M[1] + y * M[4] + z * M[7] + M[10]) * unit, (x * M[2] + y * M[5] + z * M[8] + M[11]) * unit);
       }
+      if (keys) keys.push((o.F && o.F[t]) || inherit);
       if (out.length > 9 * MAX_TRIS) throw new RangeError('more than four million triangles');
     }
-    for (const c of o.comps) emit(c.key, mul(mat(c.m), M), depth + 1);
+    for (const c of o.comps) {
+      const part = depth === 0 && item ? ext.parts.get(item + '/' + c.key.slice(c.key.lastIndexOf('#') + 1)) : undefined;
+      emit(c.key, mul(mat(c.m), M), depth + 1, part !== undefined ? 'f:' + part : inherit, null);
+    }
   };
   const items = [];
   const ir = /<item\b([^>]*)\/?>/g;
@@ -210,10 +249,92 @@ export function parse3MF(files, main) {
     const pp = attr(it[1], 'p:path');
     items.push({ key: (pp ? norm(pp) : mainPath) + '#' + attr(it[1], 'objectid'), m: attr(it[1], 'transform') });
   }
-  if (items.length) items.forEach((i) => emit(i.key, mat(i.m), 0));
-  else objs.forEach((o, k) => { if (o.T.length) emit(k, mat(null), 0); });
+  const idOf = (k) => k.slice(k.lastIndexOf('#') + 1);
+  if (items.length) {
+    items.forEach((i) => {
+      const e = ext.objects.get(idOf(i.key));
+      emit(i.key, mat(i.m), 0, e !== undefined ? 'f:' + e : null, idOf(i.key));
+    });
+  } else objs.forEach((o, k) => { if (o.T.length) emit(k, mat(null), 0); });
   if (!out.length || out.some((x) => !Number.isFinite(x))) throw new Error('has no triangles Bench can read');
+  if (colours) {
+    const filaments = (colours.filaments || []).map(hex);
+    const colourOf = (k) => {
+      if (!k) return null;
+      if (k.startsWith('c:')) return k.slice(2);
+      const n = Number(k.slice(2)); // a filament, 0 = the first: the part's own colour unless the project names its colour
+      if (n === 0) return null;
+      return filaments[n] || SECOND[(n - 1) % SECOND.length];
+    };
+    const palette = [];
+    const index = new Map();
+    const slots = new Uint16Array(keys.length);
+    keys.forEach((k, t) => {
+      const c = colourOf(k);
+      if (!index.has(c)) { index.set(c, palette.length); palette.push(c); }
+      slots[t] = index.get(c);
+    });
+    const coloured = palette.some((c) => c !== null) && palette.length <= 64;
+    colours.slots = coloured ? slots : null;
+    colours.palette = coloured ? palette : [null];
+  }
   return new Float32Array(out);
+}
+
+/** Colours for a second, third… filament when the file doesn't name them. */
+const SECOND = ['#E04A3A', '#2F6FD0', '#F2F2F2', '#30A050', '#202020', '#F0C020'];
+
+/** Slicer painting on a triangle (Bambu paint_color, PrusaSlicer mmu_segmentation) as a filament, 0 = the first; null: none. */
+function paintSlot(code) {
+  const s = String(code || '').toUpperCase();
+  if (s === '4') return 0;
+  if (s === '8') return 1;
+  if (/^[0-9A-F]C$/.test(s)) return parseInt(s[0], 16) + 2;
+  return null; // unpainted, or split finer than one triangle
+}
+
+/** Bambu's model_settings.config: the filament (0 = the first) of each object and each of its parts. */
+function bambuFilaments(xml) {
+  const objects = new Map();
+  const parts = new Map();
+  if (!xml) return { objects, parts };
+  const extruder = (text) => {
+    const m = /<metadata\b[^>]*\bkey="extruder"[^>]*\bvalue="(\d+)"/.exec(text) || /<metadata\b[^>]*\bvalue="(\d+)"[^>]*\bkey="extruder"/.exec(text);
+    const e = m ? Number(m[1]) : 0;
+    return e > 0 && e < 256 ? e - 1 : undefined;
+  };
+  for (const m of String(xml).matchAll(/<object\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/object>/g)) {
+    const e = extruder(m[2].replace(/<part\b[\s\S]*?<\/part>/g, ''));
+    if (e !== undefined) objects.set(m[1], e);
+    for (const p of m[2].matchAll(/<part\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/part>/g)) {
+      const pe = extruder(p[2]);
+      if (pe !== undefined) parts.set(m[1] + '/' + p[1], pe);
+    }
+  }
+  return { objects, parts };
+}
+
+/** A Bambu project's filament colours (project_settings.config, JSON), or []. */
+function filamentColours(json) {
+  try {
+    const list = JSON.parse(json || 'null')?.filament_colour;
+    return Array.isArray(list) ? list.filter((c) => typeof c === 'string').slice(0, 32) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * A part file's triangles and colours, by its name: { tris, slots, palette } (see parse3MF). An STL has no colours.
+ */
+export async function readPartFull(path, buffer, inflateRaw = browserInflate) {
+  if (/\.3mf$/i.test(path)) {
+    const { files, main, config } = await unzip3MF(buffer, inflateRaw);
+    const colours = { settings: config.settings || null, filaments: filamentColours(config.project) };
+    const tris = parse3MF(files, main, colours);
+    return { tris, slots: colours.slots, palette: colours.palette };
+  }
+  return { tris: parseSTL(buffer), slots: null, palette: [null] };
 }
 
 /** A part file's triangles, by its name: STL or 3MF. */

@@ -28,7 +28,7 @@ import { createBoard3D } from './board3d.js';
 import { BOARD_COLOURS } from './board3d-geometry.js';
 import { MAX_README, SAFETY, cropFor, guideNeeds, guideWires, mentionsMains, pickReadme, readGuide } from './readme.js';
 import { renderGuide } from './guide-panel.js';
-import { MAX_PART, PRINTERS, bomNotes, cleanMaterial, cleanPrinter, fitOnBed, gramsText, isCasePart, listedMissing, meshFacts, partNotes, partWarnings, plastic, printHint, readPart, sizeText } from './caseparts.js';
+import { MAX_PART, PRINTERS, bomNotes, cleanMaterial, cleanPrinter, fitOnBed, gramsText, isCasePart, listedMissing, meshFacts, partNotes, partWarnings, plastic, printHint, readPartFull, sizeText } from './caseparts.js';
 import { caseText, renderCase, renderHave } from './case-panel.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
@@ -3176,8 +3176,8 @@ async function loadCaseParts(files) {
         const bytes = await source.bytes(f.path);
         if (ticket !== caseTicket) return;
         if (!bytes) throw new SourceError("couldn't be read here");
-        const tris = await readPart(f.path, bytes);
-        entry = { mtime: f.mtime, facts: meshFacts(tris), tris, error: null };
+        const { tris, slots, palette } = await readPartFull(f.path, bytes);
+        entry = { mtime: f.mtime, facts: meshFacts(tris), tris, slots, palette, error: null };
       } catch (error) {
         if (ticket !== caseTicket) return;
         const why = error instanceof RangeError ? `is too big to read here (${error.message})`
@@ -3200,7 +3200,7 @@ function keepCaseMemory() {
   for (const entry of [...caseRead.values()].reverse()) {
     if (!entry.tris) continue;
     total += entry.tris.length / 9;
-    if (total > CASE_KEEP) entry.tris = null;
+    if (total > CASE_KEEP) { entry.tris = null; entry.slots = null; }
   }
 }
 
@@ -3221,7 +3221,7 @@ async function caseThumbnail(path) {
   if (caseThumbs.has(key)) return;
   try {
     const { partThumbnail } = await import('./case3d.js');
-    const url = await partThumbnail(entry.tris, { material: partMaterial(path), print: notes ? notes.print : '' });
+    const url = await partThumbnail(entry.tris, { material: partMaterial(path), print: notes ? notes.print : '', slots: entry.slots, palette: entry.palette });
     if (!url) return;
     caseThumbs.set(key, url);
     if (caseThumbs.size > 400) caseThumbs.delete(caseThumbs.keys().next().value);
@@ -3335,7 +3335,8 @@ async function showCasePart(path) {
   let entry = caseRead.get(path);
   if (entry && !entry.tris && entry.facts) {
     try {
-      entry = { ...entry, tris: await readPart(path, await source.bytes(path)) };
+      const full = await readPartFull(path, await source.bytes(path));
+      entry = { ...entry, tris: full.tris, slots: full.slots, palette: full.palette };
       caseRead.set(path, entry);
       keepCaseMemory();
     } catch {
@@ -3355,13 +3356,22 @@ async function showCasePart(path) {
     return;
   }
   const notes = caseNotes.get(path);
-  caseViewer.show(entry.tris, { bed: printer.bed, fits: Boolean(part && part.fit && part.fit.fits), material: part ? part.material : caseMaterial, print: notes ? notes.print : '' });
+  caseViewer.show(entry.tris, { bed: printer.bed, fits: Boolean(part && part.fit && part.fit.fits), material: part ? part.material : caseMaterial, print: notes ? notes.print : '', slots: entry.slots, palette: entry.palette });
 }
 
 function wireCaseView() {
   const dialog = $('#case-view');
   $('#case-view-done').addEventListener('click', () => dialog.close());
   for (const name of ['iso', 'top', 'front', 'part']) $(`#case-view-${name}`).addEventListener('click', () => { if (caseViewer) caseViewer.view(name); });
+  // the previous or next part that can be shown, round the list
+  const step = (by) => {
+    const shown = caseView().filter((p) => p.facts);
+    if (!shown.length) return;
+    const at = shown.findIndex((p) => p.path === caseShowing);
+    showCasePart(shown[(at + by + shown.length) % shown.length].path);
+  };
+  $('#case-view-prev').addEventListener('click', () => step(-1));
+  $('#case-view-next').addEventListener('click', () => step(1));
   dialog.addEventListener('close', () => { caseShowing = null; });
 }
 

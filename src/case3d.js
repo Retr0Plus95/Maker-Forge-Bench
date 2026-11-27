@@ -26,8 +26,11 @@ async function loadThree() {
   return three;
 }
 
-/** The part as a mesh, z up in the file → y up in three, lying on y = 0 and centred over x = z = 0. */
-function partMesh(THREE, tris, colour, clear) {
+/**
+ * The part as a mesh, z up in the file → y up in three, lying on y = 0 and centred over x = z = 0. slots and palette
+ * (from a 3MF in more than one colour): each triangle's colour, palette[slots[t]], null for the part's own.
+ */
+function partMesh(THREE, tris, colour, clear, slots = null, palette = null) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(tris), 3)); // a copy: the part's own triangles stay as read
   geo.rotateX(-Math.PI / 2);
@@ -36,8 +39,18 @@ function partMesh(THREE, tris, colour, clear) {
   geo.translate(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
   geo.computeVertexNormals();
   geo.computeBoundingSphere();
+  const several = Boolean(slots && palette && slots.length * 9 === tris.length);
+  if (several) {
+    const linear = palette.map((c) => new THREE.Color(c || colour).convertSRGBToLinear());
+    const rgb = new Float32Array(slots.length * 9);
+    for (let t = 0; t < slots.length; t++) {
+      const c = linear[slots[t]] || linear[0];
+      for (let v = 0; v < 3; v++) { rgb[t * 9 + v * 3] = c.r; rgb[t * 9 + v * 3 + 1] = c.g; rgb[t * 9 + v * 3 + 2] = c.b; }
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
+  }
   const mat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(colour).convertSRGBToLinear(), roughness: 0.6, metalness: 0,
+    color: several ? 0xffffff : new THREE.Color(colour).convertSRGBToLinear(), vertexColors: several, roughness: 0.6, metalness: 0,
     transparent: clear, opacity: clear ? 0.6 : 1, side: THREE.DoubleSide, flatShading: false,
   });
   return new THREE.Mesh(geo, mat);
@@ -64,7 +77,7 @@ let thumbRenderer = null;
 let thumbFailed = false;
 
 /** A picture of the part from the front corner, as a data: URL (PNG), or null when this browser can't draw 3D. */
-export async function partThumbnail(tris, { material = 'PLA', print = '', size = 160 } = {}) {
+export async function partThumbnail(tris, { material = 'PLA', print = '', size = 160, slots = null, palette = null } = {}) {
   if (thumbFailed) return null;
   const { THREE } = await loadThree();
   if (!thumbRenderer) {
@@ -81,7 +94,7 @@ export async function partThumbnail(tris, { material = 'PLA', print = '', size =
   thumbRenderer.setSize(size, Math.round(size * 0.75), false);
   const { colour, clear } = partColour(material, print);
   const scene = new THREE.Scene();
-  const mesh = partMesh(THREE, tris, colour, clear);
+  const mesh = partMesh(THREE, tris, colour, clear, slots, palette);
   scene.add(mesh);
   const r = mesh.geometry.boundingSphere.radius || 1;
   lights(THREE, scene, r * 2);
@@ -98,7 +111,7 @@ export async function partThumbnail(tris, { material = 'PLA', print = '', size =
 
 /**
  * The big view, in host (inside the Look in 3D dialog). Gives null when this browser can't draw 3D.
- * show(tris, { bed: [W, D, H], fits, material, print }) puts a part on the bed; view(name) turns to 'iso', 'top',
+ * show(tris, { bed: [W, D, H], fits, material, print, slots, palette }) puts a part on the bed (in its colours); view(name) turns to 'iso', 'top',
  * 'front' or 'part'; dispose() frees it.
  */
 export async function createCaseView(host) {
@@ -179,14 +192,14 @@ export async function createCaseView(host) {
   }
 
   return {
-    show(tris, { bed, fits, material = 'PLA', print = '' }) {
+    show(tris, { bed, fits, material = 'PLA', print = '', slots = null, palette = null }) {
       if (content) {
         scene.remove(content);
         disposeTree(content);
       }
       content = new THREE.Group();
       const { colour, clear } = partColour(material, print);
-      const mesh = partMesh(THREE, tris, colour, clear);
+      const mesh = partMesh(THREE, tris, colour, clear, slots, palette);
       content.add(mesh, bedGroup(bed, fits));
       scene.add(content);
       if (!scene.userData.lit) {

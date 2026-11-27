@@ -5,6 +5,7 @@
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
+import { deflateRawSync } from 'node:zlib';
 import path from 'node:path';
 import { copyFixture, openPage, startDevServer } from './harness.js';
 
@@ -15,6 +16,61 @@ const allRead = (page) => page.waitForFunction(() => {
   return rows.length === 7 && rows.every((r) => r.querySelector('.case-part-facts, .case-part-error'));
 });
 const caseTab = (page) => page.locator('#ptab-case').getAttribute('aria-label');
+
+/** A zip of { name: text }, deflated: a 3MF made in the test. */
+function zip(files) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const [name, text] of Object.entries(files)) {
+    const raw = Buffer.from(text);
+    const data = deflateRawSync(raw);
+    const nameBuf = Buffer.from(name);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(raw.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt32LE(data.length, 20);
+    central.writeUInt32LE(raw.length, 24);
+    central.writeUInt16LE(nameBuf.length, 28);
+    central.writeUInt32LE(offset, 42);
+    locals.push(local, nameBuf, data);
+    centrals.push(central, nameBuf);
+    offset += 30 + nameBuf.length + data.length;
+  }
+  const dir = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(Object.keys(files).length, 8);
+  end.writeUInt16LE(Object.keys(files).length, 10);
+  end.writeUInt32LE(dir.length, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...locals, dir, end]);
+}
+
+/** A front panel 80 × 50 × 3 mm with a raised label 40 × 10 × 1 mm on it, the label painted in the second filament. */
+function twoColourPanel() {
+  const box = (w, d, h, [x, y, z]) => {
+    const p = (i, j, k) => [x + i * w, y + j * d, z + k * h];
+    const quads = [[p(0, 0, 0), p(0, 1, 0), p(1, 1, 0), p(1, 0, 0)], [p(0, 0, 1), p(1, 0, 1), p(1, 1, 1), p(0, 1, 1)], [p(0, 0, 0), p(1, 0, 0), p(1, 0, 1), p(0, 0, 1)],
+      [p(0, 1, 0), p(0, 1, 1), p(1, 1, 1), p(1, 1, 0)], [p(0, 0, 0), p(0, 0, 1), p(0, 1, 1), p(0, 1, 0)], [p(1, 0, 0), p(1, 1, 0), p(1, 1, 1), p(1, 0, 1)]];
+    const out = [];
+    for (const [a, b, c, e] of quads) out.push(...a, ...b, ...c, ...a, ...c, ...e);
+    return out;
+  };
+  const tris = [...box(80, 50, 3, [0, 0, 0]), ...box(40, 10, 1, [20, 20, 3])];
+  const v = [];
+  const t = [];
+  for (let i = 0; i < tris.length / 3; i++) v.push(`<vertex x="${tris[i * 3]}" y="${tris[i * 3 + 1]}" z="${tris[i * 3 + 2]}"/>`);
+  for (let i = 0; i < tris.length / 9; i++) t.push(`<triangle v1="${i * 3}" v2="${i * 3 + 1}" v3="${i * 3 + 2}"${i >= 12 ? ' paint_color="8"' : ''}/>`);
+  const model = `<?xml version="1.0"?><model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><resources><object id="1" type="model"><mesh><vertices>${v.join('')}</vertices><triangles>${t.join('')}</triangles></mesh></object></resources><build><item objectid="1"/></build></model>`;
+  return zip({ '3D/3dmodel.model': model, 'Metadata/project_settings.config': JSON.stringify({ filament_colour: ['#FFFFFF', '#E02020'] }) });
+}
 
 describe('the case: parts to print', () => {
   let server; let browser; let page; let problems; let dir;
@@ -223,6 +279,47 @@ describe('the case: parts to print', () => {
     await page.waitForFunction(() => /^60 × 40 × 5 mm/.test(document.querySelector('.case-part[data-part="case/stl/lid.stl"] .case-part-facts')?.textContent || ''), null, { timeout: 15000 });
     await writeFile(path.join(dir, 'case', 'spare.stl'), was);
     await page.waitForFunction(() => document.querySelector('#ptab-case').getAttribute('aria-label') === 'Case, 1 of 8 done', null, { timeout: 15000 });
+    assert.deepEqual(problems, []);
+  });
+  test('Look in 3D: Next and Previous go round the parts that can be shown', async () => {
+    await page.locator('#ptab-case').click();
+    await page.locator(`${part('stl/box.stl')} .case-look`).click();
+    await page.waitForFunction(() => document.querySelector('#case-view').open && document.querySelector('#case-view-title').textContent === 'box.stl');
+    await page.locator('#case-view-next').click();
+    await page.waitForFunction(() => document.querySelector('#case-view-title').textContent === 'lid.stl');
+    await page.locator('#case-view-prev').click();
+    await page.waitForFunction(() => document.querySelector('#case-view-title').textContent === 'box.stl');
+    await page.locator('#case-view-prev').click();
+    await page.waitForFunction(() => document.querySelector('#case-view-title').textContent !== 'box.stl');
+    assert.notEqual(await text(page, '#case-view-title'), 'broken.stl', "a part that couldn't be read is skipped");
+    await page.locator('#case-view-next').click();
+    await page.waitForFunction(() => document.querySelector('#case-view-title').textContent === 'box.stl', null, { timeout: 5000 });
+    await page.locator('#case-view-done').click();
+  });
+
+  test('a 3MF in two colours is drawn in its colours, in the picture and in 3D', async () => {
+    await writeFile(path.join(dir, 'case', 'panel.3mf'), twoColourPanel());
+    await page.waitForFunction(() => document.querySelector('.case-part[data-part="case/panel.3mf"] .case-thumb img'), null, { timeout: 30000 });
+    await page.locator(`${part('panel.3mf')} .case-look`).click();
+    await page.waitForFunction(() => document.querySelector('#case-view').open && document.querySelector('#case-view-title').textContent === 'panel.3mf');
+    await page.locator('#case-view-part').click();
+    const counts = await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const c = document.querySelector('#case-view-host canvas');
+      const probe = document.createElement('canvas');
+      probe.width = 160; probe.height = 120;
+      const g = probe.getContext('2d');
+      g.drawImage(c, 0, 0, 160, 120);
+      const px = g.getImageData(0, 0, 160, 120).data;
+      let red = 0; let other = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        if (!px[i + 3]) continue;
+        if (px[i] > 120 && px[i + 1] < 80 && px[i + 2] < 80) red++; else other++;
+      }
+      resolve({ red, other });
+    }))));
+    assert.ok(counts.red > 20, `the label is red (${counts.red} red pixels)`);
+    assert.ok(counts.other > counts.red, `and the panel is not (${counts.other} other pixels)`);
+    await page.locator('#case-view-done').click();
     assert.deepEqual(problems, []);
   });
 });

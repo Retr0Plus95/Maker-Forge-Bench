@@ -110,3 +110,105 @@ test('how a part sits on the bed: on a face, above it, below it, or on a point',
   assert.deepEqual(words(partWarnings(tip, fitOnBed(tip.size, [256, 256, 256]), [256, 256, 256])),
     ['warn: As it lies it touches the bed only at a point or an edge: lay it on a flat side in your slicer, or it needs supports.']);
 });
+
+// ---- two-colour 3MF ----
+import { deflateRawSync, inflateRawSync } from 'node:zlib';
+import { readPartFull } from '../../src/caseparts.js';
+
+const inflate = async (data) => new Uint8Array(inflateRawSync(data));
+
+/** A zip of { name: text }, deflated. */
+function zip(files) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const [name, text] of Object.entries(files)) {
+    const raw = Buffer.from(text);
+    const data = deflateRawSync(raw);
+    const nameBuf = Buffer.from(name);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(raw.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt32LE(data.length, 20);
+    central.writeUInt32LE(raw.length, 24);
+    central.writeUInt16LE(nameBuf.length, 28);
+    central.writeUInt32LE(offset, 42);
+    locals.push(local, nameBuf, data);
+    centrals.push(central, nameBuf);
+    offset += 30 + nameBuf.length + data.length;
+  }
+  const dir = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(Object.keys(files).length, 8);
+  end.writeUInt16LE(Object.keys(files).length, 10);
+  end.writeUInt32LE(dir.length, 12);
+  end.writeUInt32LE(offset, 16);
+  const all = Buffer.concat([...locals, dir, end]);
+  return all.buffer.slice(all.byteOffset, all.byteOffset + all.byteLength);
+}
+
+/** A mesh's XML: tris as triangles, each with the attributes extra(t) gives. */
+function mesh(tris, extra = () => '') {
+  const v = [];
+  const t = [];
+  for (let i = 0; i < tris.length / 3; i++) v.push(`<vertex x="${tris[i * 3]}" y="${tris[i * 3 + 1]}" z="${tris[i * 3 + 2]}"/>`);
+  for (let i = 0; i < tris.length / 9; i++) t.push(`<triangle v1="${i * 3}" v2="${i * 3 + 1}" v3="${i * 3 + 2}"${extra(i)}/>`);
+  return `<mesh><vertices>${v.join('')}</vertices><triangles>${t.join('')}</triangles></mesh>`;
+}
+const model = (body) => `<?xml version="1.0"?><model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">${body}</model>`;
+const distinct = (full) => [...new Set(Array.from(full.slots, (s) => full.palette[s]))];
+
+test('3MF colours: slicer painting, with the filament colours the project names', async () => {
+  const body = model(`<resources><object id="1" type="model">${mesh(box(10, 10, 10), (t) => (t < 2 ? ' paint_color="8"' : ''))}</object></resources><build><item objectid="1"/></build>`);
+  const file = zip({
+    '3D/3dmodel.model': body,
+    'Metadata/project_settings.config': JSON.stringify({ filament_colour: ['#FFFFFF', '#E02020FF'] }),
+  });
+  const full = await readPartFull('front.3mf', file, inflate);
+  assert.equal(full.tris.length, 12 * 9);
+  assert.equal(full.slots.length, 12);
+  assert.deepEqual(new Set(distinct(full)), new Set([null, '#E02020']), 'unpainted is the part\'s own colour; painted 8 is the second filament');
+  assert.equal(full.palette[full.slots[0]], '#E02020');
+  assert.equal(full.palette[full.slots[5]], null);
+});
+
+test("3MF colours: Bambu's filament per part, from model_settings.config", async () => {
+  const objects = model(`<resources><object id="1" type="model">${mesh(box(10, 10, 2))}</object><object id="2" type="model">${mesh(box(4, 4, 1, [0, 0, 2]))}</object></resources>`);
+  const main = model(`<resources><object id="3" type="model"><components><component p:path="/3D/Objects/object_1.model" objectid="1" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"/><component p:path="/3D/Objects/object_1.model" objectid="2" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"/></components></object></resources><build><item objectid="3"/></build>`);
+  const settings = '<config><object id="3"><metadata key="extruder" value="1"/><part id="1" subtype="normal_part"><metadata key="extruder" value="1"/></part><part id="2" subtype="normal_part"><metadata key="extruder" value="2"/></part></object></config>';
+  const file = zip({ '3D/3dmodel.model': main, '3D/Objects/object_1.model': objects, 'Metadata/model_settings.config': settings });
+  const full = await readPartFull('panel.3mf', file, inflate);
+  assert.equal(full.slots.length, 24);
+  assert.equal(full.palette[full.slots[0]], null, 'filament 1 is the part\'s own colour');
+  assert.ok(full.palette[full.slots[12]], 'filament 2 has a colour of its own');
+  assert.notEqual(full.palette[full.slots[12]], null);
+});
+
+test('3MF colours: base materials and colour groups, by object and by triangle', async () => {
+  const body = model(`<resources><basematerials id="5"><base name="Black" displaycolor="#202020FF"/><base name="Red" displaycolor="#D03030"/></basematerials>`
+    + `<object id="1" type="model" pid="5" pindex="0">${mesh(box(10, 10, 10), (t) => (t === 3 ? ' pid="5" p1="1"' : ''))}</object></resources><build><item objectid="1"/></build>`);
+  const full = await readPartFull('knob.3mf', zip({ '3D/3dmodel.model': body }), inflate);
+  assert.deepEqual(distinct(full).sort(), ['#202020', '#D03030']);
+  assert.equal(full.palette[full.slots[3]], '#D03030');
+});
+
+test('one colour, an STL, or parts with no colours given: no slots', async () => {
+  const plain = model(`<resources><object id="1" type="model">${mesh(box(10, 10, 10))}</object><object id="2" type="model"><components><component objectid="1"/><component objectid="1" transform="1 0 0 0 1 0 0 0 1 20 0 0"/></components></object></resources><build><item objectid="2"/></build>`);
+  const full = await readPartFull('knob.3mf', zip({ '3D/3dmodel.model': plain }), inflate);
+  assert.equal(full.slots, null, 'two components with no colours stay one colour');
+  assert.equal(full.tris.length, 24 * 9);
+  const stl = new Float32Array(box(5, 5, 5));
+  const buf = Buffer.alloc(84 + 12 * 50);
+  buf.writeUInt32LE(12, 80);
+  for (let t = 0; t < 12; t++) for (let k = 0; k < 9; k++) buf.writeFloatLE(stl[t * 9 + k], 84 + t * 50 + 12 + k * 4);
+  const s = await readPartFull('a.stl', buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  assert.equal(s.slots, null);
+  assert.equal(s.tris.length, 12 * 9);
+});
