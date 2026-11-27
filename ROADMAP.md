@@ -338,8 +338,12 @@ time); then PDFs, only if a PDF reader fits the security rules. Then **1.0.4** H
 owner's word on 2026-11-20, merged 2026-11-20 (design `docs/design/2026-11-20-release-1.0.4-design.md`): Bench reads the
 project's README and shows its wiring, assembly and first power-up as steps to tick, each with its wires
 and a picture cut from the drawing, behind a mains safety list. Next agreed on 2026-11-20: **1.0.5** case
-parts (STL/3MF, reusing Shape's readers) with a "What you have" card; then the wires drawn on the 3D
-board; the whole assembly later, once Shape can save one; 3 the
+parts (STL/3MF, reusing Shape's readers) with a "What you have" card, built 2026-11-27 (design
+`docs/design/2026-11-27-release-1.0.5-design.md`): every STL and 3MF in the project in a Case tab, each with its size,
+plastic, whether it fits your printer, what the README's table says, a Printed tick and a look in 3D, and What you have
+at the top of the Guide tab; then the wires drawn on the 3D
+board; the whole assembly later, once Shape can save one (Maker Forge Shape 0.63's parts library, with connectors on
+every part, is the start: see Maker Forge's `docs/bench-2.md`); 3 the
 drawings and part cards (11–19); 4 your board, wiring and 3D (21–23, 25–27); 5 help (38–40); then the
 other large ones one release each, with L6 Swedish last so every new word is translated once.
 **Files and sharing (28–37) is set aside** at the owner's word: they don't want the website's security

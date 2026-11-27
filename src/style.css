@@ -865,7 +865,8 @@ html[data-compact] .tool, html[data-compact] #panel button { padding: 2px 7px; }
   #panel[data-tab="board"] > section[data-tab-of]:not([data-tab-of="board"]),
   #panel[data-tab="wiring"] > section[data-tab-of]:not([data-tab-of="wiring"]),
   #panel[data-tab="checks"] > section[data-tab-of]:not([data-tab-of="checks"]),
-  #panel[data-tab="parts"] > section[data-tab-of]:not([data-tab-of="parts"]) { display: none; }
+  #panel[data-tab="parts"] > section[data-tab-of]:not([data-tab-of="parts"]),
+  #panel[data-tab="case"] > section[data-tab-of]:not([data-tab-of="case"]) { display: none; }
 }
 @media print { #panel-tabs { display: none !important; } }
 html[data-compact] #panel-tabs { top: -6px; margin: -6px -6px 0; padding: 6px; gap: 2px; }
@@ -948,3 +949,50 @@ html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem;
 #iron[hidden] { display: none; }
 #toast-undo { min-height: 36px; }
 @media print { #toast, #iron { display: none !important; } }
+
+/* ---- the case: parts to print, and What you have (1.0.5) ---- */
+#case progress, .have-row progress { width: 100%; height: 10px; accent-color: var(--good); }
+.case-total { margin: 6px 0 0; font-weight: 700; }
+#case .hint { margin: 2px 0 6px; }
+.case-settings { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 6px 0; }
+.case-settings select, .case-settings input { font: inherit; }
+.case-own { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.case-bed { width: 5.5em; }
+.case-too-big { margin: 6px 0; padding: 4px 8px; border-left: 4px solid var(--danger); color: var(--danger); font-weight: 700; }
+.case-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.case-part { display: grid; grid-template-columns: 88px 1fr; gap: 8px 10px; align-items: start; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.case-part.warn { border-color: var(--danger); }
+.case-part.done .case-part-body, .case-part.done .case-thumb { opacity: .65; }
+.case-part-side { display: grid; gap: 6px; justify-items: center; }
+.case-part-tick { display: flex; align-items: center; gap: 4px; font-size: .85rem; font-weight: 700; }
+.case-thumb { width: 88px; height: 66px; padding: 0; display: grid; place-items: center; background: var(--field); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; }
+.case-thumb:disabled { cursor: default; }
+.case-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.case-thumb-empty { color: var(--muted); font-weight: 700; }
+.case-part-body { min-width: 0; }
+.case-part-body p { margin: 0 0 3px; overflow-wrap: anywhere; }
+.case-part-folder { color: var(--muted); font-size: .9em; }
+.case-part-facts { font-weight: 700; }
+.case-part-label { color: var(--muted); }
+.case-part-fit.ok { color: var(--good); }
+.case-part-error { color: var(--danger); }
+.case-part-warnings { margin: 2px 0 4px; padding-left: 1.2em; }
+.case-part-warnings .warn { color: var(--danger); font-weight: 700; }
+.case-part-warnings .info { color: var(--muted); }
+.case-part-actions { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-top: 4px; }
+@media (pointer: coarse) { #case input[type=checkbox] { width: 22px; height: 22px; } }
+#case-view { width: min(820px, 94vw); max-width: none; }
+.case-view-host { width: 100%; height: min(60vh, 520px); border-radius: 8px; background: radial-gradient(circle at 50% 30%, var(--stage-top), var(--stage-bot)); overflow: hidden; touch-action: none; }
+.case-view-host canvas { display: block; width: 100%; height: 100%; }
+.case-view-facts { font-weight: 700; margin: 8px 0 2px; }
+#case-view-message { color: var(--warn); }
+.have-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+.have-row { display: grid; gap: 3px; }
+.have-go { display: grid; grid-template-columns: 1.2em 7.5em 1fr; gap: 6px; align-items: baseline; width: 100%; text-align: left; padding: 4px 6px; }
+.have-mark { color: var(--good); font-weight: 700; }
+.have-label { font-weight: 700; }
+.have-words { color: var(--muted); }
+.have-row.done .have-words { color: var(--good); }
+.have-left { margin: 8px 0 0; font-weight: 700; }
+.have-left.all-done { color: var(--good); }
+@media print { .case-thumb, .case-part-actions, .case-settings, #case .wiring-actions { display: none !important; } .case-part { grid-template-columns: auto 1fr; } }

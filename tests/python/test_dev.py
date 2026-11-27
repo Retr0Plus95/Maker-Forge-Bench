@@ -246,6 +246,18 @@ class TestLiveServer(DevServerTestCase):
         self.assertEqual(resp.status, 200)
         self.assertEqual(resp.getheader("Content-Type"), "model/gltf-binary")
 
+    def test_case_parts_listed_and_served(self):  # 1.0.5: STL and 3MF parts to print
+        (self.root / "case").mkdir(exist_ok=True)
+        (self.root / "case" / "lid.stl").write_bytes(b"solid x\nendsolid x\n")
+        (self.root / "case" / "Knob.3MF").write_bytes(b"PK" + bytes(20))
+        listed = [f["path"] for f in dev.list_files(self.root)]
+        self.assertIn("case/lid.stl", listed)
+        self.assertIn("case/Knob.3MF", listed)
+        for path, kind in [("/project/case/lid.stl", "model/stl"), ("/project/case/Knob.3MF", "model/3mf")]:
+            resp, _ = self.request("GET", path)
+            self.assertEqual(resp.status, 200, path)
+            self.assertEqual(resp.getheader("Content-Type"), kind)
+
     def test_library_only_its_own_files(self):
         for bad in ["/library/../dev.py", "/library/models/../../dev.py", "/library/x/y.glb",
                     "/library/%2e%2e/dev.py", "/library/models/x/y.glb", "/library/", "/library/models/",
