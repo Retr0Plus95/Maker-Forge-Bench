@@ -229,7 +229,8 @@ export async function readPart(path, buffer, inflateRaw = browserInflate) {
 
 /**
  * The facts Bench shows for a part: { tris, min, max, size [x,y,z], volume (mm³), area (mm²), open (edges on a gap in
- * the surface: used by an odd number of triangles; null when not checked), insideOut }.
+ * the surface: used by an odd number of triangles; null when not checked), insideOut, onBed (mm² of downward faces on
+ * its lowest level) }.
  */
 export function meshFacts(tris) {
   const n = Math.floor(tris.length / 9);
@@ -251,6 +252,14 @@ export function meshFacts(tris) {
     const nx = by * cz - bz * cy; const ny = bz * cx - bx * cz; const nz = bx * cy - by * cx;
     area += Math.hypot(nx, ny, nz) / 2;
     vol += (ax * nx + ay * ny + az * nz) / 6;
+  }
+  // the area of the downward faces on its lowest level: what stands on the bed as it lies
+  let onBed = 0;
+  for (let t = 0; t < n; t++) {
+    const o = t * 9;
+    if (tris[o + 2] - min[2] > 0.05 || tris[o + 5] - min[2] > 0.05 || tris[o + 8] - min[2] > 0.05) continue;
+    const nz = (tris[o + 3] - tris[o]) * (tris[o + 7] - tris[o + 1]) - (tris[o + 4] - tris[o + 1]) * (tris[o + 6] - tris[o]);
+    if (nz < 0) onBed -= nz / 2;
   }
   let open = null;
   if (n && n <= WELD_LIMIT) {
@@ -280,7 +289,7 @@ export function meshFacts(tris) {
     for (const c of edges.values()) if (c % 2) open++;
   }
   const size = n ? [max[0] - min[0], max[1] - min[1], max[2] - min[2]] : [0, 0, 0];
-  return { tris: n, min, max, size, volume: Math.abs(vol), area, open, insideOut: vol < 0 };
+  return { tris: n, min, max, size, volume: Math.abs(vol), area, open, insideOut: vol < 0, onBed };
 }
 
 // ---- printers and plastics ----
@@ -373,21 +382,29 @@ function namesIn(cell) {
 
 const globRe = (pattern) => new RegExp('^' + pattern.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*') + '$', 'i');
 
+/** "4", "4 pcs", "x2": the count, 1–999; null when it says no number (or zero). */
+function countOf(text) {
+  const m = /\d+/.exec(String(text || ''));
+  const n = m ? Number(m[0]) : 0;
+  return n > 0 ? Math.min(999, n) : null;
+}
+
 /**
- * What each part is and how to print it, from the tables in the project's READMEs: a table whose head has a
- * File column and a What or Print column. readmes: [{ path, text }], parts: the part paths. Gives
- * Map path → { what, print, readme, order } (order: where it comes in the README, for sorting).
+ * The rows of the parts tables in the project's READMEs: a table whose head has a File column and a What, Notes,
+ * Print or Material column (a Qty column gives the count). Gives [{ names, what, print, count, readme }].
  */
-export function partNotes(readmes, parts) {
-  const notes = new Map();
-  let order = 0;
+function tableRows(readmes) {
+  const out = [];
   for (const { path: readme, text } of readmes) {
     for (const block of parseMarkdown(text)) {
       if (block.t !== 'table') continue;
       const head = block.head.map((c) => plainOf(c).toLowerCase());
       const fileCol = head.findIndex((h) => /\bfiles?\b|\bparts?\b|\bstl\b/.test(h));
-      const whatCol = head.findIndex((h, i) => i !== fileCol && /\bwhat\b|\bdescription\b|\bpurpose\b|\bit is\b/.test(h));
-      const printCol = head.findIndex((h, i) => i !== fileCol && /\bprint|\bsettings?\b|\bmaterial\b/.test(h));
+      const other = (re) => head.findIndex((h, i) => i !== fileCol && re.test(h));
+      let whatCol = other(/\bwhat\b|\bdescription\b|\bpurpose\b|\bit is\b/);
+      if (whatCol < 0) whatCol = other(/\bnotes?\b|\bcomments?\b/);
+      const printCol = other(/\bprint|\bsettings?\b|\bmaterial\b|\bfilament\b/);
+      const qtyCol = other(/\bqty\b|\bquantity\b|\bcount\b|\bhow many\b|^no\.?$/);
       if (fileCol < 0 || (whatCol < 0 && printCol < 0)) continue;
       let lastPrint = '';
       for (const row of block.rows) {
@@ -395,15 +412,109 @@ export function partNotes(readmes, parts) {
         let print = printCol >= 0 ? plainOf(row[printCol] || '') : '';
         if (SAME.test(print)) print = lastPrint;
         if (print) lastPrint = print;
-        for (const name of namesIn(row[fileCol] || '')) {
-          const want = pathFrom(readme, name);
-          const re = want.includes('*') ? globRe(want) : null;
-          for (const p of parts) {
-            if (notes.has(p)) continue;
-            if (re ? re.test(p) : p.toLowerCase() === want.toLowerCase()) notes.set(p, { what, print, readme, order: order++ });
-          }
-        }
+        const count = qtyCol >= 0 ? countOf(plainOf(row[qtyCol] || '')) : null;
+        out.push({ names: namesIn(row[fileCol] || '').map((name) => pathFrom(readme, name)), shown: namesIn(row[fileCol] || ''), what, print, count, readme });
       }
+    }
+  }
+  return out;
+}
+
+const matcher = (want) => {
+  const re = want.includes('*') ? globRe(want) : null;
+  return (p) => (re ? re.test(p) : p.toLowerCase() === want.toLowerCase());
+};
+
+/**
+ * What each part is and how to print it, from the tables in the project's READMEs (see tableRows). readmes:
+ * [{ path, text }], parts: the part paths. Gives Map path → { what, print, readme, order, count? } (order: where it
+ * comes in the README, for sorting; count: how many to print, when the table has a Qty column).
+ */
+export function partNotes(readmes, parts) {
+  const notes = new Map();
+  let order = 0;
+  for (const row of tableRows(readmes)) {
+    for (const want of row.names) {
+      const match = matcher(want);
+      for (const p of parts) {
+        if (notes.has(p) || !match(p)) continue;
+        const note = { what: row.what, print: row.print, readme: row.readme, order: order++ };
+        if (row.count) note.count = row.count;
+        notes.set(p, note);
+      }
+    }
+  }
+  return notes;
+}
+
+/** The files the READMEs' parts tables list that no part in the project is: [{ name (as written), readme }]. */
+export function listedMissing(readmes, parts) {
+  const out = [];
+  const seen = new Set();
+  for (const row of tableRows(readmes)) {
+    row.names.forEach((want, i) => {
+      if (parts.some(matcher(want)) || seen.has(want.toLowerCase())) return;
+      seen.add(want.toLowerCase());
+      out.push({ name: row.shown[i], readme: row.readme });
+    });
+  }
+  return out;
+}
+
+/** One line of a CSV file, with quoted fields. */
+function csvLine(line) {
+  const out = [];
+  let cur = '';
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') quoted = false; else cur += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { out.push(cur.trim()); cur = ''; } else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+/**
+ * What BOM.csv says about the parts: its printed rows (Category "printed", or with no category column every row naming
+ * an .stl or .3mf), matched to the parts by file name, with or without the extension or a folder. A Notes column with
+ * no Material column gives the material up to its first ";". Gives the same Map as partNotes.
+ */
+export function bomNotes(csv, bomPath, parts) {
+  const notes = new Map();
+  const lines = String(csv || '').split(/\r?\n/).filter((l) => l.trim()).slice(0, 2000);
+  if (lines.length < 2) return notes;
+  const head = csvLine(lines[0]).map((c) => c.toLowerCase());
+  const col = (re) => head.findIndex((c) => re.test(c));
+  const category = col(/categ|type|kind/);
+  const item = col(/item|part|name|file/);
+  const qty = col(/qty|quantity|count/);
+  const material = col(/material|filament/);
+  const comment = col(/note|comment/);
+  if (item < 0) return notes;
+  const stem = (p) => p.split('/').pop().toLowerCase().replace(CASE_EXT, '');
+  let order = 0;
+  for (const line of lines.slice(1)) {
+    const cells = csvLine(line);
+    const name = cells[item] || '';
+    if (category >= 0 ? !/print/i.test(cells[category] || '') : !CASE_EXT.test(name)) continue;
+    let print = material >= 0 ? cells[material] || '' : '';
+    let what = comment >= 0 ? cells[comment] || '' : '';
+    if (material < 0 && what) {
+      const cut = what.indexOf(';');
+      print = cut < 0 ? what : what.slice(0, cut).trim();
+      what = cut < 0 ? '' : what.slice(cut + 1).trim();
+    }
+    const want = name.split('/').pop().toLowerCase();
+    const count = qty >= 0 ? countOf(cells[qty]) : null;
+    for (const p of parts) {
+      const base = p.split('/').pop().toLowerCase();
+      if (notes.has(p) || !(base === want || (!CASE_EXT.test(want) && stem(p) === want))) continue;
+      const note = { what, print, readme: bomPath, order: order++ };
+      if (count) note.count = count;
+      notes.set(p, note);
     }
   }
   return notes;
@@ -439,6 +550,10 @@ export function partWarnings(facts, fit, bed) {
   }
   const biggest = Math.max(...facts.size);
   if (biggest > 0 && biggest < 3) out.push({ level: 'warn', text: `It's only ${Math.round(biggest * 100) / 100} mm across: the file may be in inches or metres. Your slicer can scale it.` });
+  const mm = (v) => String(Math.round(v * 10) / 10);
+  if (facts.min && facts.min[2] > 0.05) out.push({ level: 'info', text: `It sits ${mm(facts.min[2])} mm above the bed in the file. Most slicers drop it onto the bed; check before you print.` });
+  if (facts.min && facts.min[2] < -0.05) out.push({ level: 'info', text: `It goes ${mm(-facts.min[2])} mm below the bed in the file. Most slicers lift it onto the bed, but some cut that part off; check before you print.` });
+  if (facts.tris && facts.onBed !== undefined && facts.onBed < 10 && biggest >= 3) out.push({ level: 'warn', text: 'As it lies it touches the bed only at a point or an edge: lay it on a flat side in your slicer, or it needs supports.' });
   if (facts.insideOut) out.push({ level: 'warn', text: 'Its surface faces inwards (inside out). Most slicers turn it round; if yours prints nothing, fix it in Maker Forge\'s model doctor.' });
   if (facts.open) out.push({ level: 'info', text: `Its surface has ${facts.open} open ${facts.open === 1 ? 'edge' : 'edges'}. Slicers usually mend small gaps; if layers look wrong, fix it in Maker Forge's model doctor.` });
   return out;
