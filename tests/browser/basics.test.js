@@ -94,9 +94,11 @@ describe('basics', () => {
   test('Full screen fills the screen with Bench', async () => {
     await fromMenu(page, '#fullscreen');
     await page.waitForFunction(() => document.fullscreenElement !== null);
-    assert.equal(await page.locator('#fullscreen').getAttribute('aria-pressed'), 'true');
+    // the button follows the browser's fullscreenchange event, which comes a frame after fullscreenElement is set
+    await page.waitForFunction(() => document.querySelector('#fullscreen').getAttribute('aria-pressed') === 'true');
     await fromMenu(page, '#fullscreen');
     await page.waitForFunction(() => document.fullscreenElement === null);
+    await page.waitForFunction(() => document.querySelector('#fullscreen').getAttribute('aria-pressed') === 'false');
   });
 
   test('Easy reading can follow the system light or dark setting', async () => {

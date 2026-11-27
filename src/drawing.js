@@ -1,6 +1,7 @@
 // Reading a drawing (1.0.3 design §5): every piece of text it holds and where it sits, then its wire
 // table, its checks list and its notes, and what Bench still needs to make the steps.
 // No page code: it works on any DOM Level 2 document, so it's unit-tested in Node.
+import { PRINTED_PATH } from './caseparts.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const MAX_TEXT = 500; // one label's characters
@@ -431,8 +432,9 @@ const SAFETY_LINE = /^(unplugged|fuse|covered|apart|clamp|earth|beep)$/; // read
 
 /** The drawing's progress read back from storage or a file: anything odd is dropped. */
 export function cleanDrawingProgress(raw) {
-  const out = { done: [], answers: {}, dismissed: [], steps: [], safety: [] };
+  const out = { done: [], answers: {}, dismissed: [], steps: [], safety: [], printed: [] };
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  if (Array.isArray(raw.printed)) out.printed = [...new Set(raw.printed.filter((k) => typeof k === 'string' && PRINTED_PATH.test(k)))].slice(0, 500); // case parts printed (1.0.5)
   if (Array.isArray(raw.steps)) out.steps = [...new Set(raw.steps.filter((k) => typeof k === 'string' && STEP.test(k)))].slice(0, 2000);
   if (Array.isArray(raw.safety)) out.safety = [...new Set(raw.safety.filter((k) => typeof k === 'string' && SAFETY_LINE.test(k)))];
   if (Array.isArray(raw.done)) out.done = [...new Set(raw.done.filter((k) => typeof k === 'string' && KEY.test(k)))].slice(0, 5000);

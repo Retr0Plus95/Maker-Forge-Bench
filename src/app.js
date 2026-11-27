@@ -28,6 +28,8 @@ import { createBoard3D } from './board3d.js';
 import { BOARD_COLOURS } from './board3d-geometry.js';
 import { MAX_README, SAFETY, cropFor, guideNeeds, guideWires, mentionsMains, pickReadme, readGuide } from './readme.js';
 import { renderGuide } from './guide-panel.js';
+import { MAX_PART, PRINTERS, cleanMaterial, cleanPrinter, fitOnBed, gramsText, isCasePart, meshFacts, partNotes, partWarnings, plastic, printHint, readPart, sizeText } from './caseparts.js';
+import { caseText, renderCase, renderHave } from './case-panel.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
 import { EXAMPLES } from './examples.js';
@@ -126,8 +128,9 @@ const state = {
   files: [], // the project's file list as last read
   readme: { path: null, mtime: null, guide: null, mains: false }, // the README read as a guide (1.0.4)
   readmeOpenOnly: false,
+  caseOpenOnly: false, // the Case tab shows only parts not printed yet (1.0.5)
 };
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.5';
 // where the files come from: dev.py, a GitHub repo or a picked folder (0.7 design §1)
 let source = localSource();
 const FLIP_DISABLED = 'Only layout sheets can be flipped.';
@@ -2274,6 +2277,7 @@ function panelCounts() {
     wiring: { done: legs.filter((m) => state.wired.has(m.key)).length + wires.filter((k) => state.drawing.done.includes(k)).length, total: legs.length + wires.length },
     checks: { done: checks.filter((id) => state.checks.has(id)).length, total: checks.length },
     parts: { done: state.parts.filter((p) => state.ticked.has(p.ref)).length, total: state.parts.length },
+    case: { done: caseFiles().filter((f) => state.drawing.printed.includes(f.path)).length, total: caseFiles().length },
   };
 }
 
@@ -2296,6 +2300,7 @@ function queueTabs() {
 
 function renderPanelTabs() {
   tabsQueued = false;
+  renderHavePanel(); // What you have follows every section's counts (1.0.5)
   const { tabs, open } = panelTabs(state.panelTab, panelCounts(), emptyTabs());
   const panel = $('#panel');
   const changed = panel.dataset.tab !== open;
@@ -2666,7 +2671,7 @@ function startOver() {
   }
   state.startOverAt = 0;
   const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults, drawing: state.drawing };
-  const drawing = { ...state.drawing, done: [], steps: [], safety: [] }; // the wires, README steps and safety ticks go; your answers stay true
+  const drawing = { ...state.drawing, done: [], steps: [], safety: [], printed: [] }; // the wires, README steps, safety and printed ticks go; your answers stay true
   history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {}, drawing }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
@@ -3103,6 +3108,263 @@ function renderGuidePanel() {
     onOpenOnly: (on) => { state.readmeOpenOnly = on; renderGuidePanel(); },
   });
   queueTabs();
+}
+
+// ---- the case: parts to print (1.0.5 design §6) ----
+const caseFiles = () => state.files.filter((f) => isCasePart(f.path));
+const caseRead = new Map();   // path → { mtime, facts, tris, error } as read (tris kept to look at it again)
+const caseThumbs = new Map(); // `${path}|${mtime}|${material}` → a picture (data: URL)
+const readmeTexts = new Map(); // path → { mtime, text }: every README, for what it says about the parts
+let caseNotes = new Map();
+let caseTicket = 0;
+const CASE_KEEP = 3e6; // triangles kept in memory in all; a part beyond that is read again to look at it
+let printer = cleanPrinter(store.get('printer', null));
+let caseMaterial = cleanMaterial(store.get('caseMaterial', 'PLA'));
+
+/** Reads the project's case parts (only those new or changed) and what its READMEs say about them. The last call wins. */
+async function loadCaseParts(files) {
+  const ticket = ++caseTicket;
+  state.files = files;
+  const parts = files.filter((f) => isCasePart(f.path));
+  for (const path of [...caseRead.keys()]) if (!parts.some((f) => f.path === path)) caseRead.delete(path);
+  if (!parts.length) {
+    caseNotes = new Map();
+    renderCasePanel();
+    return;
+  }
+  // the READMEs (any folder) say what each part is and how to print it
+  const readmes = files.filter((f) => /(^|\/)readme\.md$/i.test(f.path) && f.size <= MAX_README).slice(0, 20);
+  for (const f of readmes) {
+    const had = readmeTexts.get(f.path);
+    if (had && had.mtime === f.mtime) continue;
+    try {
+      const { text } = await source.text(f.path);
+      readmeTexts.set(f.path, { mtime: f.mtime, text });
+    } catch {
+      readmeTexts.delete(f.path);
+    }
+    if (ticket !== caseTicket) return;
+  }
+  caseNotes = partNotes(readmes.filter((f) => readmeTexts.has(f.path)).map((f) => ({ path: f.path, text: readmeTexts.get(f.path).text })), parts.map((f) => f.path));
+  renderCasePanel();
+  for (const f of parts) {
+    const had = caseRead.get(f.path);
+    if (had && had.mtime === f.mtime) continue;
+    let entry;
+    if (f.size > MAX_PART) {
+      entry = { mtime: f.mtime, facts: null, tris: null, error: `is ${Math.round(f.size / 1048576)} MB, too big for Bench to read (64 MB at most)` };
+    } else {
+      try {
+        const bytes = await source.bytes(f.path);
+        if (ticket !== caseTicket) return;
+        if (!bytes) throw new SourceError("couldn't be read here");
+        const tris = await readPart(f.path, bytes);
+        entry = { mtime: f.mtime, facts: meshFacts(tris), tris, error: null };
+      } catch (error) {
+        if (ticket !== caseTicket) return;
+        const why = error instanceof RangeError ? `is too big to read here (${error.message})`
+          : error instanceof ServerError || error instanceof SourceError ? "couldn't be read. Try again in a moment"
+            : error && error.message ? error.message : "couldn't be read";
+        entry = { mtime: f.mtime, facts: null, tris: null, error: why };
+      }
+    }
+    caseRead.set(f.path, entry);
+    keepCaseMemory();
+    renderCasePanel();
+    if (entry.facts) await caseThumbnail(f.path);
+    if (ticket !== caseTicket) return;
+  }
+}
+
+/** Drops the triangles of the parts read first once too many are kept (they're read again to look at them). */
+function keepCaseMemory() {
+  let total = 0;
+  for (const entry of [...caseRead.values()].reverse()) {
+    if (!entry.tris) continue;
+    total += entry.tris.length / 9;
+    if (total > CASE_KEEP) entry.tris = null;
+  }
+}
+
+/** A part's plastic: what its README says, else the one you picked. */
+function partMaterial(path) {
+  const notes = caseNotes.get(path);
+  return (notes && printHint(notes.print).material) || caseMaterial;
+}
+
+async function caseThumbnail(path) {
+  const entry = caseRead.get(path);
+  if (!entry || !entry.tris) return;
+  const notes = caseNotes.get(path);
+  const key = `${path}|${entry.mtime}|${partMaterial(path)}`;
+  if (caseThumbs.has(key)) return;
+  try {
+    const { partThumbnail } = await import('./case3d.js');
+    const url = await partThumbnail(entry.tris, { material: partMaterial(path), print: notes ? notes.print : '' });
+    if (!url) return;
+    caseThumbs.set(key, url);
+    if (caseThumbs.size > 400) caseThumbs.delete(caseThumbs.keys().next().value);
+    renderCasePanel();
+  } catch (error) {
+    console.warn(error);
+  }
+}
+
+/** Each case part as the Case tab shows it, in the README's order, then by name. */
+function caseView() {
+  const printed = new Set(state.drawing.printed);
+  const files = caseFiles();
+  const order = (f) => (caseNotes.has(f.path) ? caseNotes.get(f.path).order : 1e9);
+  return [...files].sort((a, b) => order(a) - order(b) || (a.path.toLowerCase() < b.path.toLowerCase() ? -1 : 1)).map((f) => {
+    const entry = caseRead.get(f.path);
+    const read = entry && entry.mtime === f.mtime ? entry : null;
+    const material = partMaterial(f.path);
+    const facts = read ? read.facts : null;
+    const fit = facts ? fitOnBed(facts.size, printer.bed) : null;
+    return {
+      path: f.path,
+      printed: printed.has(f.path),
+      facts,
+      error: read ? read.error : null,
+      material,
+      plastic: facts ? plastic(facts, material) : null,
+      fit,
+      warnings: facts ? partWarnings(facts, fit, printer.bed) : [],
+      notes: caseNotes.get(f.path) || null,
+      thumb: read ? caseThumbs.get(`${f.path}|${read.mtime}|${material}`) || null : null,
+    };
+  });
+}
+
+function renderCasePanel() {
+  const parts = caseView();
+  renderCase($('#case'), {
+    parts,
+    printer,
+    material: caseMaterial,
+    openOnly: state.caseOpenOnly,
+    fileHref: (path) => source.fileHref(path),
+    onPrinted: togglePrinted,
+    onShow: (part) => showCasePart(part.path),
+    onPrinter: (next) => {
+      printer = cleanPrinter(next);
+      store.set('printer', printer);
+      renderCasePanel();
+      if ($('#case-view').open && caseShowing) showCasePart(caseShowing);
+    },
+    onMaterial: (m) => {
+      caseMaterial = cleanMaterial(m);
+      store.set('caseMaterial', caseMaterial);
+      renderCasePanel();
+      for (const f of caseFiles()) caseThumbnail(f.path);
+    },
+    onOpenOnly: (on) => { state.caseOpenOnly = on; renderCasePanel(); },
+    onCopy: () => copyText(caseText(parts, projectName()), 'Case parts copied.'),
+  });
+  queueTabs();
+}
+
+function togglePrinted(part, on) {
+  if (on === state.drawing.printed.includes(part.path)) return;
+  const printed = state.drawing.printed.filter((k) => k !== part.path);
+  if (on) printed.push(part.path);
+  setDrawing({ ...state.drawing, printed }, `${on ? 'Printed' : 'Not printed'}: ${part.path.split('/').pop()}`.slice(0, 90));
+}
+
+// ---- a case part in 3D (the Look in 3D dialog) ----
+let caseViewer = null;   // the view, once made (null: not yet; false: this browser can't draw 3D)
+let caseShowing = null;  // the part on show
+
+async function showCasePart(path) {
+  const dialog = $('#case-view');
+  const file = caseFiles().find((f) => f.path === path);
+  if (!file) return;
+  caseShowing = path;
+  const part = caseView().find((p) => p.path === path);
+  $('#case-view-title').textContent = path.split('/').pop();
+  const facts = part && part.facts;
+  $('#case-view-facts').textContent = facts
+    ? `${sizeText(facts.size)} · ${gramsText(part.plastic.grams)} of ${part.material} · ${part.fit.fits ? (part.fit.turned ? 'fits your printer, turned 90° on the bed' : 'fits your printer') : 'too big for your printer as it lies'} (${printer.bed.join(' × ')} mm)`
+    : '';
+  if (!dialog.open) dialog.showModal();
+  const message = $('#case-view-message');
+  message.hidden = true;
+  let entry = caseRead.get(path);
+  if (entry && !entry.tris && entry.facts) {
+    try {
+      entry = { ...entry, tris: await readPart(path, await source.bytes(path)) };
+      caseRead.set(path, entry);
+      keepCaseMemory();
+    } catch {
+      message.textContent = `${path} couldn't be read again. Try in a moment.`;
+      message.hidden = false;
+      return;
+    }
+  }
+  if (!entry || !entry.tris || caseShowing !== path) return;
+  if (caseViewer === null) {
+    const { createCaseView } = await import('./case3d.js');
+    caseViewer = (await createCaseView($('#case-view-host'))) || false;
+  }
+  if (!caseViewer) {
+    message.textContent = "This browser can't draw 3D here, so the part can't be shown. Its sizes are above.";
+    message.hidden = false;
+    return;
+  }
+  const notes = caseNotes.get(path);
+  caseViewer.show(entry.tris, { bed: printer.bed, fits: Boolean(part && part.fit && part.fit.fits), material: part ? part.material : caseMaterial, print: notes ? notes.print : '' });
+}
+
+function wireCaseView() {
+  const dialog = $('#case-view');
+  $('#case-view-done').addEventListener('click', () => dialog.close());
+  for (const name of ['iso', 'top', 'front', 'part']) $(`#case-view-${name}`).addEventListener('click', () => { if (caseViewer) caseViewer.view(name); });
+  dialog.addEventListener('close', () => { caseShowing = null; });
+}
+
+// ---- What you have (1.0.5 design §6.5): every piece of the build and how far it's got ----
+let haveDrawn = '';
+function renderHavePanel() {
+  const rows = [];
+  const add = (id, label, done, total, words, left, tab, tabLabel) => { if (total > 0) rows.push({ id, label, done, total, words, left: done < total ? left : null, tab, tabLabel }); };
+  const steps = stepsOf();
+  const parts = state.parts.length;
+  const soldered = state.parts.filter((p) => state.ticked.has(p.ref)).length;
+  add('parts', 'Parts', soldered, parts, `${soldered} of ${parts} soldered`, `${parts - soldered} ${parts - soldered === 1 ? 'part' : 'parts'} to solder`, 'parts', 'the Parts tab');
+  const stepsDone = steps.filter((st) => stepDone(st)).length;
+  add('steps', 'Build steps', stepsDone, steps.length, `${stepsDone} of ${steps.length} done`, `${steps.length - stepsDone} build ${steps.length - stepsDone === 1 ? 'step' : 'steps'}`, 'guide', 'the build steps');
+  const rs = readmeSteps();
+  const rsDone = rs.filter((st) => state.drawing.steps.includes(st.id)).length;
+  add('readme', 'README steps', rsDone, rs.length, `${rsDone} of ${rs.length} done`, `${rs.length - rsDone} README ${rs.length - rsDone === 1 ? 'step' : 'steps'}`, 'guide', 'the README steps');
+  const counts = panelCounts();
+  add('wiring', 'Wiring', counts.wiring.done, counts.wiring.total, `${counts.wiring.done} of ${counts.wiring.total} done`, `${counts.wiring.total - counts.wiring.done} to wire`, 'wiring', 'the Wiring tab');
+  add('checks', 'Checks', counts.checks.done, counts.checks.total, `${counts.checks.done} of ${counts.checks.total} ticked`, `${counts.checks.total - counts.checks.done} ${counts.checks.total - counts.checks.done === 1 ? 'check' : 'checks'}`, 'checks', 'the Checks tab');
+  const caseParts = caseView();
+  const printedN = caseParts.filter((p) => p.printed).length;
+  const read = caseParts.filter((p) => p.facts);
+  const grams = read.reduce((sum, p) => sum + p.plastic.grams, 0);
+  const notPrinted = caseParts.filter((p) => !p.printed);
+  add('case', 'Case', printedN, caseParts.length, `${printedN} of ${caseParts.length} printed${read.length ? `, ${gramsText(grams)} of plastic in all` : ''}`,
+    notPrinted.length === 1 ? `${notPrinted[0].path.split('/').pop()} to print` : `${notPrinted.length} case parts to print`, 'case', 'the Case tab');
+  // only worth a card when there's more than one piece to keep track of
+  const show = rows.length >= 2 && rows.some((r) => ['case', 'readme', 'wiring'].includes(r.id));
+  const others = state.files.filter((f) => /\.pdf$/i.test(f.path)).length;
+  const sheets = state.sheets.filter((sh) => !sh.missing).length;
+  const also = [sheets ? `${sheets} ${sheets === 1 ? 'drawing' : 'drawings'}` : '', others ? `${others} PDF ${others === 1 ? 'datasheet' : 'datasheets'}` : ''].filter(Boolean);
+  const view = { rows: show ? rows : [], also: show && also.length ? `Also in the project: ${also.join(', ')}.` : null };
+  // drawn only when it changes: the panel's watcher redraws the tabs on every change, which draw this card
+  const key = JSON.stringify(view);
+  if (key === haveDrawn) return;
+  haveDrawn = key;
+  renderHave($('#have'), {
+    ...view,
+    onOpen: (row) => {
+      chooseTab(row.tab);
+      renderPanelTabs();
+      const target = row.id === 'steps' ? $('#steps') : row.id === 'readme' ? $('#readme') : null;
+      if (target) target.scrollIntoView({ block: 'start', behavior: settings.reduceMotion ? 'auto' : 'smooth' });
+    },
+  });
 }
 
 function renderWiringPanel() {
@@ -3942,6 +4204,7 @@ function setProgress({ ticked, flipped, prints, wired, myBoard, notes, checks, c
   renderStepsPanel();
   renderWiringPanel();
   renderGuidePanel();
+  renderCasePanel();
   renderChecksPanel();
   renderContinuityPanel();
   renderFaultsPanel();
@@ -4200,6 +4463,7 @@ async function relist(listing = null) {
   }
   state.modelFiles = modelFilesIn(project.files);
   loadReadme(project.files); // a README added, changed or gone (1.0.4)
+  loadCaseParts(project.files); // case parts added, changed or gone (1.0.5)
   const sheets = sheetsFor(project.files);
   const same = sheets.length === state.sheets.length && sheets.every((s, i) => s.id === state.sheets[i].id &&
     s.path === state.sheets[i].path && s.label === state.sheets[i].label && s.missing === state.sheets[i].missing &&
@@ -4312,15 +4576,17 @@ function updateTabCounts() {
 }
 
 function onKey(e) {
-  if (document.querySelector('dialog[open]:is(#help, #shopping, #sort-parts, #log, #versions, #palette, #calc, #shape-send)')) return; // these dialogs handle their own keys (Esc closes them)
+  if (document.querySelector('dialog[open]:is(#help, #shopping, #sort-parts, #log, #versions, #palette, #calc, #shape-send, #case-view)')) return; // these dialogs handle their own keys (Esc closes them)
   const t = e.target;
   const typing = t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
+  // a tick box or button keeps the focus after a click, and isn't typing: Ctrl+Z, Ctrl+Y and Ctrl+S still work there (1.0.5)
+  const editing = typing && !(t.tagName === 'INPUT' && ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file'].includes(t.type));
   if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key.toLowerCase() === 'k')) {
     e.preventDefault();
     openPalette();
     return;
   }
-  if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing && e.key.toLowerCase() === 's') {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !editing && e.key.toLowerCase() === 's') {
     e.preventDefault();
     saveProgressFile();
     return;
@@ -4330,7 +4596,7 @@ function onKey(e) {
     walkTrail(e.key === 'ArrowLeft' ? -1 : 1);
     return;
   }
-  if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !editing) {
     const key = e.key.toLowerCase();
     if (key === 'z' && !e.shiftKey) {
       e.preventDefault();
@@ -4523,6 +4789,7 @@ async function start() {
   $('#versions-done').addEventListener('click', () => $('#versions').close());
   $('#shopping-csv').addEventListener('click', saveShoppingCsv);
   $('#shopping-done').addEventListener('click', () => $('#shopping').close());
+  wireCaseView();
   $('#shopping-missing').addEventListener('change', fillShopping);
   $('#toast-undo').addEventListener('click', undoFromToast);
   $('#iron-yes').addEventListener('click', () => ironAnswer(true));
@@ -4716,6 +4983,7 @@ async function openProject(src, listing = null) {
   loadProgress();
   loadOpenStep();
   await loadReadme(project.files);
+  loadCaseParts(project.files);
   renderTabs();
   if (source.live) {
     connectLive({ onChange: onFileChange, onRemove: (path) => whenQuiet(path, path === 'forge-project.json' ? forgetProject : relist), onStatus: onLiveStatus });

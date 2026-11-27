@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="200mm" height="120mm" viewBox="0 0 200 120">
+<title>case-like</title>
+<rect x="0" y="0" width="200" height="120" fill="#FFFFFF"/>
+<g style="fill:none; stroke:#840000; stroke-width:0.3;"><path d="M30 40 L90 40 M30 70 L90 70 M120 40 L170 40"/></g>
+<text x="40" y="36" font-size="5" fill="#000">R1</text>
+<text x="80" y="36" font-size="5" fill="#000">C1</text>
+<text x="140" y="36" font-size="5" fill="#000">U1</text>
+<text x="40" y="66" font-size="5" fill="#000">LED1</text>
+</svg>

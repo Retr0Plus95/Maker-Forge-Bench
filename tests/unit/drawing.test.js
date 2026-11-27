@@ -166,19 +166,21 @@ test('the wire list as text, ticked by sheet and wire', () => {
 });
 
 test('progress read back from storage or a file: anything odd is dropped', () => {
-  assert.deepEqual(cleanDrawingProgress(null), { done: [], answers: {}, dismissed: [], steps: [], safety: [] });
+  assert.deepEqual(cleanDrawingProgress(null), { done: [], answers: {}, dismissed: [], steps: [], safety: [], printed: [] });
   const clean = cleanDrawingProgress({
     done: ['wiring#W9', 'wiring#W9', 'bad', 7, 'x#Q1'],
     answers: { 'ask:wiring:4': '  left and middle  ', 'ask:wiring:5': '', '__proto__': 'x', 'BAD KEY': 'y' },
     dismissed: ['notag:wiring', 42, 'Not A Need', 'readme:left', 'readme:wire:readme:wiring:5:W22'],
     steps: ['readme:wiring:3', 'readme:wiring:3', 'readme:Bad:1', 'wiring:2', 9],
     safety: ['unplugged', 'beep', 'not-a-line', 3],
+    printed: ['case/stl/left-box.stl', 'case/stl/left-box.stl', 'knob.3MF', '../secret.stl', '/abs.stl', 'case/./x.stl', 'notes.txt', 'a\\b.stl', 5],
   });
   assert.deepEqual(clean.done, ['wiring#W9']);
   assert.deepEqual({ ...clean.answers }, { 'ask:wiring:4': 'left and middle' });
   assert.deepEqual(clean.dismissed, ['notag:wiring', 'readme:left', 'readme:wire:readme:wiring:5:W22']);
   assert.deepEqual(clean.steps, ['readme:wiring:3'], 'the README steps ticked (1.0.4)');
   assert.deepEqual(clean.safety, ['unplugged', 'beep'], 'the safety lines ticked (1.0.4)');
+  assert.deepEqual(clean.printed, ['case/stl/left-box.stl', 'knob.3MF'], 'the case parts printed (1.0.5): project paths to STL or 3MF only');
 });
 
 test('the fume extractor drawings have no wire table, checks or notes to read, so Bench shows them as before', () => {

@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PANEL_TABS, cleanTab, panelTabs, sectionsShown, tabOf } from '../../src/paneltabs.js';
 
-const SECTIONS = ['myboard', 'readme', 'steps', 'wiring', 'checks', 'continuity', 'checklist'];
+const SECTIONS = ['myboard', 'have', 'readme', 'steps', 'wiring', 'checks', 'continuity', 'checklist', 'case'];
 
-test('five tabs and All, the guide first', () => {
-  assert.deepEqual(PANEL_TABS.map((t) => t.label), ['Guide', 'Board', 'Wiring', 'Checks', 'Parts', 'All']);
+test('six tabs and All, the guide first', () => {
+  assert.deepEqual(PANEL_TABS.map((t) => t.label), ['Guide', 'Board', 'Wiring', 'Checks', 'Parts', 'Case', 'All']);
   assert.equal(panelTabs(undefined).open, 'guide');
 });
 
@@ -39,7 +39,9 @@ test('a tab with nothing in it is left out; if it was open, the first one left s
 });
 
 test('which sections each tab shows; All shows every one', () => {
-  assert.deepEqual(sectionsShown('guide', SECTIONS), ['readme', 'steps'], 'the README guide first (1.0.4)');
+  assert.deepEqual(sectionsShown('guide', SECTIONS), ['have', 'readme', 'steps'], 'What you have (1.0.5), then the README guide (1.0.4)');
+  assert.deepEqual(sectionsShown('case', SECTIONS), ['case'], 'the case parts to print (1.0.5)');
+  assert.equal(tabOf('case'), 'case');
   assert.deepEqual(sectionsShown('checks', SECTIONS), ['checks', 'continuity']);
   assert.deepEqual(sectionsShown('all', SECTIONS), SECTIONS);
   assert.equal(tabOf('continuity'), 'checks');

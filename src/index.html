@@ -48,7 +48,7 @@
   </div>
   <div id="find-results"></div>
 </header>
-<p id="whats-new" role="status" hidden><strong>New in Bench 1.0.4:</strong> How to build it (Guide). Bench reads your project's README and shows its wiring, assembly and first power-up as steps to tick, each with its wires and a picture cut from the drawing. Mains work comes after a short safety list. <strong>From 1.0.3:</strong> Wires from the drawing (Wiring): Bench reads a drawing's wire table, checks and notes, and says what's wrong or missing. <button id="whats-new-close" type="button">Close</button></p>
+<p id="whats-new" role="status" hidden><strong>New in Bench 1.0.5:</strong> The case (Case tab). Bench reads the STL and 3MF parts in your project: each one's size, how much plastic, whether it fits your printer, and what the README says about printing it, with a tick when it's printed and a look in 3D. <strong>What you have</strong> (Guide) shows how far each part of the build has got. <strong>From 1.0.4:</strong> How to build it (Guide): your README's steps to tick, behind a mains safety list. <button id="whats-new-close" type="button">Close</button></p>
 <p id="status" aria-live="polite"></p>
 <div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span> <button id="toast-undo" type="button">Undo</button></div>
 <div id="iron" role="alert" hidden><span id="iron-text">Nothing ticked for 20 minutes. Is the iron still on?</span> <button id="iron-yes" type="button">Still working</button> <button id="iron-off" type="button">It's off</button></div>
@@ -144,6 +144,7 @@
       <p class="hint">Click a part on a drawing, or find it, to see what it is, why it's there and which way round it goes.</p>
     </section>
     <section id="myboard" aria-label="Your board" data-tab-of="board" hidden></section>
+    <section id="have" aria-label="What you have" data-tab-of="guide"></section>
     <section id="readme" aria-label="How to build it, from the README" data-tab-of="guide"></section>
     <section id="steps" aria-label="Build steps" data-tab-of="guide"></section>
     <section id="wires" aria-label="Wires from the drawing" data-tab-of="wiring"></section>
@@ -153,6 +154,7 @@
     <section id="faults" aria-label="Find a fault" data-tab-of="checks"></section>
     <section id="continuity" aria-label="Continuity test" data-tab-of="checks"></section>
     <section id="checklist" aria-label="Build checklist" data-tab-of="parts"></section>
+    <section id="case" aria-label="Case parts to print" data-tab-of="case"></section>
   </aside>
 </div>
 <dialog id="help" aria-labelledby="help-title">
@@ -283,6 +285,20 @@
     <a id="shape-open" href="https://forge.retr0plus.se/" target="_blank" rel="noopener" hidden>Open Shape</a>
     <button id="shape-send-go" class="primary" type="button">Send</button>
     <button id="shape-send-done" type="button">Done</button>
+  </div>
+</dialog>
+<dialog id="case-view" aria-labelledby="case-view-title">
+  <h2 id="case-view-title">Case part</h2>
+  <div id="case-view-host" class="case-view-host"></div>
+  <p id="case-view-message" hidden></p>
+  <p id="case-view-facts" class="case-view-facts"></p>
+  <p class="hint">Drag to turn it, scroll or pinch to zoom. The box is your printer's build volume: green when the part fits as it lies, red when it doesn't.</p>
+  <div class="dialog-actions">
+    <button id="case-view-iso" type="button">3/4</button>
+    <button id="case-view-top" type="button">Top</button>
+    <button id="case-view-front" type="button">Front</button>
+    <button id="case-view-part" type="button">Close up</button>
+    <button id="case-view-done" class="primary" type="button">Done</button>
   </div>
 </dialog>
 <dialog id="settings" aria-labelledby="settings-title">

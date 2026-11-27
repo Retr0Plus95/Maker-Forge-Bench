@@ -1,12 +1,13 @@
-// The side panel in tabs (0.8 design §3): one short row, Guide · Board · Wiring · Checks · Parts,
+// The side panel in tabs (0.8 design §3): one short row, Guide · Board · Wiring · Checks · Parts (· Case, 1.0.5),
 // each with its count, and All for the long list of every section as before. No page code: unit-tested.
 
 export const PANEL_TABS = Object.freeze([
-  { id: 'guide', label: 'Guide', sections: ['readme', 'steps'], title: "The README's steps with mains safety, and the build, one step at a time" },
+  { id: 'guide', label: 'Guide', sections: ['have', 'readme', 'steps'], title: "What you have, the README's steps with mains safety, and the build, one step at a time" },
   { id: 'board', label: 'Board', sections: ['myboard'], title: 'Your board: photos and hole names' },
   { id: 'wiring', label: 'Wiring', sections: ['wires', 'wiring', 'wirecut'], title: 'The wires to fit, what to wire line by line, and the wire to cut' },
   { id: 'checks', label: 'Checks', sections: ['checks', 'continuity'], title: 'Before power: meter checks and the continuity test' },
   { id: 'parts', label: 'Parts', sections: ['checklist'], title: 'Every part, ticked as you solder it' },
+  { id: 'case', label: 'Case', sections: ['case'], title: 'The case parts to print: size, plastic, and whether each fits your printer (1.0.5)' },
   { id: 'all', label: 'All', sections: [], title: 'Every section in one long list' },
 ]);
 

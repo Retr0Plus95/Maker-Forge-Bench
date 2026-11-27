@@ -1,0 +1,448 @@
+// Bench 1.0.5 "The case" (docs/design/2026-11-27-release-1.0.5-design.md): the project's printed parts, read
+// from its STL and 3MF files. The readers follow Maker Forge Shape's (src/core.js parseSTL and parse3MFModel), so
+// both apps read a file the same way. No page code: unit-tested in Node. A 3MF is a zip; its deflate is undone by
+// the browser's own DecompressionStream (passed in), so no library and no change to the security rules.
+import { inline, parseMarkdown, pathFrom } from './readme.js';
+
+export const CASE_EXT = /\.(stl|3mf)$/i;
+export const MAX_PART = 64 * 1024 * 1024;      // a part file bigger than this isn't read
+export const MAX_TRIS = 4e6;                     // nor one with more triangles (Shape's limit)
+const MAX_UNZIPPED = 400 * 1024 * 1024;          // what a 3MF may unpack to, in all
+const WELD_LIMIT = 500000;                       // the surface check runs on parts up to this many triangles
+
+/** A printed part's file: an STL or 3MF in the project. */
+export const isCasePart = (path) => CASE_EXT.test(String(path || ''));
+
+// ---- STL ----
+
+/** An STL (binary or text) as a flat list of triangles: x y z ×3 per triangle, in the file's units. */
+export function parseSTL(buffer) {
+  const bytes = buffer instanceof ArrayBuffer ? buffer : buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  const dv = new DataView(bytes);
+  if (bytes.byteLength >= 84) {
+    const n = dv.getUint32(80, true);
+    if (84 + n * 50 === bytes.byteLength) {
+      if (n > MAX_TRIS) throw new RangeError('more than four million triangles');
+      const out = new Float32Array(n * 9);
+      for (let i = 0; i < n; i++) for (let k = 0; k < 9; k++) out[i * 9 + k] = dv.getFloat32(84 + i * 50 + 12 + k * 4, true);
+      return out;
+    }
+  }
+  const text = new TextDecoder().decode(bytes);
+  const re = /vertex\s+([-+\deE.]+)\s+([-+\deE.]+)\s+([-+\deE.]+)/g;
+  const v = [];
+  let m;
+  while ((m = re.exec(text))) {
+    v.push(+m[1], +m[2], +m[3]);
+    if (v.length > MAX_TRIS * 9) throw new RangeError('more than four million triangles');
+  }
+  if (!v.length || v.length % 9 || v.some((x) => !Number.isFinite(x))) throw new Error("isn't a readable STL");
+  return new Float32Array(v);
+}
+
+// ---- 3MF: the zip around it ----
+
+/** The files in a zip, from its central directory: [{ name, method, size, packed, offset }]. */
+export function zipEntries(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let end = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 65535); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { end = i; break; }
+  }
+  if (end < 0) throw new Error("isn't a 3MF file (not a zip)");
+  const count = dv.getUint16(end + 10, true);
+  let at = dv.getUint32(end + 16, true);
+  const entries = [];
+  for (let k = 0; k < count && k < 20000; k++) {
+    if (at + 46 > bytes.length || dv.getUint32(at, true) !== 0x02014b50) throw new Error('has a damaged zip directory');
+    const method = dv.getUint16(at + 10, true);
+    const packed = dv.getUint32(at + 20, true);
+    const size = dv.getUint32(at + 24, true);
+    const nameLen = dv.getUint16(at + 28, true);
+    const extra = dv.getUint16(at + 30, true);
+    const comment = dv.getUint16(at + 32, true);
+    const offset = dv.getUint32(at + 42, true);
+    const name = new TextDecoder().decode(bytes.subarray(at + 46, at + 46 + nameLen));
+    entries.push({ name, method, size, packed, offset });
+    at += 46 + nameLen + extra + comment;
+  }
+  return entries;
+}
+
+/** One file of a zip as bytes. inflateRaw(Uint8Array) → Promise<Uint8Array> undoes deflate (method 8). */
+export async function zipRead(buffer, entry, inflateRaw) {
+  const bytes = new Uint8Array(buffer);
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (entry.size === 0xffffffff || entry.packed === 0xffffffff) throw new RangeError('is too big a 3MF (zip64)');
+  if (entry.offset + 30 > bytes.length || dv.getUint32(entry.offset, true) !== 0x04034b50) throw new Error('has a damaged zip entry');
+  const start = entry.offset + 30 + dv.getUint16(entry.offset + 26, true) + dv.getUint16(entry.offset + 28, true);
+  const data = bytes.subarray(start, start + entry.packed);
+  if (entry.method === 0) return data;
+  if (entry.method !== 8) throw new Error('uses a zip packing Bench can\'t open');
+  const out = await inflateRaw(data, MAX_UNZIPPED);
+  if (out.length > MAX_UNZIPPED) throw new RangeError('unpacks too big');
+  return out;
+}
+
+/** The browser's own inflate (DecompressionStream), for zipRead. It stops as soon as the output passes `limit`. */
+export async function browserInflate(data, limit = MAX_UNZIPPED) {
+  const reader = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > limit) {
+      reader.cancel().catch(() => {});
+      throw new RangeError('unpacks too big');
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) { out.set(c, at); at += c.length; }
+  return out;
+}
+
+/** A 3MF's model files as text: { files: { '/3D/3dmodel.model': xml, … }, main }. */
+export async function unzip3MF(buffer, inflateRaw = browserInflate) {
+  const entries = zipEntries(buffer);
+  const models = entries.filter((e) => /\.model$/i.test(e.name));
+  if (!models.length) throw new Error('has no 3D model inside');
+  let total = 0;
+  const files = {};
+  const decoder = new TextDecoder();
+  for (const e of models) {
+    total += e.size;
+    if (total > MAX_UNZIPPED) throw new RangeError('unpacks too big');
+    files['/' + e.name.replace(/^\/+/, '')] = decoder.decode(await zipRead(buffer, e, inflateRaw));
+  }
+  let main = null;
+  const rels = entries.find((e) => /^_rels\/\.rels$/i.test(e.name));
+  if (rels) {
+    const xml = decoder.decode(await zipRead(buffer, rels, inflateRaw));
+    const m = /<Relationship\b[^>]*Target="([^"]+\.model)"[^>]*Type="[^"]*3dmodel"/i.exec(xml) || /<Relationship\b[^>]*Type="[^"]*3dmodel"[^>]*Target="([^"]+\.model)"/i.exec(xml);
+    if (m) main = '/' + m[1].replace(/^\/+/, '');
+  }
+  if (!main || !(main in files)) main = Object.keys(files).find((k) => /3dmodel\.model$/i.test(k)) || Object.keys(files)[0];
+  return { files, main };
+}
+
+const UNITS = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 };
+
+/**
+ * A 3MF's triangles in millimetres: every mesh, placed by its build items and components (as Shape's
+ * parse3MFModel, without the slicer painting). files: { path: xml }, main: the start part.
+ */
+export function parse3MF(files, main) {
+  const norm = (p) => '/' + String(p || '').replace(/^\/+/, '');
+  const attr = (tag, name) => {
+    const m = new RegExp('\\s' + name + '="([^"]*)"').exec(tag);
+    return m ? m[1] : null;
+  };
+  const objs = new Map();
+  for (const [path0, xml] of Object.entries(files)) {
+    const path = norm(path0);
+    const objRe = /<object\b([^>]*)>([\s\S]*?)<\/object>/g;
+    let m;
+    while ((m = objRe.exec(xml))) {
+      const body = m[2];
+      const V = [];
+      const T = [];
+      const comps = [];
+      const vr = /<vertex\b([^>]*)\/?>/g;
+      let v;
+      while ((v = vr.exec(body))) V.push(+attr(v[1], 'x'), +attr(v[1], 'y'), +attr(v[1], 'z'));
+      const tr = /<triangle\b([^>]*)\/?>/g;
+      let t;
+      while ((t = tr.exec(body))) T.push(+attr(t[1], 'v1'), +attr(t[1], 'v2'), +attr(t[1], 'v3'));
+      const cr = /<component\b([^>]*)\/?>/g;
+      let c;
+      while ((c = cr.exec(body))) {
+        const pp = attr(c[1], 'p:path');
+        comps.push({ key: (pp ? norm(pp) : path) + '#' + attr(c[1], 'objectid'), m: attr(c[1], 'transform') });
+      }
+      objs.set(path + '#' + attr(m[1], 'id'), { V, T, comps });
+      if (objs.size > 20000) break;
+    }
+  }
+  const mat = (s) => {
+    const a = (s || '').trim().split(/\s+/).map(Number);
+    return a.length === 12 && a.every(Number.isFinite) ? a : [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  };
+  const mul = (A, B) => { // 3MF matrices act on row vectors: p' = p·M
+    const r = [];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) r.push(A[3 * i] * B[j] + A[3 * i + 1] * B[3 + j] + A[3 * i + 2] * B[6 + j]);
+    for (let j = 0; j < 3; j++) r.push(A[9] * B[j] + A[10] * B[3 + j] + A[11] * B[6 + j] + B[9 + j]);
+    return r;
+  };
+  const mainPath = norm(main || Object.keys(files)[0]);
+  const xml = files[Object.keys(files).find((k) => norm(k) === mainPath)] || '';
+  const unit = UNITS[(/<model\b[^>]*\sunit="([a-z]+)"/i.exec(xml) || [])[1]] || 1;
+  const out = [];
+  let calls = 0; // components can name each other many times over: a budget keeps a hostile file from running away
+  const emit = (key, M, depth) => {
+    const o = objs.get(key);
+    if (!o || depth > 8) return;
+    if (++calls > 200000) throw new RangeError('too many parts inside');
+    const ok = (k) => Number.isInteger(k) && k >= 0 && 3 * k + 2 < o.V.length;
+    for (let t = 0; t < o.T.length / 3; t++) {
+      const a = o.T[3 * t];
+      const b = o.T[3 * t + 1];
+      const c = o.T[3 * t + 2];
+      if (!ok(a) || !ok(b) || !ok(c)) continue;
+      for (const k of [a, b, c]) {
+        const x = o.V[3 * k];
+        const y = o.V[3 * k + 1];
+        const z = o.V[3 * k + 2];
+        out.push((x * M[0] + y * M[3] + z * M[6] + M[9]) * unit, (x * M[1] + y * M[4] + z * M[7] + M[10]) * unit, (x * M[2] + y * M[5] + z * M[8] + M[11]) * unit);
+      }
+      if (out.length > 9 * MAX_TRIS) throw new RangeError('more than four million triangles');
+    }
+    for (const c of o.comps) emit(c.key, mul(mat(c.m), M), depth + 1);
+  };
+  const items = [];
+  const ir = /<item\b([^>]*)\/?>/g;
+  let it;
+  while ((it = ir.exec(xml))) {
+    const pp = attr(it[1], 'p:path');
+    items.push({ key: (pp ? norm(pp) : mainPath) + '#' + attr(it[1], 'objectid'), m: attr(it[1], 'transform') });
+  }
+  if (items.length) items.forEach((i) => emit(i.key, mat(i.m), 0));
+  else objs.forEach((o, k) => { if (o.T.length) emit(k, mat(null), 0); });
+  if (!out.length || out.some((x) => !Number.isFinite(x))) throw new Error('has no triangles Bench can read');
+  return new Float32Array(out);
+}
+
+/** A part file's triangles, by its name: STL or 3MF. */
+export async function readPart(path, buffer, inflateRaw = browserInflate) {
+  if (/\.3mf$/i.test(path)) {
+    const { files, main } = await unzip3MF(buffer, inflateRaw);
+    return parse3MF(files, main);
+  }
+  return parseSTL(buffer);
+}
+
+// ---- what a part is: size, plastic, surface ----
+
+/**
+ * The facts Bench shows for a part: { tris, min, max, size [x,y,z], volume (mm³), area (mm²), open (edges on a gap in
+ * the surface: used by an odd number of triangles; null when not checked), insideOut }.
+ */
+export function meshFacts(tris) {
+  const n = Math.floor(tris.length / 9);
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  let vol = 0;
+  let area = 0;
+  for (let t = 0; t < n; t++) {
+    const o = t * 9;
+    for (let k = 0; k < 9; k++) {
+      const v = tris[o + k];
+      const a = k % 3;
+      if (v < min[a]) min[a] = v;
+      if (v > max[a]) max[a] = v;
+    }
+    const ax = tris[o]; const ay = tris[o + 1]; const az = tris[o + 2];
+    const bx = tris[o + 3] - ax; const by = tris[o + 4] - ay; const bz = tris[o + 5] - az;
+    const cx = tris[o + 6] - ax; const cy = tris[o + 7] - ay; const cz = tris[o + 8] - az;
+    const nx = by * cz - bz * cy; const ny = bz * cx - bx * cz; const nz = bx * cy - by * cx;
+    area += Math.hypot(nx, ny, nz) / 2;
+    vol += (ax * nx + ay * ny + az * nz) / 6;
+  }
+  let open = null;
+  if (n && n <= WELD_LIMIT) {
+    const ids = new Map();
+    const idOf = (o) => {
+      const key = `${tris[o]},${tris[o + 1]},${tris[o + 2]}`;
+      let id = ids.get(key);
+      if (id === undefined) { id = ids.size; ids.set(key, id); }
+      return id;
+    };
+    const v = new Uint32Array(n * 3);
+    for (let i = 0; i < n * 3; i++) v[i] = idOf(i * 3);
+    const N = ids.size + 1;
+    const edges = new Map();
+    for (let t = 0; t < n; t++) {
+      for (let e = 0; e < 3; e++) {
+        const a = v[t * 3 + e];
+        const b = v[t * 3 + ((e + 1) % 3)];
+        if (a === b) continue;
+        const key = a < b ? a * N + b : b * N + a;
+        edges.set(key, (edges.get(key) || 0) + 1);
+      }
+    }
+    // a gap's edge is used by one triangle (or three…); an edge where two solid pieces meet is used by four, which
+    // slicers print fine (Maker Forge's boxes have many), so only odd counts are gaps
+    open = 0;
+    for (const c of edges.values()) if (c % 2) open++;
+  }
+  const size = n ? [max[0] - min[0], max[1] - min[1], max[2] - min[2]] : [0, 0, 0];
+  return { tris: n, min, max, size, volume: Math.abs(vol), area, open, insideOut: vol < 0 };
+}
+
+// ---- printers and plastics ----
+
+/** Printers by their bed: width × depth × height, mm. "own" is a size you type. */
+export const PRINTERS = Object.freeze([
+  { id: 'bambu-256', label: 'Bambu Lab X1, P1 or A1 (256 mm)', bed: [256, 256, 256] },
+  { id: 'bambu-mini', label: 'Bambu Lab A1 mini (180 mm)', bed: [180, 180, 180] },
+  { id: 'prusa-mk4', label: 'Prusa MK4 (250 × 210 mm)', bed: [250, 210, 220] },
+  { id: 'prusa-core', label: 'Prusa Core One (250 × 220 mm)', bed: [250, 220, 270] },
+  { id: 'prusa-mini', label: 'Prusa MINI (180 mm)', bed: [180, 180, 180] },
+  { id: 'ender-220', label: 'Creality Ender-3 or K1 (220 mm)', bed: [220, 220, 250] },
+  { id: 'own', label: 'My own size', bed: null },
+]);
+
+/** The printer setting read back from storage: { id, bed }. Anything odd is the first printer. */
+export function cleanPrinter(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const found = PRINTERS.find((p) => p.id === r.id) || PRINTERS[0];
+  if (found.id !== 'own') return { id: found.id, bed: [...found.bed] };
+  const bed = Array.isArray(r.bed) ? r.bed.slice(0, 3).map(Number) : [];
+  const ok = bed.length === 3 && bed.every((v) => Number.isFinite(v) && v >= 20 && v <= 2000);
+  return { id: 'own', bed: ok ? bed.map((v) => Math.round(v * 10) / 10) : [...PRINTERS[0].bed] };
+}
+
+/** Plastics with their density (g/cm³), for the weight. */
+export const MATERIALS = Object.freeze({ PLA: 1.24, PETG: 1.27, ABS: 1.04, ASA: 1.07, TPU: 1.21, PC: 1.2, Nylon: 1.14 });
+export const cleanMaterial = (v) => (typeof v === 'string' && Object.hasOwn(MATERIALS, v) ? v : 'PLA');
+const FILAMENT_MM2 = Math.PI * 0.875 * 0.875; // 1.75 mm filament
+const WALL = 1.2;     // mm of solid plastic under every surface (three 0.4 mm walls, or the top and bottom layers)
+const INFILL = 0.15;  // and 15 % inside
+
+/**
+ * About how much plastic a part takes: { grams, metres } of 1.75 mm filament, counting solid walls and 15 % infill
+ * (a slicer gives the exact figure), and { solidGrams } if it were printed solid.
+ */
+export function plastic(facts, material = 'PLA') {
+  const density = MATERIALS[cleanMaterial(material)];
+  const shell = Math.min(facts.volume, facts.area * WALL);
+  const mm3 = shell + Math.max(0, facts.volume - shell) * INFILL;
+  return { grams: (mm3 / 1000) * density, metres: mm3 / FILAMENT_MM2 / 1000, solidGrams: (facts.volume / 1000) * density };
+}
+
+/**
+ * Whether a part fits the bed: as it lies in the file (turned flat on the bed if that helps), or else on
+ * another side. { fits, turned (true: turned 90° on the bed), side: [x,y,z] it would fit on, or null; over: mm too
+ * big as it lies }.
+ */
+export function fitOnBed(size, bed) {
+  const [x, y, z] = size;
+  const [W, D, H] = bed;
+  const flat = (a, b, h) => h <= H && ((a <= W && b <= D) || (a <= D && b <= W));
+  if (flat(x, y, z)) return { fits: true, turned: !(x <= W && y <= D), side: null, over: 0 };
+  const over = Math.max(0, z - H, Math.min(Math.max(x - W, y - D), Math.max(x - D, y - W)));
+  for (const [a, b, h] of [[x, z, y], [y, z, x]]) {
+    if (flat(a, b, h)) return { fits: false, turned: false, side: [a, b, h], over };
+  }
+  return { fits: false, turned: false, side: null, over };
+}
+
+// ---- what the project's READMEs say about each part ----
+
+const plainOf = (cell) => inline(cell).map((r) => (r.t === 'img' ? r.alt || '' : r.text || '')).join('').trim();
+const SAME = /^(same|as above|ditto|〃|")\.?$/i;
+const MATERIAL_WORDS = [['PETG', /\bpetg\b/i], ['PLA', /\bpla\b/i], ['ABS', /\babs\b/i], ['ASA', /\basa\b/i], ['TPU', /\btpu\b/i], ['PC', /\bpc\b|\bpolycarbonate\b/i], ['Nylon', /\bnylon\b|\bpa\d*\b/i]];
+
+/** What a README's print notes say: { material, supports: true | false | null }. */
+export function printHint(text) {
+  const t = String(text || '');
+  const found = MATERIAL_WORDS.find(([, re]) => re.test(t));
+  let supports = null;
+  if (/\bno supports?\b|\bwithout supports?\b|\bsupports? off\b|\bsupport-free\b|\bno support needed\b/i.test(t)) supports = false;
+  else if (/\bsupports? on\b|\bwith supports?\b|\bneeds? supports?\b|\bsupports? needed\b|\bsupports? (?:under|everywhere|from the bed)\b/i.test(t)) supports = true;
+  return { material: found ? found[0] : null, supports };
+}
+
+/** A README's table cell's file names: code spans, links and plain words that end in .stl or .3mf. */
+function namesIn(cell) {
+  const out = [];
+  for (const r of inline(cell)) {
+    if (r.t === 'code' || r.t === 'text' || r.t === 'b' || r.t === 'i') {
+      for (const m of String(r.text).matchAll(/[^\s,;`'"()|]+\.(?:stl|3mf)\b/gi)) out.push(m[0]);
+    } else if (r.t === 'link') {
+      if (isCasePart(r.href)) out.push(r.href);
+      else for (const m of String(r.text).matchAll(/[^\s,;`'"()|]+\.(?:stl|3mf)\b/gi)) out.push(m[0]);
+    }
+  }
+  return out;
+}
+
+const globRe = (pattern) => new RegExp('^' + pattern.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*') + '$', 'i');
+
+/**
+ * What each part is and how to print it, from the tables in the project's READMEs: a table whose head has a
+ * File column and a What or Print column. readmes: [{ path, text }], parts: the part paths. Gives
+ * Map path → { what, print, readme, order } (order: where it comes in the README, for sorting).
+ */
+export function partNotes(readmes, parts) {
+  const notes = new Map();
+  let order = 0;
+  for (const { path: readme, text } of readmes) {
+    for (const block of parseMarkdown(text)) {
+      if (block.t !== 'table') continue;
+      const head = block.head.map((c) => plainOf(c).toLowerCase());
+      const fileCol = head.findIndex((h) => /\bfiles?\b|\bparts?\b|\bstl\b/.test(h));
+      const whatCol = head.findIndex((h, i) => i !== fileCol && /\bwhat\b|\bdescription\b|\bpurpose\b|\bit is\b/.test(h));
+      const printCol = head.findIndex((h, i) => i !== fileCol && /\bprint|\bsettings?\b|\bmaterial\b/.test(h));
+      if (fileCol < 0 || (whatCol < 0 && printCol < 0)) continue;
+      let lastPrint = '';
+      for (const row of block.rows) {
+        const what = whatCol >= 0 ? plainOf(row[whatCol] || '') : '';
+        let print = printCol >= 0 ? plainOf(row[printCol] || '') : '';
+        if (SAME.test(print)) print = lastPrint;
+        if (print) lastPrint = print;
+        for (const name of namesIn(row[fileCol] || '')) {
+          const want = pathFrom(readme, name);
+          const re = want.includes('*') ? globRe(want) : null;
+          for (const p of parts) {
+            if (notes.has(p)) continue;
+            if (re ? re.test(p) : p.toLowerCase() === want.toLowerCase()) notes.set(p, { what, print, readme, order: order++ });
+          }
+        }
+      }
+    }
+  }
+  return notes;
+}
+
+// ---- words ----
+
+/** "151.5 × 222 × 122 mm". */
+export function sizeText(size) {
+  const f = (v) => String(Math.round(v * 10) / 10);
+  return `${f(size[0])} × ${f(size[1])} × ${f(size[2])} mm`;
+}
+
+/** "about 180 g" (rounded the way a scale would read it). */
+export function gramsText(g) {
+  if (g < 1) return 'under 1 g';
+  if (g < 10) return `about ${Math.round(g * 10) / 10} g`;
+  if (g < 1000) return `about ${Math.round(g)} g`;
+  return `about ${Math.round(g / 100) / 10} kg`;
+}
+
+/** "62 m" of filament. */
+export const metresText = (m) => (m < 1 ? `${Math.max(1, Math.round(m * 100))} cm` : `${Math.round(m * 10) / 10} m`);
+
+/** The things to look at for a part: [{ level: 'warn' | 'info', text }]. */
+export function partWarnings(facts, fit, bed) {
+  const out = [];
+  if (!fit.fits) {
+    const b = `${bed[0]} × ${bed[1]} × ${bed[2]} mm`;
+    out.push({ level: 'warn', text: fit.side
+      ? `Too big for your printer (${b}) as it lies. Laid on another side (${sizeText(fit.side)}) it fits.`
+      : `Too big for your printer (${b}) by ${Math.ceil(fit.over)} mm, whichever way it lies.` });
+  }
+  const biggest = Math.max(...facts.size);
+  if (biggest > 0 && biggest < 3) out.push({ level: 'warn', text: `It's only ${Math.round(biggest * 100) / 100} mm across: the file may be in inches or metres. Your slicer can scale it.` });
+  if (facts.insideOut) out.push({ level: 'warn', text: 'Its surface faces inwards (inside out). Most slicers turn it round; if yours prints nothing, fix it in Maker Forge\'s model doctor.' });
+  if (facts.open) out.push({ level: 'info', text: `Its surface has ${facts.open} open ${facts.open === 1 ? 'edge' : 'edges'}. Slicers usually mend small gaps; if layers look wrong, fix it in Maker Forge's model doctor.` });
+  return out;
+}
+
+/** Tidy part paths kept as printed (in progress): project paths to STL or 3MF files. */
+export const PRINTED_PATH = /^(?!\/)(?!.*(?:^|\/)\.\.?(?:\/|$))[^\\:*?"<>|\n]{1,300}\.(?:stl|3mf)$/i;

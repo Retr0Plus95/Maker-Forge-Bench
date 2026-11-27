@@ -9,8 +9,8 @@ It's part of **Maker Forge**, a suite of hobbyist apps that share one project fi
 Shape, today's [Maker Forge](https://github.com/Retr0Plus95/Maker-Forge) 3D app. It will live at
 `forge.retr0plus.se/bench/`.
 
-**Status:** release 0.9 works on PC, phone and tablet, from a local folder, a public GitHub repo,
-or a folder picked in the browser. The website comes with 1.0 (see the roadmap).
+**Status:** release 1.0.5 works on PC, phone and tablet, from a local folder, a public GitHub repo,
+or a folder picked in the browser. See the roadmap for what comes next.
 
 ## Try it
 
@@ -175,6 +175,43 @@ repo straight away.
     size, tallest part, ports at the edges and LEDs and buttons on top go straight into Shape's Your
     parts, ready for its box maker. Sending again replaces it. It works at forge.retr0plus.se, where
     both apps share this browser's storage; anywhere else the dialog says so and sends nothing.
+- **At the bench (1.0.1):**
+  - **Welcome back** says where you left off.
+  - **Time left** is worked out from your own speed.
+  - **Iron reminder**, if you turn it on.
+  - **Sort your parts first**, step by step.
+  - **Joints and solder** on the shopping list.
+  - **Tools** for each step and a soldering tip on each card.
+  - **"I don't have this one yet"** skips a part until it comes.
+  - **Undo by tap** after a tick, and a small buzz on Android.
+  - **Mix-up warning** for resistors that look alike.
+  - **Bridge risk** for neighbouring joints underneath on different lines.
+- **Find a fault (1.0.2, Checks):** pick what you see ("the fans always run at full speed"), and Bench walks you
+  through meter checks from the board's own connections, showing where each probe goes. Claude helps when the checks
+  run out.
+- **Wires from the drawing (1.0.3, Wiring):** a drawing with a wire table (W1, W2…) gives a list of wires to tick,
+  with its checks and notes. Bench says what's wrong or missing in the drawing, and asks for what it can't read.
+- **How to build it (1.0.4, Guide):** Bench reads the project's README and shows its wiring, assembly and first
+  power-up as steps to tick, each with its wires and a picture cut from the drawing, behind a mains safety list.
+- **The case (1.0.5, Case tab):** every STL and 3MF in the project is a part to print. Each one shows:
+  - its size;
+  - about how much plastic it takes (grams and metres of 1.75 mm filament);
+  - whether it fits your printer (pick yours, or type your bed's size), and if it's too big as it lies, whether
+    another side would fit;
+  - what the README's table says it is and how to print it (a `File | What it is | Print` table, any README in the
+    project);
+  - a small picture;
+  - a **Printed** tick;
+  - **Look in 3D**: the part on your bed inside the build volume, green when it fits and red when it doesn't.
+
+  Bench also says when a file isn't a model, has gaps in its surface, is inside out or looks like the wrong units.
+  **Copy as text** gives the list for paper. A 3MF is opened by the browser itself, with nothing to install.
+
+  | The Case tab on the four-channel bench supply | Look in 3D: the part in your printer's build volume |
+  |---|---|
+  | ![The Case tab: nine parts with their sizes, plastic and print notes](docs/images/case-tab.jpg) | ![A case half in 3D inside a green build volume](docs/images/case-3d.jpg) |
+- **What you have (1.0.5, Guide):** one card with every piece of the build, from parts soldered to case parts
+  printed. Each shows how far it's got and opens its tab, and "Left to do" sums up the rest.
 - **History:** a build log with times and time spent, named versions of your progress, and a
   build report to download.
 - **Find anything** with `Ctrl+K`. Links open right at a part (`?sheet=SFE-04&part=R8`).

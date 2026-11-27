@@ -25,9 +25,11 @@ HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 CSP = (HERE / "deploy" / "csp.txt").read_text(encoding="utf-8").strip()
 
-# Drawings, plus datasheet PDFs and 3D models (0.9) a project keeps next to them (never shown as sheets).
+# Drawings, plus datasheet PDFs, 3D models (0.9) and case parts to print (1.0.5) a project keeps next to them
+# (never shown as sheets).
 PROJECT_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-                 ".pdf": "application/pdf", ".glb": "model/gltf-binary", ".wrl": "model/vrml"}
+                 ".pdf": "application/pdf", ".glb": "model/gltf-binary", ".wrl": "model/vrml",
+                 ".stl": "model/stl", ".3mf": "model/3mf"}
 WRL_LIMIT = 20 * 1024 * 1024  # a KiCad .wrl bigger than this isn't converted
 PROJECT_FILE = "forge-project.json"
 APP_TYPES = {
