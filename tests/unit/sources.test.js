@@ -29,8 +29,8 @@ test('the link text for a repo goes round', () => {
 });
 
 test('project files are the drawings, photos, datasheets and project file, as dev.py lists them', () => {
-  for (const ok of ['forge-project.json', 'docs/SFE-01.svg', 'my-board/top.JPG', 'images/a.jpeg', 'datasheets/x.pdf', 'b.png', 'README.md', 'docs/readme.MD', 'case/stl/lid.stl', 'knob.3MF']) assert.ok(isProjectFile(ok), ok);
-  for (const no of ['NOTES.md', 'README.md.bak', '.github/x.svg', 'node_modules/a/b.svg', 'sub/forge-project.json.bak', 'a/../b.svg', 'x.stl.bak', '.cache/x.stl']) assert.ok(!isProjectFile(no), no);
+  for (const ok of ['forge-project.json', 'docs/SFE-01.svg', 'my-board/top.JPG', 'images/a.jpeg', 'datasheets/x.pdf', 'b.png', 'README.md', 'docs/readme.MD', 'case/stl/lid.stl', 'knob.3MF', 'BOM.csv', 'case/bom.CSV', 'psu-BOM.csv']) assert.ok(isProjectFile(ok), ok);
+  for (const no of ['NOTES.md', 'README.md.bak', '.github/x.svg', 'node_modules/a/b.svg', 'sub/forge-project.json.bak', 'a/../b.svg', 'x.stl.bak', '.cache/x.stl', 'data.csv', 'mybom.csv', 'BOM.csv.bak']) assert.ok(!isProjectFile(no), no);
 });
 
 test("GitHub's tree becomes the file list, inside the chosen folder, with the git hash as fingerprint", () => {

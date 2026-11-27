@@ -965,6 +965,11 @@ html[data-compact] #panel #step-done-next { min-height: 36px; font-size: .95rem;
 .case-part.done .case-part-body, .case-part.done .case-thumb { opacity: .65; }
 .case-part-side { display: grid; gap: 6px; justify-items: center; }
 .case-part-tick { display: flex; align-items: center; gap: 4px; font-size: .85rem; font-weight: 700; }
+.case-part-count { font-weight: 700; color: var(--accent, inherit); }
+.case-part.fitted .case-part-name strong::after { content: ' ✓ fitted'; font-weight: 400; font-size: .85em; opacity: .8; }
+.case-missing-box { margin: 6px 0; padding: 4px 8px; border-left: 4px solid var(--warn, #c98a00); }
+.case-missing-box p { margin: 2px 0; }
+.case-missing { margin: 2px 0 4px; padding-left: 20px; }
 .case-thumb { width: 88px; height: 66px; padding: 0; display: grid; place-items: center; background: var(--field); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; }
 .case-thumb:disabled { cursor: default; }
 .case-thumb img { width: 100%; height: 100%; object-fit: contain; }

@@ -17,15 +17,16 @@ export class SourceError extends Error {
 const PROJECT_FILE = 'forge-project.json';
 const PROJECT_EXT = /\.(svg|png|jpe?g|pdf|glb|wrl|stl|3mf)$/i; // 3D models (0.9) and case parts (1.0.5) are never shown as sheets
 const README = /^readme\.md$/i; // 1.0.4: read as a guide, never shown as a sheet
+const BOM = /(^|[-_])bom\.csv$/i; // 1.0.5: the printed parts' counts and plastics
 const MAX_FILES = 5000;
 
-/** A drawing, photo, datasheet, 3D model, case part, the README or the project file, outside hidden folders and node_modules (as dev.py). */
+/** A drawing, photo, datasheet, 3D model, case part, the README, BOM.csv or the project file, outside hidden folders and node_modules (as dev.py). */
 export function isProjectFile(path) {
   const parts = path.split('/');
   const name = parts[parts.length - 1];
   if (!name || parts.some((p) => p === '' || p === '.' || p === '..')) return false;
   if (parts.slice(0, -1).some((p) => p.startsWith('.') || p === 'node_modules')) return false;
-  return name === PROJECT_FILE || PROJECT_EXT.test(name) || README.test(name);
+  return name === PROJECT_FILE || PROJECT_EXT.test(name) || README.test(name) || BOM.test(name);
 }
 
 const byName = (a, b) => (a.path.toLowerCase() < b.path.toLowerCase() ? -1 : a.path.toLowerCase() > b.path.toLowerCase() ? 1 : 0);

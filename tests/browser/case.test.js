@@ -48,7 +48,7 @@ describe('the case: parts to print', () => {
     assert.equal(await text(page, `${part('stl/tall-post.stl')} .case-part-print`), 'Print: PLA, on its side, supports on', '"same" is the row above');
     assert.match(await text(page, `${part('stl/long-rail.stl')} .case-part-facts`), / of PLA · /, "the README's plastic for the weight");
     assert.match(await text(page, `${part('stl/open-shell.stl')} .case-part-facts`), / of PLA · /, 'and the one you picked where it says nothing');
-    assert.match(await text(page, '#case-total'), /^7 parts, about \d+ g of plastic \([\d.]+ m of 1\.75 mm filament\), not counting broken\.stl that couldn't be read\.$/);
+    assert.match(await text(page, '#case-total'), /^7 parts \(11 to print, counting copies\), about \d+ g of plastic \([\d.]+ m of 1\.75 mm filament\), not counting broken\.stl that couldn't be read\.$/);
     assert.deepEqual(problems, []);
   });
 
@@ -168,6 +168,52 @@ describe('the case: parts to print', () => {
     assert.match(clip, /^Case parts to print: bench test ö-\S+\n\n\[x\] case\/stl\/box\.stl {2}60 × 40 × 30 mm, about \d+ g of PETG\n {6}The box: holds the board on four posts\n {6}Print: PETG, upright, no supports\n/);
     assert.match(clip, /\[ \] case\/stl\/broken\.stl {2}\(isn't a readable STL\)/);
     assert.match(clip, / {6}! Too big for your printer/);
+  });
+
+  test("the README's Qty column: how many to print, and the plastic for all of them", async () => {
+    await page.locator('#ptab-case').click();
+    assert.equal(await text(page, `${part('stl/tall-post.stl')} .case-part-count`), ' × 4');
+    assert.equal(await page.locator(`${part('stl/box.stl')} .case-part-count`).count(), 0, 'one of a part has no count');
+    assert.match(await text(page, `${part('stl/tall-post.stl')} .case-part-facts`), /^30 × 30 × 240 mm · about \d+ g of PLA each \(\d+ g for 4\) · /);
+    const clip = await (async () => { await page.locator('#case-copy').click(); return page.evaluate(() => navigator.clipboard.readText()); })();
+    assert.match(clip, /\[ \] case\/stl\/tall-post\.stl × 4 {2}30 × 30 × 240 mm, about \d+ g of PLA each/);
+  });
+
+  test("a file the README lists that isn't there, a part it doesn't list, and BOM.csv for the rest", async () => {
+    assert.match(await text(page, '.case-missing-box'), /^A part file is missing/);
+    assert.equal(await text(page, '#case-missing li'), "stl/foot.stl is listed in case/README.md, but isn't in the project.");
+    const shell = await page.locator(`${part('stl/open-shell.stl')} .case-part-warnings li`).allTextContents();
+    assert.ok(shell.includes("It isn't in the README's parts table."), shell.join(' | '));
+    assert.equal(await page.locator(`${part('stl/box.stl')} .case-part-warnings li`).count(), 0, 'a part the table lists, sitting flat on the bed, has nothing to look at');
+    assert.equal(await text(page, `${part('stl/broken.stl')} .case-part-what`), 'A spare that was saved wrongly', "BOM.csv's notes where the README says nothing");
+    assert.equal(await text(page, `${part('stl/broken.stl')} .case-part-print`), 'Print: ASA');
+  });
+
+  test('Fitted: ticks Printed too, is one undo step, counts in What you have and the list for paper, and is kept after a reload', async () => {
+    await page.locator('#ptab-case').click();
+    await page.locator(`${part('stl/lid.stl')} input[data-fitted]`).check();
+    await page.waitForFunction(() => document.querySelector('#case-progress')?.textContent === '2 of 7 printed, 1 fitted');
+    assert.ok(await page.locator(`${part('stl/lid.stl')} input[data-printed]`).isChecked(), 'fitted means printed');
+    assert.match(await page.locator('#undo').getAttribute('title'), /Fitted: lid\.stl/);
+    assert.equal(await page.locator(`${part('stl/lid.stl')}.fitted`).count(), 1);
+    await page.locator('#case-copy').click();
+    assert.match(await page.evaluate(() => navigator.clipboard.readText()), /\[x\] case\/stl\/lid\.stl \(fitted\)/);
+    await page.locator('#ptab-guide').click();
+    await page.waitForFunction(() => /2 of 7 printed, 1 fitted/.test(document.querySelector('#have [data-have="case"]')?.textContent));
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('#ptab-case')?.getAttribute('aria-label') === 'Case, 2 of 7 done');
+    await page.locator('#ptab-case').click();
+    await allRead(page);
+    assert.ok(await page.locator(`${part('stl/lid.stl')} input[data-fitted]`).isChecked());
+    // not printed is not fitted either
+    await page.locator(`${part('stl/lid.stl')} input[data-printed]`).uncheck();
+    await page.waitForFunction(() => document.querySelector('#case-progress')?.textContent === '1 of 7 printed');
+    assert.ok(!(await page.locator(`${part('stl/lid.stl')} input[data-fitted]`).isChecked()));
+    await page.locator('#undo').click();
+    await page.waitForFunction(() => document.querySelector('#case-progress')?.textContent === '2 of 7 printed, 1 fitted');
+    await page.locator(`${part('stl/lid.stl')} input[data-printed]`).uncheck();
+    await page.waitForFunction(() => document.querySelector('#case-progress')?.textContent === '1 of 7 printed');
+    assert.deepEqual(problems, []);
   });
 
   test('a part changed on disk is read again by itself, and a new one is added', async () => {

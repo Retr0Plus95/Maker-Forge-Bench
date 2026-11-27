@@ -28,7 +28,7 @@ import { createBoard3D } from './board3d.js';
 import { BOARD_COLOURS } from './board3d-geometry.js';
 import { MAX_README, SAFETY, cropFor, guideNeeds, guideWires, mentionsMains, pickReadme, readGuide } from './readme.js';
 import { renderGuide } from './guide-panel.js';
-import { MAX_PART, PRINTERS, cleanMaterial, cleanPrinter, fitOnBed, gramsText, isCasePart, meshFacts, partNotes, partWarnings, plastic, printHint, readPart, sizeText } from './caseparts.js';
+import { MAX_PART, PRINTERS, bomNotes, cleanMaterial, cleanPrinter, fitOnBed, gramsText, isCasePart, listedMissing, meshFacts, partNotes, partWarnings, plastic, printHint, readPart, sizeText } from './caseparts.js';
 import { caseText, renderCase, renderHave } from './case-panel.js';
 import { ServerError, SourceError, folderFiles, folderSource, githubSource, localSource, parseRepoLink, repoParam } from './sources.js';
 import { renderStart } from './start.js';
@@ -2671,7 +2671,7 @@ function startOver() {
   }
   state.startOverAt = 0;
   const before = { ticked: [...state.ticked], wired: [...state.wired], checks: [...state.checks], continuity: state.continuity, faults: state.faults, drawing: state.drawing };
-  const drawing = { ...state.drawing, done: [], steps: [], safety: [], printed: [] }; // the wires, README steps, safety and printed ticks go; your answers stay true
+  const drawing = { ...state.drawing, done: [], steps: [], safety: [], printed: [], fitted: [] }; // the wires, README steps, safety, printed and fitted ticks go; your answers stay true
   history.do({ label: 'Start over', apply: () => setProgress({ ticked: [], wired: [], checks: [], continuity: {}, faults: {}, drawing }), revert: () => setProgress(before) });
   setStatus('Started over. Ctrl+Z brings everything back.');
 }
@@ -3116,6 +3116,8 @@ const caseRead = new Map();   // path → { mtime, facts, tris, error } as read 
 const caseThumbs = new Map(); // `${path}|${mtime}|${material}` → a picture (data: URL)
 const readmeTexts = new Map(); // path → { mtime, text }: every README, for what it says about the parts
 let caseNotes = new Map();
+let caseMissing = [];  // files the READMEs' parts tables list that aren't in the project: [{ name, readme }]
+let caseTabled = '';   // where the parts' notes come from: 'README', 'BOM.csv' or '' (nothing lists them)
 let caseTicket = 0;
 const CASE_KEEP = 3e6; // triangles kept in memory in all; a part beyond that is read again to look at it
 let printer = cleanPrinter(store.get('printer', null));
@@ -3129,11 +3131,16 @@ async function loadCaseParts(files) {
   for (const path of [...caseRead.keys()]) if (!parts.some((f) => f.path === path)) caseRead.delete(path);
   if (!parts.length) {
     caseNotes = new Map();
+    caseMissing = [];
+    caseTabled = '';
     renderCasePanel();
     return;
   }
   // the READMEs (any folder) say what each part is and how to print it
   const readmes = files.filter((f) => /(^|\/)readme\.md$/i.test(f.path) && f.size <= MAX_README).slice(0, 20);
+  // and BOM.csv, for the parts no README table names (its counts and plastics)
+  const boms = files.filter((f) => /(^|\/|[-_])bom\.csv$/i.test(f.path) && f.size <= MAX_README).slice(0, 5);
+  readmes.push(...boms);
   for (const f of readmes) {
     const had = readmeTexts.get(f.path);
     if (had && had.mtime === f.mtime) continue;
@@ -3145,7 +3152,18 @@ async function loadCaseParts(files) {
     }
     if (ticket !== caseTicket) return;
   }
-  caseNotes = partNotes(readmes.filter((f) => readmeTexts.has(f.path)).map((f) => ({ path: f.path, text: readmeTexts.get(f.path).text })), parts.map((f) => f.path));
+  const texts = readmes.filter((f) => readmeTexts.has(f.path)).map((f) => ({ path: f.path, text: readmeTexts.get(f.path).text }));
+  const mds = texts.filter((t) => /\.md$/i.test(t.path));
+  const paths = parts.map((f) => f.path);
+  caseNotes = partNotes(mds, paths);
+  caseMissing = listedMissing(mds, paths);
+  caseTabled = caseNotes.size ? 'README' : '';
+  for (const bom of texts.filter((t) => /\.csv$/i.test(t.path))) {
+    const more = bomNotes(bom.text, bom.path, paths.filter((p) => !caseNotes.has(p)));
+    if (more.size && !caseTabled) caseTabled = 'BOM.csv';
+    const base = caseNotes.size;
+    for (const [p, note] of more) caseNotes.set(p, { ...note, order: base + note.order });
+  }
   renderCasePanel();
   for (const f of parts) {
     const had = caseRead.get(f.path);
@@ -3186,6 +3204,9 @@ function keepCaseMemory() {
   }
 }
 
+/** How many of a part to print: its table's Qty, else one. */
+const partCount = (path) => (caseNotes.get(path) && caseNotes.get(path).count) || 1;
+
 /** A part's plastic: what its README says, else the one you picked. */
 function partMaterial(path) {
   const notes = caseNotes.get(path);
@@ -3213,6 +3234,7 @@ async function caseThumbnail(path) {
 /** Each case part as the Case tab shows it, in the README's order, then by name. */
 function caseView() {
   const printed = new Set(state.drawing.printed);
+  const fitted = new Set(state.drawing.fitted || []);
   const files = caseFiles();
   const order = (f) => (caseNotes.has(f.path) ? caseNotes.get(f.path).order : 1e9);
   return [...files].sort((a, b) => order(a) - order(b) || (a.path.toLowerCase() < b.path.toLowerCase() ? -1 : 1)).map((f) => {
@@ -3221,16 +3243,24 @@ function caseView() {
     const material = partMaterial(f.path);
     const facts = read ? read.facts : null;
     const fit = facts ? fitOnBed(facts.size, printer.bed) : null;
+    const notes = caseNotes.get(f.path) || null;
+    const warnings = facts ? partWarnings(facts, fit, printer.bed) : [];
+    if (caseTabled && !notes) warnings.push({ level: 'info', text: caseTabled === 'README' ? "It isn't in the README's parts table." : "It isn't in BOM.csv's printed parts." });
+    const count = partCount(f.path);
+    const one = facts ? plastic(facts, material) : null;
     return {
       path: f.path,
       printed: printed.has(f.path),
+      fitted: fitted.has(f.path),
+      count,
       facts,
       error: read ? read.error : null,
       material,
-      plastic: facts ? plastic(facts, material) : null,
+      plastic: one,
+      allPlastic: one ? { grams: one.grams * count, metres: one.metres * count } : null,
       fit,
-      warnings: facts ? partWarnings(facts, fit, printer.bed) : [],
-      notes: caseNotes.get(f.path) || null,
+      warnings,
+      notes,
       thumb: read ? caseThumbs.get(`${f.path}|${read.mtime}|${material}`) || null : null,
     };
   });
@@ -3243,8 +3273,10 @@ function renderCasePanel() {
     printer,
     material: caseMaterial,
     openOnly: state.caseOpenOnly,
+    missing: caseMissing,
     fileHref: (path) => source.fileHref(path),
     onPrinted: togglePrinted,
+    onFitted: toggleFitted,
     onShow: (part) => showCasePart(part.path),
     onPrinter: (next) => {
       printer = cleanPrinter(next);
@@ -3268,7 +3300,18 @@ function togglePrinted(part, on) {
   if (on === state.drawing.printed.includes(part.path)) return;
   const printed = state.drawing.printed.filter((k) => k !== part.path);
   if (on) printed.push(part.path);
-  setDrawing({ ...state.drawing, printed }, `${on ? 'Printed' : 'Not printed'}: ${part.path.split('/').pop()}`.slice(0, 90));
+  const fitted = (state.drawing.fitted || []).filter((k) => on || k !== part.path); // not printed is not fitted either
+  setDrawing({ ...state.drawing, printed, fitted }, `${on ? 'Printed' : 'Not printed'}: ${part.path.split('/').pop()}`.slice(0, 90));
+}
+
+/** Fitted: in the case. A part fitted has been printed, so it's ticked printed too (one undo step for both). */
+function toggleFitted(part, on) {
+  const had = state.drawing.fitted || [];
+  if (on === had.includes(part.path)) return;
+  const fitted = had.filter((k) => k !== part.path);
+  if (on) fitted.push(part.path);
+  const printed = on && !state.drawing.printed.includes(part.path) ? [...state.drawing.printed, part.path] : state.drawing.printed;
+  setDrawing({ ...state.drawing, printed, fitted }, `${on ? 'Fitted' : 'Not fitted'}: ${part.path.split('/').pop()}`.slice(0, 90));
 }
 
 // ---- a case part in 3D (the Look in 3D dialog) ----
@@ -3342,9 +3385,10 @@ function renderHavePanel() {
   const caseParts = caseView();
   const printedN = caseParts.filter((p) => p.printed).length;
   const read = caseParts.filter((p) => p.facts);
-  const grams = read.reduce((sum, p) => sum + p.plastic.grams, 0);
+  const grams = read.reduce((sum, p) => sum + p.allPlastic.grams, 0);
   const notPrinted = caseParts.filter((p) => !p.printed);
-  add('case', 'Case', printedN, caseParts.length, `${printedN} of ${caseParts.length} printed${read.length ? `, ${gramsText(grams)} of plastic in all` : ''}`,
+  const fittedN = caseParts.filter((p) => p.fitted).length;
+  add('case', 'Case', printedN, caseParts.length, `${printedN} of ${caseParts.length} printed${fittedN ? `, ${fittedN} fitted` : ''}${read.length ? `, ${gramsText(grams)} of plastic in all` : ''}`,
     notPrinted.length === 1 ? `${notPrinted[0].path.split('/').pop()} to print` : `${notPrinted.length} case parts to print`, 'case', 'the Case tab');
   // only worth a card when there's more than one piece to keep track of
   const show = rows.length >= 2 && rows.some((r) => ['case', 'readme', 'wiring'].includes(r.id));
