@@ -44,6 +44,17 @@ class TestFunctions(DevServerTestCase):
         self.assertNotIn("docs/NOTES.md", paths)
         self.assertEqual(dev._project_type("readme.MD"), "text/markdown; charset=utf-8")
 
+    def test_list_files_keeps_the_bom(self):  # 1.0.5: BOM.csv gives the printed parts' counts; other .csv files aren't listed
+        (self.root / "case").mkdir()
+        (self.root / "case" / "BOM.csv").write_text("Item,Qty", encoding="utf-8")
+        (self.root / "psu-bom.csv").write_text("Item,Qty", encoding="utf-8")
+        (self.root / "docs" / "data.csv").write_text("x", encoding="utf-8")
+        paths = [f["path"] for f in dev.list_files(self.root)]
+        self.assertIn("case/BOM.csv", paths)
+        self.assertIn("psu-bom.csv", paths)
+        self.assertNotIn("docs/data.csv", paths)
+        self.assertEqual(dev._project_type("bom.CSV"), "text/csv; charset=utf-8")
+
     def test_list_files_gives_size_and_mtime(self):
         first = dev.list_files(self.root)[0]
         self.assertEqual(first["size"], (self.root / "docs" / "a.svg").stat().st_size)

@@ -210,6 +210,19 @@ repo straight away.
   | The Case tab on the four-channel bench supply | Look in 3D: the part in your printer's build volume |
   |---|---|
   | ![The Case tab: nine parts with their sizes, plastic and print notes](docs/images/case-tab.jpg) | ![A case half in 3D inside a green build volume](docs/images/case-3d.jpg) |
+
+  Also in the Case tab:
+  - a **Fitted** tick next to Printed (fitting a part ticks it printed too);
+  - **how many** of each to print, from a `Qty` column in the README's table, with the plastic for all of them;
+  - **BOM.csv**: its printed rows give the count, plastic and notes for parts no README table lists;
+  - the files the README lists that **aren't in the project**, and the parts it doesn't list;
+  - a part that **floats above the bed, goes below it or stands on a point** in the file;
+  - **Next** and **Previous** in Look in 3D, and a **3MF in its colours** (slicer painting, Bambu's filament per part,
+    or the file's own materials).
+
+  | Fitted, and a file the README lists that's missing | How many to print, and BOM.csv's notes | A two-colour 3MF in 3D |
+  |---|---|---|
+  | ![The Case tab: 2 of 8 printed, 1 fitted, and stl/foot.stl listed but missing](docs/images/case-fitted-missing.jpg) | ![A post to print four of, with the plastic for all four, and a part with BOM.csv's notes](docs/images/case-count-bom.jpg) | ![A front panel in 3D with its label in a second colour, and Previous and Next buttons](docs/images/case-3d-colours.jpg) |
 - **What you have (1.0.5, Guide):** one card with every piece of the build, from parts soldered to case parts
   printed. Each shows how far it's got and opens its tab, and "Left to do" sums up the rest.
 - **History:** a build log with times and time spent, named versions of your progress, and a

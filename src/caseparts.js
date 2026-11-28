@@ -106,7 +106,7 @@ export async function browserInflate(data, limit = MAX_UNZIPPED) {
   return out;
 }
 
-/** A 3MF's model files as text: { files: { '/3D/3dmodel.model': xml, … }, main }. */
+/** A 3MF's model files as text: { files: { '/3D/3dmodel.model': xml, … }, main, config: { settings?, project? } }. */
 export async function unzip3MF(buffer, inflateRaw = browserInflate) {
   const entries = zipEntries(buffer);
   const models = entries.filter((e) => /\.model$/i.test(e.name));
@@ -127,22 +127,47 @@ export async function unzip3MF(buffer, inflateRaw = browserInflate) {
     if (m) main = '/' + m[1].replace(/^\/+/, '');
   }
   if (!main || !(main in files)) main = Object.keys(files).find((k) => /3dmodel\.model$/i.test(k)) || Object.keys(files)[0];
-  return { files, main };
+  // the slicer's settings, for the colours: which filament each part prints in, and each filament's colour
+  const config = {};
+  for (const [name, key] of [[/^metadata\/model_settings\.config$/i, 'settings'], [/^metadata\/project_settings\.config$/i, 'project']]) {
+    const e = entries.find((x) => name.test(x.name));
+    if (e && e.size <= 8 * 1024 * 1024) config[key] = decoder.decode(await zipRead(buffer, e, inflateRaw));
+  }
+  return { files, main, config };
 }
 
 const UNITS = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 };
 
 /**
  * A 3MF's triangles in millimetres: every mesh, placed by its build items and components (as Shape's
- * parse3MFModel, without the slicer painting). files: { path: xml }, main: the start part.
+ * parse3MFModel). files: { path: xml }, main: the start part. colours (optional): { settings, filaments } in, and
+ * { slots, palette } out: each triangle's colour as palette[slots[t]] ('#rrggbb', or null for the part's own colour),
+ * from slicer painting, Bambu's filament per object and part (settings: model_settings.config), or the file's base
+ * materials and colour groups; slots stays null when the file gives no colours.
  */
-export function parse3MF(files, main) {
+export function parse3MF(files, main, colours = null) {
   const norm = (p) => '/' + String(p || '').replace(/^\/+/, '');
   const attr = (tag, name) => {
     const m = new RegExp('\\s' + name + '="([^"]*)"').exec(tag);
     return m ? m[1] : null;
   };
   const objs = new Map();
+  const groups = new Map(); // `${path}#${id}` → the colours of a base materials or colour group
+  const hex = (c) => (/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(c || '') ? c.slice(0, 7).toUpperCase() : null);
+  if (colours) {
+    for (const [path0, xml] of Object.entries(files)) {
+      const path = norm(path0);
+      for (const g of xml.matchAll(/<(?:[a-z]+:)?(basematerials|colorgroup)\b([^>]*)>([\s\S]*?)<\/(?:[a-z]+:)?\1>/gi)) {
+        const list = [...g[3].matchAll(/<(?:[a-z]+:)?(?:base|color)\b([^>]*)\/?>/gi)].map((c) => hex(attr(c[1], 'displaycolor') || attr(c[1], 'color')));
+        groups.set(path + '#' + attr(g[2], 'id'), list);
+      }
+    }
+  }
+  const groupColour = (path, pid, index) => {
+    const list = pid !== null ? groups.get(path + '#' + pid) : null;
+    const c = list ? list[Number(index) || 0] : null;
+    return c ? 'c:' + c : null;
+  };
   for (const [path0, xml] of Object.entries(files)) {
     const path = norm(path0);
     const objRe = /<object\b([^>]*)>([\s\S]*?)<\/object>/g;
@@ -151,20 +176,28 @@ export function parse3MF(files, main) {
       const body = m[2];
       const V = [];
       const T = [];
+      const F = colours ? [] : null;
       const comps = [];
+      const own = colours ? groupColour(path, attr(m[1], 'pid'), attr(m[1], 'pindex')) : null;
       const vr = /<vertex\b([^>]*)\/?>/g;
       let v;
       while ((v = vr.exec(body))) V.push(+attr(v[1], 'x'), +attr(v[1], 'y'), +attr(v[1], 'z'));
       const tr = /<triangle\b([^>]*)\/?>/g;
       let t;
-      while ((t = tr.exec(body))) T.push(+attr(t[1], 'v1'), +attr(t[1], 'v2'), +attr(t[1], 'v3'));
+      while ((t = tr.exec(body))) {
+        T.push(+attr(t[1], 'v1'), +attr(t[1], 'v2'), +attr(t[1], 'v3'));
+        if (F) {
+          const paint = paintSlot(attr(t[1], 'paint_color') || attr(t[1], 'slic3rpe:mmu_segmentation'));
+          F.push(paint !== null ? 'f:' + paint : groupColour(path, attr(t[1], 'pid') ?? attr(m[1], 'pid'), attr(t[1], 'p1') ?? (attr(t[1], 'pid') ? 0 : attr(m[1], 'pindex'))) || own);
+        }
+      }
       const cr = /<component\b([^>]*)\/?>/g;
       let c;
       while ((c = cr.exec(body))) {
         const pp = attr(c[1], 'p:path');
         comps.push({ key: (pp ? norm(pp) : path) + '#' + attr(c[1], 'objectid'), m: attr(c[1], 'transform') });
       }
-      objs.set(path + '#' + attr(m[1], 'id'), { V, T, comps });
+      objs.set(path + '#' + attr(m[1], 'id'), { V, T, F, comps });
       if (objs.size > 20000) break;
     }
   }
@@ -182,8 +215,10 @@ export function parse3MF(files, main) {
   const xml = files[Object.keys(files).find((k) => norm(k) === mainPath)] || '';
   const unit = UNITS[(/<model\b[^>]*\sunit="([a-z]+)"/i.exec(xml) || [])[1]] || 1;
   const out = [];
+  const keys = colours ? [] : null; // each triangle's colour key, when colours are asked for
+  const ext = bambuFilaments(colours && colours.settings);
   let calls = 0; // components can name each other many times over: a budget keeps a hostile file from running away
-  const emit = (key, M, depth) => {
+  const emit = (key, M, depth, inherit = null, item = null) => {
     const o = objs.get(key);
     if (!o || depth > 8) return;
     if (++calls > 200000) throw new RangeError('too many parts inside');
@@ -199,9 +234,13 @@ export function parse3MF(files, main) {
         const z = o.V[3 * k + 2];
         out.push((x * M[0] + y * M[3] + z * M[6] + M[9]) * unit, (x * M[1] + y * M[4] + z * M[7] + M[10]) * unit, (x * M[2] + y * M[5] + z * M[8] + M[11]) * unit);
       }
+      if (keys) keys.push((o.F && o.F[t]) || inherit);
       if (out.length > 9 * MAX_TRIS) throw new RangeError('more than four million triangles');
     }
-    for (const c of o.comps) emit(c.key, mul(mat(c.m), M), depth + 1);
+    for (const c of o.comps) {
+      const part = depth === 0 && item ? ext.parts.get(item + '/' + c.key.slice(c.key.lastIndexOf('#') + 1)) : undefined;
+      emit(c.key, mul(mat(c.m), M), depth + 1, part !== undefined ? 'f:' + part : inherit, null);
+    }
   };
   const items = [];
   const ir = /<item\b([^>]*)\/?>/g;
@@ -210,10 +249,92 @@ export function parse3MF(files, main) {
     const pp = attr(it[1], 'p:path');
     items.push({ key: (pp ? norm(pp) : mainPath) + '#' + attr(it[1], 'objectid'), m: attr(it[1], 'transform') });
   }
-  if (items.length) items.forEach((i) => emit(i.key, mat(i.m), 0));
-  else objs.forEach((o, k) => { if (o.T.length) emit(k, mat(null), 0); });
+  const idOf = (k) => k.slice(k.lastIndexOf('#') + 1);
+  if (items.length) {
+    items.forEach((i) => {
+      const e = ext.objects.get(idOf(i.key));
+      emit(i.key, mat(i.m), 0, e !== undefined ? 'f:' + e : null, idOf(i.key));
+    });
+  } else objs.forEach((o, k) => { if (o.T.length) emit(k, mat(null), 0); });
   if (!out.length || out.some((x) => !Number.isFinite(x))) throw new Error('has no triangles Bench can read');
+  if (colours) {
+    const filaments = (colours.filaments || []).map(hex);
+    const colourOf = (k) => {
+      if (!k) return null;
+      if (k.startsWith('c:')) return k.slice(2);
+      const n = Number(k.slice(2)); // a filament, 0 = the first: the part's own colour unless the project names its colour
+      if (n === 0) return null;
+      return filaments[n] || SECOND[(n - 1) % SECOND.length];
+    };
+    const palette = [];
+    const index = new Map();
+    const slots = new Uint16Array(keys.length);
+    keys.forEach((k, t) => {
+      const c = colourOf(k);
+      if (!index.has(c)) { index.set(c, palette.length); palette.push(c); }
+      slots[t] = index.get(c);
+    });
+    const coloured = palette.some((c) => c !== null) && palette.length <= 64;
+    colours.slots = coloured ? slots : null;
+    colours.palette = coloured ? palette : [null];
+  }
   return new Float32Array(out);
+}
+
+/** Colours for a second, third… filament when the file doesn't name them. */
+const SECOND = ['#E04A3A', '#2F6FD0', '#F2F2F2', '#30A050', '#202020', '#F0C020'];
+
+/** Slicer painting on a triangle (Bambu paint_color, PrusaSlicer mmu_segmentation) as a filament, 0 = the first; null: none. */
+function paintSlot(code) {
+  const s = String(code || '').toUpperCase();
+  if (s === '4') return 0;
+  if (s === '8') return 1;
+  if (/^[0-9A-F]C$/.test(s)) return parseInt(s[0], 16) + 2;
+  return null; // unpainted, or split finer than one triangle
+}
+
+/** Bambu's model_settings.config: the filament (0 = the first) of each object and each of its parts. */
+function bambuFilaments(xml) {
+  const objects = new Map();
+  const parts = new Map();
+  if (!xml) return { objects, parts };
+  const extruder = (text) => {
+    const m = /<metadata\b[^>]*\bkey="extruder"[^>]*\bvalue="(\d+)"/.exec(text) || /<metadata\b[^>]*\bvalue="(\d+)"[^>]*\bkey="extruder"/.exec(text);
+    const e = m ? Number(m[1]) : 0;
+    return e > 0 && e < 256 ? e - 1 : undefined;
+  };
+  for (const m of String(xml).matchAll(/<object\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/object>/g)) {
+    const e = extruder(m[2].replace(/<part\b[\s\S]*?<\/part>/g, ''));
+    if (e !== undefined) objects.set(m[1], e);
+    for (const p of m[2].matchAll(/<part\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/part>/g)) {
+      const pe = extruder(p[2]);
+      if (pe !== undefined) parts.set(m[1] + '/' + p[1], pe);
+    }
+  }
+  return { objects, parts };
+}
+
+/** A Bambu project's filament colours (project_settings.config, JSON), or []. */
+function filamentColours(json) {
+  try {
+    const list = JSON.parse(json || 'null')?.filament_colour;
+    return Array.isArray(list) ? list.filter((c) => typeof c === 'string').slice(0, 32) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * A part file's triangles and colours, by its name: { tris, slots, palette } (see parse3MF). An STL has no colours.
+ */
+export async function readPartFull(path, buffer, inflateRaw = browserInflate) {
+  if (/\.3mf$/i.test(path)) {
+    const { files, main, config } = await unzip3MF(buffer, inflateRaw);
+    const colours = { settings: config.settings || null, filaments: filamentColours(config.project) };
+    const tris = parse3MF(files, main, colours);
+    return { tris, slots: colours.slots, palette: colours.palette };
+  }
+  return { tris: parseSTL(buffer), slots: null, palette: [null] };
 }
 
 /** A part file's triangles, by its name: STL or 3MF. */
@@ -229,7 +350,8 @@ export async function readPart(path, buffer, inflateRaw = browserInflate) {
 
 /**
  * The facts Bench shows for a part: { tris, min, max, size [x,y,z], volume (mm³), area (mm²), open (edges on a gap in
- * the surface: used by an odd number of triangles; null when not checked), insideOut }.
+ * the surface: used by an odd number of triangles; null when not checked), insideOut, onBed (mm² of downward faces on
+ * its lowest level) }.
  */
 export function meshFacts(tris) {
   const n = Math.floor(tris.length / 9);
@@ -251,6 +373,14 @@ export function meshFacts(tris) {
     const nx = by * cz - bz * cy; const ny = bz * cx - bx * cz; const nz = bx * cy - by * cx;
     area += Math.hypot(nx, ny, nz) / 2;
     vol += (ax * nx + ay * ny + az * nz) / 6;
+  }
+  // the area of the downward faces on its lowest level: what stands on the bed as it lies
+  let onBed = 0;
+  for (let t = 0; t < n; t++) {
+    const o = t * 9;
+    if (tris[o + 2] - min[2] > 0.05 || tris[o + 5] - min[2] > 0.05 || tris[o + 8] - min[2] > 0.05) continue;
+    const nz = (tris[o + 3] - tris[o]) * (tris[o + 7] - tris[o + 1]) - (tris[o + 4] - tris[o + 1]) * (tris[o + 6] - tris[o]);
+    if (nz < 0) onBed -= nz / 2;
   }
   let open = null;
   if (n && n <= WELD_LIMIT) {
@@ -280,7 +410,7 @@ export function meshFacts(tris) {
     for (const c of edges.values()) if (c % 2) open++;
   }
   const size = n ? [max[0] - min[0], max[1] - min[1], max[2] - min[2]] : [0, 0, 0];
-  return { tris: n, min, max, size, volume: Math.abs(vol), area, open, insideOut: vol < 0 };
+  return { tris: n, min, max, size, volume: Math.abs(vol), area, open, insideOut: vol < 0, onBed };
 }
 
 // ---- printers and plastics ----
@@ -373,21 +503,29 @@ function namesIn(cell) {
 
 const globRe = (pattern) => new RegExp('^' + pattern.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*') + '$', 'i');
 
+/** "4", "4 pcs", "x2": the count, 1–999; null when it says no number (or zero). */
+function countOf(text) {
+  const m = /\d+/.exec(String(text || ''));
+  const n = m ? Number(m[0]) : 0;
+  return n > 0 ? Math.min(999, n) : null;
+}
+
 /**
- * What each part is and how to print it, from the tables in the project's READMEs: a table whose head has a
- * File column and a What or Print column. readmes: [{ path, text }], parts: the part paths. Gives
- * Map path → { what, print, readme, order } (order: where it comes in the README, for sorting).
+ * The rows of the parts tables in the project's READMEs: a table whose head has a File column and a What, Notes,
+ * Print or Material column (a Qty column gives the count). Gives [{ names, what, print, count, readme }].
  */
-export function partNotes(readmes, parts) {
-  const notes = new Map();
-  let order = 0;
+function tableRows(readmes) {
+  const out = [];
   for (const { path: readme, text } of readmes) {
     for (const block of parseMarkdown(text)) {
       if (block.t !== 'table') continue;
       const head = block.head.map((c) => plainOf(c).toLowerCase());
       const fileCol = head.findIndex((h) => /\bfiles?\b|\bparts?\b|\bstl\b/.test(h));
-      const whatCol = head.findIndex((h, i) => i !== fileCol && /\bwhat\b|\bdescription\b|\bpurpose\b|\bit is\b/.test(h));
-      const printCol = head.findIndex((h, i) => i !== fileCol && /\bprint|\bsettings?\b|\bmaterial\b/.test(h));
+      const other = (re) => head.findIndex((h, i) => i !== fileCol && re.test(h));
+      let whatCol = other(/\bwhat\b|\bdescription\b|\bpurpose\b|\bit is\b/);
+      if (whatCol < 0) whatCol = other(/\bnotes?\b|\bcomments?\b/);
+      const printCol = other(/\bprint|\bsettings?\b|\bmaterial\b|\bfilament\b/);
+      const qtyCol = other(/\bqty\b|\bquantity\b|\bcount\b|\bhow many\b|^no\.?$/);
       if (fileCol < 0 || (whatCol < 0 && printCol < 0)) continue;
       let lastPrint = '';
       for (const row of block.rows) {
@@ -395,15 +533,109 @@ export function partNotes(readmes, parts) {
         let print = printCol >= 0 ? plainOf(row[printCol] || '') : '';
         if (SAME.test(print)) print = lastPrint;
         if (print) lastPrint = print;
-        for (const name of namesIn(row[fileCol] || '')) {
-          const want = pathFrom(readme, name);
-          const re = want.includes('*') ? globRe(want) : null;
-          for (const p of parts) {
-            if (notes.has(p)) continue;
-            if (re ? re.test(p) : p.toLowerCase() === want.toLowerCase()) notes.set(p, { what, print, readme, order: order++ });
-          }
-        }
+        const count = qtyCol >= 0 ? countOf(plainOf(row[qtyCol] || '')) : null;
+        out.push({ names: namesIn(row[fileCol] || '').map((name) => pathFrom(readme, name)), shown: namesIn(row[fileCol] || ''), what, print, count, readme });
       }
+    }
+  }
+  return out;
+}
+
+const matcher = (want) => {
+  const re = want.includes('*') ? globRe(want) : null;
+  return (p) => (re ? re.test(p) : p.toLowerCase() === want.toLowerCase());
+};
+
+/**
+ * What each part is and how to print it, from the tables in the project's READMEs (see tableRows). readmes:
+ * [{ path, text }], parts: the part paths. Gives Map path → { what, print, readme, order, count? } (order: where it
+ * comes in the README, for sorting; count: how many to print, when the table has a Qty column).
+ */
+export function partNotes(readmes, parts) {
+  const notes = new Map();
+  let order = 0;
+  for (const row of tableRows(readmes)) {
+    for (const want of row.names) {
+      const match = matcher(want);
+      for (const p of parts) {
+        if (notes.has(p) || !match(p)) continue;
+        const note = { what: row.what, print: row.print, readme: row.readme, order: order++ };
+        if (row.count) note.count = row.count;
+        notes.set(p, note);
+      }
+    }
+  }
+  return notes;
+}
+
+/** The files the READMEs' parts tables list that no part in the project is: [{ name (as written), readme }]. */
+export function listedMissing(readmes, parts) {
+  const out = [];
+  const seen = new Set();
+  for (const row of tableRows(readmes)) {
+    row.names.forEach((want, i) => {
+      if (parts.some(matcher(want)) || seen.has(want.toLowerCase())) return;
+      seen.add(want.toLowerCase());
+      out.push({ name: row.shown[i], readme: row.readme });
+    });
+  }
+  return out;
+}
+
+/** One line of a CSV file, with quoted fields. */
+function csvLine(line) {
+  const out = [];
+  let cur = '';
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') quoted = false; else cur += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { out.push(cur.trim()); cur = ''; } else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+/**
+ * What BOM.csv says about the parts: its printed rows (Category "printed", or with no category column every row naming
+ * an .stl or .3mf), matched to the parts by file name, with or without the extension or a folder. A Notes column with
+ * no Material column gives the material up to its first ";". Gives the same Map as partNotes.
+ */
+export function bomNotes(csv, bomPath, parts) {
+  const notes = new Map();
+  const lines = String(csv || '').split(/\r?\n/).filter((l) => l.trim()).slice(0, 2000);
+  if (lines.length < 2) return notes;
+  const head = csvLine(lines[0]).map((c) => c.toLowerCase());
+  const col = (re) => head.findIndex((c) => re.test(c));
+  const category = col(/categ|type|kind/);
+  const item = col(/item|part|name|file/);
+  const qty = col(/qty|quantity|count/);
+  const material = col(/material|filament/);
+  const comment = col(/note|comment/);
+  if (item < 0) return notes;
+  const stem = (p) => p.split('/').pop().toLowerCase().replace(CASE_EXT, '');
+  let order = 0;
+  for (const line of lines.slice(1)) {
+    const cells = csvLine(line);
+    const name = cells[item] || '';
+    if (category >= 0 ? !/print/i.test(cells[category] || '') : !CASE_EXT.test(name)) continue;
+    let print = material >= 0 ? cells[material] || '' : '';
+    let what = comment >= 0 ? cells[comment] || '' : '';
+    if (material < 0 && what) {
+      const cut = what.indexOf(';');
+      print = cut < 0 ? what : what.slice(0, cut).trim();
+      what = cut < 0 ? '' : what.slice(cut + 1).trim();
+    }
+    const want = name.split('/').pop().toLowerCase();
+    const count = qty >= 0 ? countOf(cells[qty]) : null;
+    for (const p of parts) {
+      const base = p.split('/').pop().toLowerCase();
+      if (notes.has(p) || !(base === want || (!CASE_EXT.test(want) && stem(p) === want))) continue;
+      const note = { what, print, readme: bomPath, order: order++ };
+      if (count) note.count = count;
+      notes.set(p, note);
     }
   }
   return notes;
@@ -439,6 +671,10 @@ export function partWarnings(facts, fit, bed) {
   }
   const biggest = Math.max(...facts.size);
   if (biggest > 0 && biggest < 3) out.push({ level: 'warn', text: `It's only ${Math.round(biggest * 100) / 100} mm across: the file may be in inches or metres. Your slicer can scale it.` });
+  const mm = (v) => String(Math.round(v * 10) / 10);
+  if (facts.min && facts.min[2] > 0.05) out.push({ level: 'info', text: `It sits ${mm(facts.min[2])} mm above the bed in the file. Most slicers drop it onto the bed; check before you print.` });
+  if (facts.min && facts.min[2] < -0.05) out.push({ level: 'info', text: `It goes ${mm(-facts.min[2])} mm below the bed in the file. Most slicers lift it onto the bed, but some cut that part off; check before you print.` });
+  if (facts.tris && facts.onBed !== undefined && facts.onBed < 10 && biggest >= 3) out.push({ level: 'warn', text: 'As it lies it touches the bed only at a point or an edge: lay it on a flat side in your slicer, or it needs supports.' });
   if (facts.insideOut) out.push({ level: 'warn', text: 'Its surface faces inwards (inside out). Most slicers turn it round; if yours prints nothing, fix it in Maker Forge\'s model doctor.' });
   if (facts.open) out.push({ level: 'info', text: `Its surface has ${facts.open} open ${facts.open === 1 ? 'edge' : 'edges'}. Slicers usually mend small gaps; if layers look wrong, fix it in Maker Forge's model doctor.` });
   return out;

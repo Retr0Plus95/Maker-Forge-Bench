@@ -70,6 +70,8 @@ def _project_type(name: str) -> str | None:
         return "application/json"
     if name.lower() == "readme.md":  # 1.0.4: the README, read as a guide
         return "text/markdown; charset=utf-8"
+    if re.search(r"(^|[-_])bom\.csv$", name, re.IGNORECASE):  # 1.0.5: the printed parts' counts and plastics
+        return "text/csv; charset=utf-8"
     return PROJECT_TYPES.get(os.path.splitext(name)[1].lower())
 
 

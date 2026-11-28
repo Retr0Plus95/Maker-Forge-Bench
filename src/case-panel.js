@@ -56,6 +56,9 @@ function partRow(part, o) {
   const box = el('input', { type: 'checkbox', 'data-printed': part.path, 'data-focus': `printed-${part.path}`, 'aria-label': `${name} printed` });
   box.checked = part.printed;
   box.addEventListener('change', () => o.onPrinted(part, box.checked));
+  const fit = el('input', { type: 'checkbox', 'data-fitted': part.path, 'data-focus': `fitted-${part.path}`, 'aria-label': `${name} fitted` });
+  fit.checked = Boolean(part.fitted);
+  fit.addEventListener('change', () => o.onFitted(part, fit.checked));
   const thumb = el('button', { type: 'button', className: 'case-thumb', 'data-focus': `look-${part.path}`, title: `Look at ${name} in 3D`, 'aria-label': `Look at ${name} in 3D` });
   if (part.thumb) thumb.append(el('img', { src: part.thumb, alt: '' }));
   else thumb.append(el('span', { className: 'case-thumb-empty', 'aria-hidden': 'true' }, part.facts ? '3D' : '…'));
@@ -63,6 +66,7 @@ function partRow(part, o) {
   else thumb.disabled = true;
   const body = el('div', { className: 'case-part-body' });
   const title = el('p', { className: 'case-part-name' }, el('strong', {}, name));
+  if (part.count > 1) title.append(el('span', { className: 'case-part-count', title: `Print ${part.count}` }, ` × ${part.count}`));
   const folder = folderOf(part.path);
   if (folder) title.append(el('span', { className: 'case-part-folder' }, ` in ${folder}`));
   body.append(title);
@@ -72,7 +76,8 @@ function partRow(part, o) {
     body.append(el('p', { className: 'hint' }, 'Reading…'));
   } else {
     const material = part.material;
-    body.append(el('p', { className: 'case-part-facts' }, `${sizeText(part.facts.size)} · ${gramsText(part.plastic.grams)} of ${material} · ${metresText(part.plastic.metres)}`));
+    const each = part.count > 1 ? ` each (${gramsText(part.allPlastic.grams).replace(/^about /, '')} for ${part.count})` : '';
+    body.append(el('p', { className: 'case-part-facts' }, `${sizeText(part.facts.size)} · ${gramsText(part.plastic.grams)} of ${material}${each} · ${metresText(part.plastic.metres)}`));
   }
   if (part.notes && part.notes.what) body.append(el('p', { className: 'case-part-what' }, part.notes.what));
   if (part.notes && part.notes.print) body.append(el('p', { className: 'case-part-print' }, el('span', { className: 'case-part-label' }, 'Print: '), part.notes.print));
@@ -93,13 +98,15 @@ function partRow(part, o) {
   const href = o.fileHref(part.path);
   if (href) actions.append(el('a', { href, target: '_blank', rel: 'noopener' }, 'Open the file'));
   body.append(actions);
-  return el('li', { className: `case-part${part.printed ? ' done' : ''}${part.warnings && part.warnings.some((w) => w.level === 'warn') ? ' warn' : ''}`, 'data-part': part.path },
-    el('div', { className: 'case-part-side' }, thumb, el('label', { className: 'case-part-tick' }, box, el('span', {}, 'Printed'))), body);
+  return el('li', { className: `case-part${part.printed ? ' done' : ''}${part.fitted ? ' fitted' : ''}${part.warnings && part.warnings.some((w) => w.level === 'warn') ? ' warn' : ''}`, 'data-part': part.path },
+    el('div', { className: 'case-part-side' }, thumb, el('label', { className: 'case-part-tick' }, box, el('span', {}, 'Printed')),
+      el('label', { className: 'case-part-tick' }, fit, el('span', {}, 'Fitted'))), body);
 }
 
 /**
- * Draws the Case tab into container. o: { parts: [{ path, printed, facts, error, plastic, material, fit, warnings, notes,
- * thumb }], printer: { id, bed }, material, openOnly, fileHref(path), onPrinted(part, on), onShow(part),
+ * Draws the Case tab into container. o: { parts: [{ path, printed, fitted, count, facts, error, plastic (one), allPlastic (all
+ * copies), material, fit, warnings, notes, thumb }], printer: { id, bed }, material, openOnly, missing: [{ name, readme }],
+ * fileHref(path), onPrinted(part, on), onFitted(part, on), onShow(part),
  * onPrinter(printer), onMaterial(name), onOpenOnly(on), onCopy() }.
  */
 export function renderCase(container, o) {
@@ -109,15 +116,17 @@ export function renderCase(container, o) {
   }
   keepFocus(container, () => {
     const done = o.parts.filter((p) => p.printed).length;
+    const fitted = o.parts.filter((p) => p.fitted).length;
     const read = o.parts.filter((p) => p.facts);
-    const grams = read.reduce((s, p) => s + p.plastic.grams, 0);
-    const metres = read.reduce((s, p) => s + p.plastic.metres, 0);
+    const grams = read.reduce((s, p) => s + p.allPlastic.grams, 0);
+    const metres = read.reduce((s, p) => s + p.allPlastic.metres, 0);
+    const copies = o.parts.reduce((s, p) => s + (p.count || 1), 0);
     const kinds = [...new Set(read.map((p) => p.material))];
     const bar = el('progress', { max: String(o.parts.length) });
     bar.value = done;
     const children = [
       el('h2', {}, 'Case parts to print'),
-      el('p', { id: 'case-progress', className: 'progress-text' }, `${done} of ${o.parts.length} printed`), bar,
+      el('p', { id: 'case-progress', className: 'progress-text' }, `${done} of ${o.parts.length} printed${fitted ? `, ${fitted} fitted` : ''}`), bar,
     ];
     if (read.length) {
       const what = kinds.length === 1 ? kinds[0] : 'plastic';
@@ -125,7 +134,7 @@ export function renderCase(container, o) {
       const failed = o.parts.filter((p) => p.error).map((p) => nameOf(p.path));
       const but = reading ? ' for the ones read so far' : failed.length ? `, not counting ${failed.length === 1 ? failed[0] : `${failed.length} parts`} that couldn't be read` : '';
       children.push(el('p', { id: 'case-total', className: 'case-total' },
-        `${o.parts.length} ${o.parts.length === 1 ? 'part' : 'parts'}, ${gramsText(grams)} of ${what} (${metresText(metres)} of 1.75 mm filament)${but}.`),
+        `${o.parts.length} ${o.parts.length === 1 ? 'part' : 'parts'}${copies > o.parts.length ? ` (${copies} to print, counting copies)` : ''}, ${gramsText(grams)} of ${what} (${metresText(metres)} of 1.75 mm filament)${but}.`),
       el('p', { className: 'hint' }, 'Counted with solid walls and 15 % infill: your slicer gives the exact figure.'));
     }
     children.push(printerRow(o));
@@ -133,6 +142,11 @@ export function renderCase(container, o) {
     if (big.length) {
       children.push(el('p', { id: 'case-too-big', className: 'case-too-big', role: 'note' },
         big.length === 1 ? `${nameOf(big[0].path)} is too big for your printer as it lies.` : `${big.length} parts are too big for your printer as they lie.`));
+    }
+    if (o.missing && o.missing.length) {
+      const list = el('ul', { id: 'case-missing', className: 'case-missing' });
+      for (const m of o.missing) list.append(el('li', {}, el('code', {}, m.name), ` is listed in ${m.readme}, but isn't in the project.`));
+      children.push(el('div', { className: 'case-missing-box', role: 'note' }, el('p', {}, el('strong', {}, o.missing.length === 1 ? 'A part file is missing' : `${o.missing.length} part files are missing`)), list));
     }
     const only = el('input', { type: 'checkbox', id: 'case-open-only', 'data-focus': 'case-open-only' });
     only.checked = o.openOnly;
@@ -151,8 +165,8 @@ export function renderCase(container, o) {
 export function caseText(parts, projectName) {
   const lines = [`Case parts to print: ${projectName}`, ''];
   for (const p of parts) {
-    let line = `[${p.printed ? 'x' : ' '}] ${p.path}`;
-    if (p.facts) line += `  ${sizeText(p.facts.size)}, ${gramsText(p.plastic.grams)} of ${p.material}`;
+    let line = `[${p.printed ? 'x' : ' '}] ${p.path}${p.count > 1 ? ` × ${p.count}` : ''}${p.fitted ? ' (fitted)' : ''}`;
+    if (p.facts) line += `  ${sizeText(p.facts.size)}, ${gramsText(p.plastic.grams)} of ${p.material}${p.count > 1 ? ' each' : ''}`;
     if (p.error) line += `  (${p.error})`;
     lines.push(line);
     if (p.notes && p.notes.what) lines.push(`      ${p.notes.what}`);

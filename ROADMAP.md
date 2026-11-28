@@ -341,7 +341,10 @@ and a picture cut from the drawing, behind a mains safety list. Next agreed on 2
 parts (STL/3MF, reusing Shape's readers) with a "What you have" card, built 2026-11-27 (design
 `docs/design/2026-11-27-release-1.0.5-design.md`): every STL and 3MF in the project in a Case tab, each with its size,
 plastic, whether it fits your printer, what the README's table says, a Printed tick and a look in 3D, and What you have
-at the top of the Guide tab; then the wires drawn on the 3D
+at the top of the Guide tab. A second 1.0.5 built in parallel (2026-11-25) was folded in on top on 2026-11-27, keeping
+the parts main lacked: a Fitted tick, how many of each from a Qty column, BOM.csv for parts no README lists, the files a
+README lists that aren't there, a part floating, sunk or standing on a point, Next and Previous in Look in 3D, and a
+3MF drawn in its colours; then the wires drawn on the 3D
 board; the whole assembly later, once Shape can save one (Maker Forge Shape 0.63's parts library, with connectors on
 every part, is the start: see Maker Forge's `docs/bench-2.md`); 3 the
 drawings and part cards (11–19); 4 your board, wiring and 3D (21–23, 25–27); 5 help (38–40); then the
