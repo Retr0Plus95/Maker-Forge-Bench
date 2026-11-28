@@ -238,6 +238,13 @@ repo straight away.
   - **Start over**, which asks twice and can be undone.
   - Easy reading can follow your computer's light or dark setting.
 
+## Publishing on the website
+
+`npm run build` packs Bench into `dist/bench/` for `forge.retr0plus.se/bench/`: one script to start (the 3D view's
+pieces load when it opens), file names with a hash of their contents, and an `.htaccess` with Bench's browser rules from
+`deploy/csp.txt`, the same rules in the page too. Upload that folder as it is. It has to be the packed copy: the site's
+host refuses a visitor's 11th request in progress at once, and `src/` is about 60 scripts.
+
 ## Describe your project: `forge-project.json`
 
 Bench works on any folder of drawings, guessing parts from labels like `R6` or `U2 ATmega328P`.

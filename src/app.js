@@ -54,6 +54,7 @@ import { waitingNow, withWaiting } from './waiting.js';
 import { FAULT_SYSTEM, answerText, checksFor, faultQuestion, faultSummary, judge, symptomsFor } from './faults.js';
 import { awayFor, lastTick, timeLeft } from './resume.js';
 import { cleanDrawingProgress, drawingNeeds, notAPart, readDrawing, sheetTexts, wiresText } from './drawing.js';
+import { queuedFetch } from './fetchqueue.js';
 
 // The only Trusted Types policy: it hands SVG text to DOMParser, whose result is an inert document
 // that prepareSvg cleans before anything reaches the page.
@@ -1373,11 +1374,14 @@ function setPolarity3d(on) {
   if (board3d) board3d.setPolarity(polarity3dOn());
 }
 
+/** Files from Bench's own website, a few at a time: its host refuses an 11th request at once (fetchqueue.js). */
+const siteFetch = queuedFetch((...args) => fetch(...args), { max: 4 });
+
 /** Real parts (0.9): the library's index, fetched once when 3D first opens (null if it can't be read). */
 let libraryIndex = null;
 function libraryFor3D() {
   if (!libraryIndex) {
-    libraryIndex = fetch('library/index.json')
+    libraryIndex = siteFetch('library/index.json')
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => (j && j.format === 'maker-forge-library' && Array.isArray(j.parts) ? j : null))
       .catch(() => null);
@@ -1388,7 +1392,7 @@ function libraryFor3D() {
 let models3d = null;
 function modelsFor3D() {
   if (!models3d) {
-    const fetchBytes = (file) => fetch(`library/${file}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+    const fetchBytes = (file) => siteFetch(`library/${file}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
     models3d = Promise.all([import('./three.module.js'), import('./three-gltf-loader.js'), import('./models3d.js')])
       .then(([THREE, { GLTFLoader }, { createModels }]) => createModels(THREE, { GLTFLoader, fetchBytes }))
       .catch(() => null);

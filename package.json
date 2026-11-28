@@ -6,11 +6,13 @@
   "license": "MIT",
   "description": "A soldering drawing viewer for any electronics project, part of the Maker Forge suite.",
   "scripts": {
+    "build": "node tools/build.mjs",
     "test": "node --test \"tests/unit/*.test.js\"",
     "check:browser": "node --test --test-concurrency=1 \"tests/browser/*.test.js\""
   },
   "devDependencies": {
     "@xmldom/xmldom": "^0.9.12",
+    "esbuild": "0.28.2",
     "playwright": "^1.65.0"
   }
 }

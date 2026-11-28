@@ -236,6 +236,18 @@ nothing running on your computer. Design: `docs/design/2026-11-14-release-0.9-de
 - Security review of the cleaner and the browser rules. Real-phone and real-tablet test. User
   manual inside the app.
 - Live at `forge.retr0plus.se/bench/`, listed on the Workbench page (work done in the website repo).
+  - **Ready for the website (1.0.6, 2026-11-28)**, found while designing the Maker Forge suite, which puts Bench next to
+    Maker Forge (to be renamed Shaper) at that address:
+    - **Fixed:** straight from `src/`, Bench asked the site for about 60 scripts at once and one.com refused 42 of them
+      (it refuses a visitor's 11th request in progress), so it never started there. `npm run build` packs it into
+      `dist/bench/`: one script to start, the 3D view's pieces when it opens.
+    - **Fixed:** the 3D view asked for all its part models at once (32 for the fume extractor), so on one.com some parts
+      stayed plain blocks. They now come 4 at a time, and a refused one is asked again after the wait the host gives.
+    - **Fixed:** in a folder under Maker Forge's top folder, Bench would have got Maker Forge's looser browser rules, or
+      both sets at once (then it can't reach GitHub or Claude). The packed copy brings its own `.htaccess` written the one
+      way Apache replaces the site's rules, and the same rules in the page. Checked in Apache 2.4.58.
+    - `tests/browser/onecom.test.js` opens the packed copy through a stand-in for one.com (HTTP/2, the 11th request
+      refused) and fails without either fix.
 - **★ New: "Report a problem with this drawing."** Opens a new GitHub issue on the project's repo,
   with the sheet and part already filled in. Builders who spot a mistake can tell you in one click.
 - **Taken from Shape (added 2026-11-15; design `docs/design/2026-11-15-release-1.0-design.md`):**
